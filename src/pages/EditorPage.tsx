@@ -60,12 +60,10 @@ export default function EditorPage() {
       };
 
       // Check slug uniqueness
-      if (!id) {
-        const existing = await getDocs(query(collection(db, 'cards'), where('slug', '==', slug)));
-        const taken = existing.docs.some((d) => d.data().ownerId !== user.uid);
-        if (taken) { toast.error('That slug is taken'); setSaving(false); return; }
-        data.createdAt = serverTimestamp();
-      }
+      const existing = await getDocs(query(collection(db, 'cards'), where('slug', '==', slug)));
+      const taken = existing.docs.some((d) => d.id !== id);
+      if (taken) { toast.error('That slug is taken'); setSaving(false); return; }
+      if (!id) data.createdAt = serverTimestamp();
 
       if (id) {
         await updateDoc(doc(db, 'cards', id), data);
