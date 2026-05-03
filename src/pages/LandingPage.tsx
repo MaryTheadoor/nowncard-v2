@@ -3,6 +3,7 @@ import { Smartphone, QrCode, Download, Palette, Zap } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import AuthModal from '@/components/AuthModal';
 import { useAuth } from '@/hooks/useAuth';
+import { createPendingUpgrade, SQUARE_LINKS } from '@/lib/payments';
 
 export default function LandingPage() {
   const { user, signInEmail, signUpEmail, signInGoogle, signInAnon, error } = useAuth();
@@ -106,7 +107,7 @@ export default function LandingPage() {
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Priority support</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> All themes</li>
               </ul>
-              <button onClick={() => setAuthOpen(true)} className="block w-full py-2.5 text-center bg-accent text-space font-bold rounded-full hover:brightness-110 transition text-sm">Upgrade</button>
+              <button onClick={async () => { if (!user) { setAuthOpen(true); return; } try { await createPendingUpgrade(user.uid, 'pro', 19); const url = SQUARE_LINKS.pro + '&redirect_url=' + encodeURIComponent(window.location.origin + '/success') + '&cancel_url=' + encodeURIComponent(window.location.origin + '/cancel'); window.location.href = url; } catch {} }} className="block w-full py-2.5 text-center bg-accent text-space font-bold rounded-full hover:brightness-110 transition text-sm">Upgrade</button>
             </div>
 
             <div className="bg-tile border border-line rounded-2xl p-7 hover:-translate-y-1 hover:shadow-surface transition">
@@ -120,7 +121,7 @@ export default function LandingPage() {
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> API access</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Dedicated support</li>
               </ul>
-              <button onClick={() => setAuthOpen(true)} className="block w-full py-2.5 text-center border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition text-sm">Upgrade</button>
+              <button onClick={async () => { if (!user) { setAuthOpen(true); return; } try { await createPendingUpgrade(user.uid, 'business', 49); const url = SQUARE_LINKS.business + '&redirect_url=' + encodeURIComponent(window.location.origin + '/success') + '&cancel_url=' + encodeURIComponent(window.location.origin + '/cancel'); window.location.href = url; } catch {} }} className="block w-full py-2.5 text-center border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition text-sm">Upgrade</button>
             </div>
           </div>
         </div>

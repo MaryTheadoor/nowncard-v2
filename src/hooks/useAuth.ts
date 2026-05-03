@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import type { User } from 'firebase/auth';
 
@@ -15,7 +15,14 @@ export function useAuth() {
       setUser(u);
       setLoading(false);
       if (u) {
-        setDoc(doc(db, 'users', u.uid), { lastLogin: serverTimestamp(), email: u.email || null }, { merge: true }).catch(() => {});
+        const userRef = doc(db, 'users', u.uid);
+        getDoc(userRef).then((snap) => {
+          if (!snap.exists()) {
+            setDoc(userRef, { plan: 'free', createdAt: serverTimestamp(), lastLogin: serverTimestamp(), email: u.email || null, isAdmin: false }, { merge: true }).catch(() => {});
+          } else {
+            setDoc(userRef, { lastLogin: serverTimestamp(), email: u.email || null }, { merge: true }).catch(() => {});
+          }
+        }).catch(() => {});
       }
     });
     return unsub;

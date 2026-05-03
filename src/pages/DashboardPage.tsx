@@ -1,24 +1,28 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Pencil, Trash2, ExternalLink, Download } from 'lucide-react';
-import { collection, query, where, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { downloadVCard } from '@/lib/vcard';
 import type { Card } from '@/types';
 import { toast } from 'sonner';
+import { createPendingUpgrade, SQUARE_LINKS } from '@/lib/payments';
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
+  const [plan, setPlan] = useState<string>('free');
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate('/'); return; }
     (async () => {
       try {
+        const userSnap = await getDoc(doc(db, 'users', user.uid));
+        if (userSnap.exists()) setPlan(userSnap.data().plan || 'free');
         const snap = await getDocs(query(
           collection(db, 'cards'),
           where('ownerId', '==', user.uid)
@@ -77,14 +81,24 @@ export default function DashboardPage() {
             <img src="/nowncard-logo.png" alt="" className="h-[28px] w-auto object-contain rounded-lg" />
             <span>NownCard</span>
           </a>
-          <a href="/editor" className="flex items-center gap-2 px-4 py-2 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition">
-            <Plus className="w-4 h-4" /> New Card
-          </a>
+          <div className="flex items-center gap-3">
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border ${plan === 'business' ? 'bg-purple-950 text-purple-400 border-purple-800' : plan === 'pro' ? 'bg-amber-950 text-amber-400 border-amber-800' : 'bg-tile-soft text-ink-faint border-line'}`}>{plan}</span>
+            <a href="/editor" className="flex items-center gap-2 px-4 py-2 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition">
+              <Plus className="w-4 h-4" /> New Card
+            </a>
+          </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-5 py-8">
-        <h1 className="text-2xl font-extrabold mb-6">Your Cards</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-extrabold">Your Cards</h1>
+          {plan === 'free' && (
+            <button onClick={async () => { try { await createPendingUpgrade(user!.uid, 'pro', 19); const url = SQUARE_LINKS.pro + '&redirect_url=' + encodeURIComponent(window.location.origin + '/success') + '&cancel_url=' + encodeURIComponent(window.location.origin + '/cancel'); window.location.href = url; } catch {} }} className="px-4 py-2 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition">
+              Upgrade to Pro
+            </button>
+          )}
+        </div>
 
         {cards.length === 0 ? (
           <div className="bg-tile border border-line border-dashed rounded-2xl p-12 text-center">
