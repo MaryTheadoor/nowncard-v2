@@ -15,9 +15,9 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/editor" element={<EditorPage />} />
         <Route path="/editor/:id" element={<EditorPage />} />
-        <Route path="/:slug" element={<CardViewerPage />} />
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/cancel" element={<CancelPage />} />
+        <Route path="/card/:slug" element={<CardViewerPage />} />
         <Route path="*" element={<LandingPage />} />
       </Routes>
       <Toaster position="top-center" richColors toastOptions={{ style: { background: '#111827', border: '1px solid #1e293b', color: '#f8f9fc' } }} />

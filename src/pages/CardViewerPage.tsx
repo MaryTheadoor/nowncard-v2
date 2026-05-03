@@ -81,7 +81,7 @@ export default function CardViewerPage() {
   const name = fullName(card);
   const init = initials(card.firstName, card.lastName);
   const org = orgLine(card);
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(`${window.location.origin}/${card.slug}`)}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(`${window.location.origin}/card/${card.slug}`)}`;
   const bgStyle = card.backgroundImage ? { backgroundImage: `url('${escHtml(card.backgroundImage)}')` } : undefined;
 
   const phones = card.phones?.length ? card.phones : (card.phone ? [{ type: 'cell', number: card.phone }] : []);
