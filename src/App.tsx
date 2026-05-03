@@ -6,6 +6,7 @@ import EditorPage from '@/pages/EditorPage';
 import CardViewerPage from '@/pages/CardViewerPage';
 import SuccessPage from '@/pages/SuccessPage';
 import CancelPage from '@/pages/CancelPage';
+import AdminPage from '@/pages/AdminPage';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/editor/:id" element={<EditorPage />} />
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/cancel" element={<CancelPage />} />
+        <Route path="/admin" element={<AdminPage />} />
         <Route path="/card/:slug" element={<CardViewerPage />} />
         <Route path="*" element={<LandingPage />} />
       </Routes>
