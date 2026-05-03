@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@theme {
+  --color-space: #0a0e1a;
+  --color-space-2: #0d1220;
+  --color-tile: #111827;
+  --color-tile-soft: #1a2235;
+  --color-ink: #f8f9fc;
+  --color-ink-muted: #8a93a5;
+  --color-ink-faint: #525b70;
+  --color-accent: #c9a278;
+  --color-accent-hover: #b08a5f;
+  --color-line: #1e293b;
+  --color-line-soft: #1a2235;
+  --color-card-bg: #f4f1ec;
+  --color-danger: #ef4444;
+
+  --font-family-sans: 'Manrope', system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-family-sans);
+    background: var(--color-space);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+  ::selection {
+    background: rgba(201, 162, 120, 0.35);
+    color: #f8f9fc;
+  }
+}
+
+@layer components {
+  .card-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.15) inset,
+      0 24px 60px rgba(0,0,0,0.5),
+      0 4px 12px rgba(0,0,0,0.3);
+  }
+}
+
+@layer utilities {
+  .perspective-1200 { perspective: 1200px; }
+  .preserve-3d { transform-style: preserve-3d; }
+  .backface-hidden { backface-visibility: hidden; }
+  .rotate-y-180 { transform: rotateY(180deg); }
+}
