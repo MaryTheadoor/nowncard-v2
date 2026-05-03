@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2 } from 'lucide-react';
 import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -79,15 +79,15 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-space">
       <header className="sticky top-0 z-40 bg-space/80 backdrop-blur-xl border-b border-line-soft">
         <div className="max-w-4xl mx-auto px-5 flex items-center justify-between h-14">
-          <a href="/" className="flex items-center gap-2.5 text-ink font-bold text-[15px]">
+          <Link to="/" className="flex items-center gap-2.5 text-ink font-bold text-[15px]">
             <img src="/nowncard-logo.png" alt="" className="h-[28px] w-auto object-contain rounded-lg" />
             <span>NownCard</span>
-          </a>
+          </Link>
           <div className="flex items-center gap-3">
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border ${plan === 'business' ? 'bg-purple-950 text-purple-400 border-purple-800' : plan === 'pro' ? 'bg-amber-950 text-amber-400 border-amber-800' : 'bg-tile-soft text-ink-faint border-line'}`}>{plan}</span>
-            <a href="/editor" className="flex items-center gap-2 px-4 py-2 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition">
+            <Link to="/editor" className="flex items-center gap-2 px-4 py-2 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition">
               <Plus className="w-4 h-4" /> New Card
-            </a>
+            </Link>
           </div>
         </div>
       </header>
@@ -110,9 +110,9 @@ export default function DashboardPage() {
         {cards.length === 0 ? (
           <div className="bg-tile border border-line border-dashed rounded-2xl p-12 text-center">
             <p className="text-ink-muted mb-4">No cards yet.</p>
-            <a href="/editor" className="inline-flex items-center gap-2 px-6 py-2.5 bg-accent text-space font-bold rounded-full text-sm hover:brightness-110 transition">
+            <Link to="/editor" className="inline-flex items-center gap-2 px-6 py-2.5 bg-accent text-space font-bold rounded-full text-sm hover:brightness-110 transition">
               <Plus className="w-4 h-4" /> Create your first card
-            </a>
+            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -157,9 +157,9 @@ export default function DashboardPage() {
                   <button onClick={() => downloadVCard(c)} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
                     <Download className="w-3 h-3" /> vCard
                   </button>
-                  <a href={`/editor/${c.id}`} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
+                  <Link to={`/editor/${c.id}`} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
                     <Pencil className="w-3 h-3" /> Edit
-                  </a>
+                  </Link>
                   <button onClick={() => handleDelete(c.id!)} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-danger hover:border-danger transition">
                     <Trash2 className="w-3 h-3" /> Delete
                   </button>

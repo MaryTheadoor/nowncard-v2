@@ -92,7 +92,7 @@ export default function LandingPage() {
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> vCard export</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Basic themes</li>
               </ul>
-              <a href="/dashboard" className="block w-full py-2.5 text-center border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition text-sm">Get Started</a>
+              <a href="/editor" className="block w-full py-2.5 text-center border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition text-sm">Get Started</a>
             </div>
 
             <div className="bg-tile border-2 border-accent rounded-2xl p-7 relative hover:-translate-y-1 hover:shadow-surface transition">

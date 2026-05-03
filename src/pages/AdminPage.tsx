@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { collection, query, where, orderBy, getDocs, doc, updateDoc, serverTimestamp, limit, QueryDocumentSnapshot } from 'firebase/firestore';
+import { useNavigate, Link } from 'react-router-dom';
+import { collection, query, where, orderBy, getDocs, doc, updateDoc, serverTimestamp, limit, QueryDocumentSnapshot, getDoc } from 'firebase/firestore';
 import type { DocumentData } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
@@ -23,8 +23,8 @@ export default function AdminPage() {
     if (!user) { navigate('/'); return; }
     (async () => {
       try {
-        const snap = await getDocs(query(collection(db, 'users'), where('uid', '==', user.uid)));
-        const data = snap.empty ? null : snap.docs[0].data();
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        const data = snap.exists() ? snap.data() : null;
         if (data?.isAdmin) { setIsAdmin(true); loadPending(); }
         else { toast.error('Access denied'); navigate('/dashboard'); }
       } catch { navigate('/dashboard'); }
@@ -82,11 +82,11 @@ export default function AdminPage() {
     <div className="min-h-screen bg-space">
       <header className="sticky top-0 z-40 bg-space/80 backdrop-blur-xl border-b border-line-soft">
         <div className="max-w-5xl mx-auto px-5 flex items-center justify-between h-14">
-          <a href="/" className="flex items-center gap-2.5 text-ink font-bold text-[15px]">
+          <Link to="/" className="flex items-center gap-2.5 text-ink font-bold text-[15px]">
             <img src="/nowncard-logo.png" alt="" className="h-[28px] w-auto object-contain rounded-lg" />
             <span>Admin</span>
-          </a>
-          <a href="/dashboard" className="text-sm font-medium text-ink-muted hover:text-ink transition">Dashboard</a>
+          </Link>
+          <Link to="/dashboard" className="text-sm font-medium text-ink-muted hover:text-ink transition">Dashboard</Link>
         </div>
       </header>
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
@@ -113,10 +113,10 @@ export default function EditorPage() {
     <div className="min-h-screen bg-space">
       <header className="sticky top-0 z-40 bg-space/80 backdrop-blur-xl border-b border-line-soft">
         <div className="max-w-4xl mx-auto px-5 flex items-center justify-between h-14">
-          <a href="/" className="flex items-center gap-2.5 text-ink font-bold text-[15px]">
+          <Link to="/" className="flex items-center gap-2.5 text-ink font-bold text-[15px]">
             <img src="/nowncard-logo.png" alt="" className="h-[28px] w-auto object-contain rounded-lg" />
             <span>{id ? 'Edit Card' : 'New Card'}</span>
-          </a>
+          </Link>
           <div className="flex items-center gap-3">
             <button onClick={() => { if (id) downloadVCard(card as Card); }} className="px-4 py-2 border border-line text-ink text-sm font-bold rounded-full hover:bg-tile-soft transition" disabled={!id}>
               vCard

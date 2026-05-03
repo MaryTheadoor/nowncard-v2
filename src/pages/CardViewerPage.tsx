@@ -50,7 +50,7 @@ export default function CardViewerPage() {
         if (!cancelled) setLoading(false);
       }
     })();
-    return () => { cancelled = true; };
+    return () => { cancelled = true; document.title = 'NownCard — Digital Business Cards'; };
   }, [slug]);
 
   const track = async (type: string) => {
@@ -82,7 +82,7 @@ export default function CardViewerPage() {
   const init = initials(card.firstName, card.lastName);
   const org = orgLine(card);
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(`${window.location.origin}/card/${card.slug}`)}`;
-  const bgStyle = card.backgroundImage ? { backgroundImage: `url('${escHtml(card.backgroundImage)}')` } : undefined;
+  const bgStyle = card.backgroundImage ? { backgroundImage: `url('${card.backgroundImage}')` } : undefined;
 
   const phones = card.phones?.length ? card.phones : (card.phone ? [{ type: 'cell', number: card.phone }] : []);
   const emails = card.emails?.length ? card.emails : (card.email ? [{ type: 'work', address: card.email }] : []);

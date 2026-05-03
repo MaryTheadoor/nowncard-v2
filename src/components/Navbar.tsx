@@ -12,7 +12,7 @@ export default function Navbar({ onAuthClick, userEmail }: NavbarProps) {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-space/80 backdrop-blur-xl border-b border-line-soft">
+    <header className="sticky top-0 z-30 bg-space/80 backdrop-blur-xl border-b border-line-soft">
       <div className="max-w-6xl mx-auto px-5 flex items-center justify-between h-14">
         <Link to="/" className="flex items-center gap-2.5 text-ink font-bold text-[15px] no-underline">
           <img src="/nowncard-logo.png" alt="" className="h-[28px] w-auto object-contain rounded-lg" />
