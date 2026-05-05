@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { ExternalLink, Eye, EyeOff } from 'lucide-react';
 import CardPreview from '@/components/CardPreview';
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
@@ -27,6 +27,9 @@ export default function EditorPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
+  const slugManuallySet = useRef(false);
+  const slugDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isNewTeamCard = !id && (location.state as { isTeamCard?: boolean } | null)?.isTeamCard === true;
 
   // Load selected Google Font for live preview
@@ -75,6 +78,44 @@ export default function EditorPage() {
       }
     })();
   }, [id, user, authLoading, navigate, isNewTeamCard]);
+
+  // Auto-generate slug from name if not manually set
+  useEffect(() => {
+    if (slugManuallySet.current) return;
+    const fn = (card.firstName || '').trim();
+    const ln = (card.lastName || '').trim();
+    if (!fn && !ln) return;
+    const auto = slugify(`${fn} ${ln}`);
+    if (auto.length >= 2) {
+      queueMicrotask(() => setCard((prev) => ({ ...prev, slug: auto })));
+    }
+  }, [card.firstName, card.lastName]);
+
+  // Debounced slug availability check
+  useEffect(() => {
+    const raw = (card.slug || '').trim();
+    if (!raw) { queueMicrotask(() => setSlugStatus('idle')); return; }
+    const slug = slugify(raw);
+    if (slug.length < 3) { queueMicrotask(() => setSlugStatus('invalid')); return; }
+    if (slugDebounce.current) clearTimeout(slugDebounce.current);
+    queueMicrotask(() => setSlugStatus('checking'));
+    slugDebounce.current = setTimeout(async () => {
+      try {
+        // Check user's own cards (scoped to avoid rule issues) + publicCards for global uniqueness
+        const [ownSnap, publicSnap] = await Promise.all([
+          getDocs(query(collection(db, 'cards'), where('slug', '==', slug), where('ownerUid', '==', user!.uid))),
+          getDocs(query(collection(db, 'publicCards'), where('slug', '==', slug), limit(1))),
+        ]);
+        const ownMatch = ownSnap.docs.some((d) => d.id !== id);
+        const publicMatch = !publicSnap.empty && publicSnap.docs[0].id !== id;
+        if (ownMatch || publicMatch) setSlugStatus('taken');
+        else setSlugStatus('available');
+      } catch {
+        setSlugStatus('idle');
+      }
+    }, 400);
+    return () => { if (slugDebounce.current) clearTimeout(slugDebounce.current); };
+  }, [card.slug, user, id]);
 
   const handleSave = async () => {
     if (!user) return;
@@ -237,7 +278,29 @@ export default function EditorPage() {
             <input value={card.department || ''} onChange={(e) => updateField('department', e.target.value)} placeholder="Department" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
             <input value={card.company || ''} onChange={(e) => updateField('company', e.target.value)} placeholder="Company" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent sm:col-span-2" />
             <div className="sm:col-span-2 flex gap-2">
-              <input value={card.slug || ''} onChange={(e) => updateField('slug', e.target.value)} placeholder="Slug (e.g. jane-doe)" className="flex-1 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+              <div className="flex-1 relative">
+                <input
+                  value={card.slug || ''}
+                  onChange={(e) => { slugManuallySet.current = true; updateField('slug', e.target.value); }}
+                  placeholder="Slug (e.g. jane-doe)"
+                  className={`w-full px-3.5 py-2.5 bg-space border rounded-lg text-ink text-sm focus:outline-none focus:border-accent ${
+                    slugStatus === 'taken' || slugStatus === 'invalid' ? 'border-danger' :
+                    slugStatus === 'available' ? 'border-emerald-500' :
+                    'border-line'
+                  }`}
+                />
+                {slugStatus !== 'idle' && slugStatus !== 'checking' && (
+                  <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold uppercase tracking-wider ${
+                    slugStatus === 'taken' || slugStatus === 'invalid' ? 'text-danger' :
+                    slugStatus === 'available' ? 'text-emerald-400' : 'text-ink-faint'
+                  }`}>
+                    {slugStatus === 'taken' ? 'Taken' : slugStatus === 'invalid' ? 'Too short' : 'Available'}
+                  </span>
+                )}
+                {slugStatus === 'checking' && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-line border-t-accent rounded-full animate-spin" />
+                )}
+              </div>
               {card.slug?.trim() && (
                 <a href={`/card/${slugify(card.slug)}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-4 py-2.5 bg-tile-soft border border-line rounded-lg text-sm font-bold text-ink hover:border-accent transition cursor-pointer no-underline whitespace-nowrap">
                   <ExternalLink className="w-3.5 h-3.5" /> View
