@@ -82,7 +82,20 @@ export default function CardViewerPage() {
         else {
           setCard(data);
           setCardsDocId(cardsDocId);
-          document.title = `${fullName(data) || 'Contact'} — NownCard`;
+          const cardTitle = `${fullName(data) || 'Contact'} — NownCard`;
+          const cardDesc = data.bio || `Digital business card for ${fullName(data) || 'Contact'}`;
+          const cardImage = data.profileImage || 'https://nowncard.com/nowncard-logo.png';
+          document.title = cardTitle;
+          const setMeta = (selector: string, content: string) => {
+            const el = document.querySelector(selector) as HTMLMetaElement | null;
+            if (el) el.content = content;
+          };
+          setMeta('meta[property="og:title"]', cardTitle);
+          setMeta('meta[property="og:description"]', cardDesc);
+          setMeta('meta[property="og:image"]', cardImage);
+          setMeta('meta[name="twitter:title"]', cardTitle);
+          setMeta('meta[name="twitter:description"]', cardDesc);
+          setMeta('meta[name="twitter:image"]', cardImage);
           if (cardsDocId) {
             try { await updateDoc(doc(db, 'cards', cardsDocId), { viewCount: increment(1) }); } catch { /* no-op */ }
           }
@@ -93,7 +106,20 @@ export default function CardViewerPage() {
         if (!cancelled) setLoading(false);
       }
     })();
-    return () => { cancelled = true; document.title = 'NownCard — Digital Business Cards'; };
+    return () => {
+      cancelled = true;
+      document.title = 'NownCard — Digital Business Cards';
+      const resetMeta = (selector: string, content: string) => {
+        const el = document.querySelector(selector) as HTMLMetaElement | null;
+        if (el) el.content = content;
+      };
+      resetMeta('meta[property="og:title"]', 'NownCard — Digital Business Cards');
+      resetMeta('meta[property="og:description"]', 'Create beautiful digital business cards. Share via NFC, QR code, link, or vCard. No app required for recipients.');
+      resetMeta('meta[property="og:image"]', 'https://nowncard.com/nowncard-logo.png');
+      resetMeta('meta[name="twitter:title"]', 'NownCard — Digital Business Cards');
+      resetMeta('meta[name="twitter:description"]', 'Create beautiful digital business cards. Share via NFC, QR code, link, or vCard. No app required for recipients.');
+      resetMeta('meta[name="twitter:image"]', 'https://nowncard.com/nowncard-logo.png');
+    };
   }, [slug]);
 
   // Time-on-page tracking

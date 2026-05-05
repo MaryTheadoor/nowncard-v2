@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Disallow: /editor
+Disallow: /editor/
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /admin
+Disallow: /admin/
+Disallow: /analytics
+Disallow: /analytics/
+Disallow: /nfc
+Disallow: /nfc/
+Disallow: /success
+Disallow: /cancel
+
+Sitemap: https://nowncard.com/sitemap.xml
