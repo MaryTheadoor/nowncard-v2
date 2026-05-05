@@ -7,7 +7,7 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage
 import { db, storage } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { downloadVCard } from '@/lib/vcard';
-import { slugify, getCardLimit, GOOGLE_FONTS } from '@/lib/utils';
+import { slugify, getCardLimit, GOOGLE_FONTS, compressImage } from '@/lib/utils';
 import type { Card, SocialLink } from '@/types';
 import { toast } from 'sonner';
 
@@ -215,9 +215,12 @@ export default function EditorPage() {
 
   const handleUpload = async (field: 'profileImage' | 'backgroundImage', file: File) => {
     if (!user || !card.slug) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error('Image must be under 5MB'); return; }
     try {
-      const ref = storageRef(storage, `users/${user.uid}/cards/${card.slug}/${field}.${file.name.split('.').pop()}`);
-      await uploadBytes(ref, file);
+      const compressed = await compressImage(file, 800, 0.85);
+      const ext = file.type === 'image/png' ? 'png' : 'jpg';
+      const ref = storageRef(storage, `users/${user.uid}/cards/${card.slug}/${field}.${ext}`);
+      await uploadBytes(ref, compressed);
       const url = await getDownloadURL(ref);
       setCard({ ...card, [field]: url });
       toast.success('Image uploaded');
