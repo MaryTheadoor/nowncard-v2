@@ -10,7 +10,7 @@ import { slugify, getCardLimit, GOOGLE_FONTS } from '@/lib/utils';
 import type { Card, SocialLink } from '@/types';
 import { toast } from 'sonner';
 
-const defaultCard: Omit<Card, 'id' | 'ownerId' | 'createdAt' | 'updatedAt'> = {
+const defaultCard: Omit<Card, 'id' | 'ownerUid' | 'createdAt' | 'updatedAt'> = {
   slug: '', firstName: '', lastName: '', jobTitle: '', company: '',
   phones: [], emails: [], websites: [], addresses: [], socialLinks: [],
   accentColor: '#e8a628', cardTheme: 'light', isPublic: true,
@@ -52,7 +52,7 @@ export default function EditorPage() {
     (async () => {
       if (!id) {
         if (isNewTeamCard) {
-          setCard((prev) => ({ ...prev, isTeamCard: true, teamOwnerId: user.uid }));
+          setCard((prev) => ({ ...prev, isTeamCard: true, teamOwnerUid: user.uid }));
         }
         setLoading(false);
         return;
@@ -60,7 +60,7 @@ export default function EditorPage() {
       try {
         const snap = await getDoc(doc(db, 'cards', id));
         const data = snap.data();
-        if (snap.exists() && (data?.ownerId === user.uid || data?.teamOwnerId === user.uid)) {
+        if (snap.exists() && (data?.ownerUid === user.uid || data?.teamOwnerUid === user.uid)) {
           setCard(data as Card);
         } else {
           toast.error('Card not found');
@@ -85,7 +85,7 @@ export default function EditorPage() {
 
       // Strip Firestore metadata fields so we don't send them back
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id: _id, createdAt: _ca, updatedAt: _ua, ownerId: _oi, ...rest } = card as Record<string, unknown>;
+      const { id: _id, createdAt: _ca, updatedAt: _ua, ownerUid: _oi, ...rest } = card as Record<string, unknown>;
 
       // Strip empty array entries so we don't save blanks
       if (Array.isArray(rest.phones)) rest.phones = rest.phones.filter((p: unknown) => (p as { number?: string }).number?.trim());
@@ -118,7 +118,7 @@ export default function EditorPage() {
       });
 
       // Check slug uniqueness (scoped to user's cards to satisfy Firestore rules)
-      const existing = await getDocs(query(collection(db, 'cards'), where('slug', '==', slug), where('ownerId', '==', user.uid)));
+      const existing = await getDocs(query(collection(db, 'cards'), where('slug', '==', slug), where('ownerUid', '==', user.uid)));
       const taken = existing.docs.some((d) => d.id !== id);
       if (taken) { toast.error('That slug is taken'); setSaving(false); return; }
 
@@ -128,7 +128,7 @@ export default function EditorPage() {
       } else {
         // Enforce plan card limit (team cards don't count)
         if (!data.isTeamCard) {
-          const userCards = await getDocs(query(collection(db, 'cards'), where('ownerId', '==', user.uid)));
+          const userCards = await getDocs(query(collection(db, 'cards'), where('ownerUid', '==', user.uid)));
           const personalCount = userCards.docs.filter((d) => !d.data().isTeamCard).length;
           const limit = getCardLimit(userData?.plan);
           if (personalCount >= limit) {
@@ -137,7 +137,7 @@ export default function EditorPage() {
             return;
           }
         }
-        data.ownerId = user.uid;
+        data.ownerUid = user.uid;
         data.createdAt = serverTimestamp();
         const ref = doc(collection(db, 'cards'));
         await setDoc(ref, data);

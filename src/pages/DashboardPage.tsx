@@ -31,7 +31,7 @@ export default function DashboardPage() {
         // Load personal cards (owned by user, not team cards)
         const personalSnap = await getDocs(query(
           collection(db, 'cards'),
-          where('ownerId', '==', user.uid)
+          where('ownerUid', '==', user.uid)
         ));
         const personalList = personalSnap.docs
           .map((d) => ({ id: d.id, ...d.data() } as Card))
@@ -40,7 +40,7 @@ export default function DashboardPage() {
         // Load team cards where user is the team owner
         const teamSnap = await getDocs(query(
           collection(db, 'cards'),
-          where('teamOwnerId', '==', user.uid)
+          where('teamOwnerUid', '==', user.uid)
         ));
         const teamList = teamSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Card));
 

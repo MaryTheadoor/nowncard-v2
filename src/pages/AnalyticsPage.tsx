@@ -44,7 +44,7 @@ export default function AnalyticsPage() {
           return;
         }
         const cardData = { id: cardSnap.id, ...cardSnap.data() } as Card;
-        if (cardData.ownerId !== user.uid) {
+        if (cardData.ownerUid !== user.uid) {
           toast.error('Not authorized');
           navigate('/dashboard');
           return;

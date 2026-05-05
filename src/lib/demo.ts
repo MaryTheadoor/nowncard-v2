@@ -6,7 +6,7 @@ export async function createDemoCard(uid: string) {
   const slug = 'demo-' + Math.random().toString(36).slice(2, 8);
   const cardRef = doc(collection(db, 'cards'));
   const card = {
-    ownerId: uid,
+    ownerUid: uid,
     slug: slugify(slug),
     prefix: 'Dr.',
     firstName: 'Jane',

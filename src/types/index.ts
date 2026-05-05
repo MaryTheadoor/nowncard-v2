@@ -29,7 +29,7 @@ export interface SocialLink {
 
 export interface Card {
   id: string;
-  ownerId: string;
+  ownerUid: string;
   slug: string;
   prefix?: string;
   firstName?: string;
@@ -62,7 +62,7 @@ export interface Card {
   customFontUrl?: string;
   nameLayout?: 'personal' | 'business';
   isTeamCard?: boolean;
-  teamOwnerId?: string;
+  teamOwnerUid?: string;
   isPublic: boolean;
   viewCount?: number;
   saveCount?: number;
