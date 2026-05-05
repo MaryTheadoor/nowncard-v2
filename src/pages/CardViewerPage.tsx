@@ -187,8 +187,8 @@ export default function CardViewerPage() {
     linkHover: isDark ? 'hover:text-[#f4f1ec]' : 'hover:text-[#2a2520]',
     divider: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(42,37,32,0.12)',
     overlayGradient: isDark
-      ? 'linear-gradient(to bottom right, rgba(18,18,26,0.92), rgba(18,18,26,0.75), rgba(18,18,26,0.9))'
-      : 'linear-gradient(to bottom right, rgba(244,241,236,0.92), rgba(244,241,236,0.75), rgba(244,241,236,0.9))',
+      ? 'linear-gradient(to bottom right, rgba(18,18,26,0.55), rgba(18,18,26,0.4), rgba(18,18,26,0.6))'
+      : 'linear-gradient(to bottom right, rgba(244,241,236,0.35), rgba(244,241,236,0.25), rgba(244,241,236,0.4))',
     socialBorder: isDark ? 'border-white/10' : 'border-[rgba(42,37,32,0.12)]',
     socialText: isDark ? 'text-[#9a9186]' : 'text-[#5a5046]',
     socialHoverBg: isDark ? 'hover:bg-white/5' : 'hover:bg-[rgba(42,37,32,0.06)]',
@@ -205,7 +205,7 @@ export default function CardViewerPage() {
       {/* Card stage */}
       <div className="flex-1 flex flex-col items-center px-5 pt-2 pb-24">
         <div className="w-full max-w-[380px] aspect-[2/3.5] perspective-1200 relative">
-          <div className={`w-full h-full preserve-3d transition-transform duration-[800ms] ${flipped ? 'rotate-y-180' : ''}`} style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
+          <div className={`w-full h-full preserve-3d transition-transform duration-[800ms] ${flipped ? 'rotate-y-180' : ''}`} style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }} onClick={handleFlip} role="button" aria-label="Flip card">
             {/* Front */}
             <div className={`card-face flex flex-col ${!customBg && !isDark ? 'bg-card-bg' : ''}`} style={{ backgroundColor: tc.faceBg, boxShadow: tc.faceShadow }}>
               {card.backgroundImage && (
@@ -218,11 +218,11 @@ export default function CardViewerPage() {
                 {/* Profile */}
                 <div className="mb-4">
                   {card.profileImage ? (
-                    <div className="w-[88px] h-[88px] rounded-full overflow-hidden border-[3px] shadow-lg mx-auto" style={{ borderColor: accent }}>
+                    <div className="w-[72px] h-[72px] rounded-full overflow-hidden border-[3px] shadow-lg mx-auto" style={{ borderColor: accent }}>
                       <img src={card.profileImage} alt="" className="w-full h-full object-cover" />
                     </div>
                   ) : (
-                    <div className={`w-[88px] h-[88px] rounded-full flex items-center justify-center font-extrabold border-[3px] shadow-lg mx-auto ${tc.profileFallbackBg} ${tc.profileFallbackText}`} style={{ borderColor: accent, fontSize: sfs(26) }}>
+                    <div className={`w-[72px] h-[72px] rounded-full flex items-center justify-center font-extrabold border-[3px] shadow-lg mx-auto ${tc.profileFallbackBg} ${tc.profileFallbackText}`} style={{ borderColor: accent, fontSize: sfs(22) }}>
                       {init}
                     </div>
                   )}
@@ -249,24 +249,24 @@ export default function CardViewerPage() {
                 {/* Contact links */}
                 <div className="flex flex-col gap-2 items-center w-full">
                   {phones.map((p, i) => (
-                    <a key={`p-${i}`} href={`tel:${p.number}`} className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ fontSize: sfs(13) }} onClick={() => track('call')}>
+                    <a key={`p-${i}`} href={`tel:${p.number}`} className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ fontSize: sfs(13) }} onClick={(e) => { e.stopPropagation(); track('call'); }}>
                       <IconPhone /> {p.number}
                     </a>
                   ))}
                   {emails.map((e, i) => (
-                    <a key={`e-${i}`} href={`mailto:${e.address}`} className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ fontSize: sfs(13) }} onClick={() => track('email')}>
+                    <a key={`e-${i}`} href={`mailto:${e.address}`} className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ fontSize: sfs(13) }} onClick={(e) => { e.stopPropagation(); track('email'); }}>
                       <IconMail /> {e.address}
                     </a>
                   ))}
                   {websites.map((w, i) => (
-                    <a key={`w-${i}`} href={w.url?.startsWith('http') ? w.url : `https://${w.url}`} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ fontSize: sfs(13) }} onClick={() => track('website')}>
+                    <a key={`w-${i}`} href={w.url?.startsWith('http') ? w.url : `https://${w.url}`} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ fontSize: sfs(13) }} onClick={(e) => { e.stopPropagation(); track('website'); }}>
                       <IconGlobe /> {w.url}
                     </a>
                   ))}
                   {addrs.map((a, i) => {
                     const line = formatAddress(a);
                     return line ? (
-                      <a key={`a-${i}`} href={`https://maps.google.com/?q=${encodeURIComponent(line)}`} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ fontSize: sfs(13) }} onClick={() => track('map')}>
+                      <a key={`a-${i}`} href={`https://maps.google.com/?q=${encodeURIComponent(line)}`} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ fontSize: sfs(13) }} onClick={(e) => { e.stopPropagation(); track('map'); }}>
                         <IconPin /> {line}
                       </a>
                     ) : null;
@@ -282,9 +282,9 @@ export default function CardViewerPage() {
                         href={s.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`px-3 py-1.5 rounded-md font-bold uppercase tracking-wide border no-underline transition-colors ${tc.socialBorder} ${tc.socialText} ${tc.socialHoverBg} ${tc.socialHoverText}`}
+                        className={`px-3 py-1.5 rounded-full font-bold lowercase tracking-wide border no-underline transition-colors ${tc.socialBorder} ${tc.socialText} ${tc.socialHoverBg} ${tc.socialHoverText}`}
                         style={{ fontSize: sfs(11) }}
-                        onClick={() => track(`social:${s.platform}`)}
+                        onClick={(e) => { e.stopPropagation(); track(`social:${s.platform}`); }}
                       >
                         {PLAT[s.platform.toLowerCase()] || s.platform}
                       </a>
@@ -292,16 +292,26 @@ export default function CardViewerPage() {
                   </div>
                 )}
               </div>
+              <p className="mt-3 text-[11px] text-ink-faint" style={{ fontFamily }}>Tap to flip · QR on back</p>
             </div>
 
             {/* Back */}
-            <div className={`card-face flex flex-col items-center justify-center p-7 text-center ${!customBg && !isDark ? 'bg-card-bg' : ''}`} style={{ transform: 'rotateY(180deg)', backgroundColor: tc.faceBg, boxShadow: tc.faceShadow }}>
+            <div className={`card-face flex flex-col items-center justify-center p-7 text-center ${!customBg && !isDark ? 'bg-card-bg' : ''}`} style={{ transform: 'rotateY(180deg) translateZ(3px)', backgroundColor: tc.faceBg, boxShadow: tc.faceShadow }}>
               <img src="/nowncard-logo.png" alt="" className="h-10 w-auto object-contain mb-3" />
               <div className={`font-extrabold mb-1 ${tc.textPrimary}`} style={{ fontFamily, fontSize: sfs(18) }}>{name || 'Contact'}</div>
               <div className={`mb-5 ${tc.qrSub}`} style={{ fontFamily, fontSize: sfs(12) }}>Scan to save</div>
               <div className="bg-white rounded-xl p-3 shadow-sm mb-5">
                 <QRCodeSVG value={cardUrl} size={150} level="M" includeMargin={false} />
               </div>
+              <div className="flex flex-wrap gap-2 justify-center">
+                <button onClick={(e) => { e.stopPropagation(); downloadVCard(card); track('save'); if (cardsDocId) { try { updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch { /* no-op */ } } }} className="px-4 py-2 rounded-full text-sm font-bold bg-card-bg text-space hover:brightness-105 transition">
+                  Save Contact
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); } else { promise.then(() => track('share')).catch(() => setShareOpen(true)); } }} className="px-4 py-2 rounded-full text-sm font-bold bg-transparent text-ink border border-line hover:bg-tile-soft transition">
+                  Share
+                </button>
+              </div>
+              <p className="mt-4 text-[11px] text-ink-faint" style={{ fontFamily }}>Tap to flip back</p>
             </div>
           </div>
         </div>
@@ -321,20 +331,20 @@ export default function CardViewerPage() {
       </div>
 
       {/* Mobile sticky bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-line bg-[rgba(10,14,26,0.92)] backdrop-blur-xl px-4 py-3 flex gap-2.5">
-        <button onClick={async () => { downloadVCard(card); track('save'); if (cardsDocId) { try { await updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch { /* no-op */ } } }} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[15px] font-bold bg-card-bg text-space border-none cursor-pointer hover:brightness-105 transition">
-          <IconDownload /> Save
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-[rgba(42,37,32,0.12)] bg-[#f4f1ec] px-4 py-3 flex gap-2.5">
+        <button onClick={async () => { downloadVCard(card); track('save'); if (cardsDocId) { try { await updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch { /* no-op */ } } }} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[15px] font-bold bg-[#1a1612] text-[#f4f1ec] border-none cursor-pointer hover:brightness-110 transition">
+          <IconDownload /> Save to Contacts
         </button>
-        <button onClick={handleFlip} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[15px] font-bold bg-transparent text-ink border border-line cursor-pointer hover:bg-white/5 transition">
+        <button onClick={handleFlip} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[15px] font-bold bg-transparent text-[#1a1612] border border-[rgba(42,37,32,0.2)] cursor-pointer hover:bg-[rgba(42,37,32,0.06)] transition">
           {flipped ? 'Card' : 'QR'}
         </button>
-        <button onClick={() => { const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); return; } promise.then(() => track('share')).catch(() => setShareOpen(true)); }} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[15px] font-bold bg-transparent text-ink border border-line cursor-pointer hover:bg-white/5 transition">
+        <button onClick={() => { const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); return; } promise.then(() => track('share')).catch(() => setShareOpen(true)); }} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[15px] font-bold bg-transparent text-[#1a1612] border border-[rgba(42,37,32,0.2)] cursor-pointer hover:bg-[rgba(42,37,32,0.06)] transition">
           Share
         </button>
       </div>
 
       {/* Footer */}
-      <div className="text-center py-6">
+      <div className="text-center py-6 pb-24 md:pb-6">
         <Link to="/" className="text-xs font-semibold text-ink-faint hover:text-ink no-underline">Built with NownCard</Link>
         <p className="text-[10px] text-ink-faint mt-1">
           © 2026 NownCard — A product of{' '}
