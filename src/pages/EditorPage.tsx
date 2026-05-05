@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Eye, EyeOff } from 'lucide-react';
+import CardPreview from '@/components/CardPreview';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
@@ -25,6 +26,7 @@ export default function EditorPage() {
   const [card, setCard] = useState<Partial<Card>>(defaultCard);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const isNewTeamCard = !id && (location.state as { isTeamCard?: boolean } | null)?.isTeamCard === true;
 
   // Load selected Google Font for live preview
@@ -220,7 +222,8 @@ export default function EditorPage() {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-5 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-5 flex flex-col lg:flex-row gap-6 py-8">
+        <main className="flex-1 min-w-0 max-w-2xl">
         <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
           <h2 className="text-lg font-bold mb-4">Basic Info</h2>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
@@ -502,6 +505,36 @@ export default function EditorPage() {
           </div>
         </div>
       </main>
+
+        {/* Desktop sticky preview */}
+        <aside className="hidden lg:block lg:w-[40%] lg:max-w-[420px] lg:sticky lg:top-20 lg:self-start">
+          <div className="bg-tile border border-line rounded-2xl p-4">
+            <div className="text-[10px] text-ink-faint uppercase tracking-wider font-semibold mb-3">Live Preview</div>
+            <CardPreview card={card} />
+          </div>
+        </aside>
+      </div>
+
+      {/* Mobile preview toggle */}
+      <button
+        onClick={() => setPreviewOpen((o) => !o)}
+        className="lg:hidden fixed bottom-4 right-4 z-50 w-12 h-12 rounded-full bg-accent text-space flex items-center justify-center shadow-lg hover:brightness-110 transition"
+        aria-label="Toggle preview"
+      >
+        {previewOpen ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+      </button>
+
+      {previewOpen && (
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6" onClick={() => setPreviewOpen(false)}>
+          <div className="bg-tile border border-line rounded-2xl p-4 max-w-[380px] w-full" onClick={(e) => e.stopPropagation()}>
+            <div className="text-[10px] text-ink-faint uppercase tracking-wider font-semibold mb-3">Live Preview</div>
+            <CardPreview card={card} />
+            <button onClick={() => setPreviewOpen(false)} className="mt-4 w-full py-2 bg-accent text-space font-bold rounded-full text-sm hover:brightness-110 transition">
+              Close Preview
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
