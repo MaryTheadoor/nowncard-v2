@@ -17,6 +17,11 @@ export interface Address {
   country?: string;
 }
 
+export interface Website {
+  type: string;
+  url: string;
+}
+
 export interface SocialLink {
   platform: string;
   url: string;
@@ -42,6 +47,7 @@ export interface Card {
   addresses?: Address[];
   address?: string;
   website?: string;
+  websites?: Website[];
   socialLinks?: SocialLink[] | Record<string, string>;
   birthday?: string;
   anniversary?: string;
@@ -49,6 +55,14 @@ export interface Card {
   profileImage?: string;
   backgroundImage?: string;
   accentColor?: string;
+  cardTheme?: 'light' | 'dark';
+  cardBgColor?: string;
+  fontFamily?: string;
+  fontSizeScale?: number;
+  customFontUrl?: string;
+  nameLayout?: 'personal' | 'business';
+  isTeamCard?: boolean;
+  teamOwnerId?: string;
   isPublic: boolean;
   viewCount?: number;
   saveCount?: number;

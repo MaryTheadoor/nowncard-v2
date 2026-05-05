@@ -38,8 +38,13 @@
     position: absolute;
     inset: 0;
     backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
     border-radius: 20px;
     overflow: hidden;
+    /* Push face forward in 3D space to ensure clean separation from the opposite face.
+       Increased from 1px to 3px for stronger isolation across all browsers. */
+    -webkit-transform: translateZ(3px);
+    transform: translateZ(3px);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.15) inset,
       0 24px 60px rgba(0,0,0,0.5),
@@ -48,9 +53,9 @@
 }
 
 @layer utilities {
-  .perspective-1200 { perspective: 1200px; }
-  .preserve-3d { transform-style: preserve-3d; }
-  .backface-hidden { backface-visibility: hidden; }
+  .perspective-1200 { perspective: 1200px; -webkit-perspective: 1200px; }
+  .preserve-3d { transform-style: preserve-3d; -webkit-transform-style: preserve-3d; }
+  .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
   .rotate-y-180 { transform: rotateY(180deg); }
   .shadow-card {
     box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 24px 60px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.25);

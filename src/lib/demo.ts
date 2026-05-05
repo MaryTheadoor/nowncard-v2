@@ -20,7 +20,7 @@ export async function createDemoCard(uid: string) {
     phones: [{ type: 'Cell', number: '+1 (555) 123-4567' }, { type: 'Work', number: '+1 (555) 987-6543' }],
     emails: [{ type: 'Work', address: 'jane.doe@acme.com' }, { type: 'Personal', address: 'jane@gmail.com' }],
     addresses: [{ type: 'Work', street: '123 Main St', city: 'New York', state: 'NY', zip: '10001', country: 'USA' }],
-    website: 'acme.com',
+    websites: [{ type: 'Work', url: 'https://acme.com' }, { type: 'Portfolio', url: 'https://janedoe.design' }],
     socialLinks: [
       { platform: 'LinkedIn', url: 'https://linkedin.com/in/janedoe' },
       { platform: 'Twitter', url: 'https://twitter.com/janedoe' },

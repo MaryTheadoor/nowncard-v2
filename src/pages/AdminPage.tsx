@@ -1,22 +1,32 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { collection, query, where, orderBy, getDocs, doc, updateDoc, serverTimestamp, limit, QueryDocumentSnapshot, getDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs, doc, updateDoc, serverTimestamp, limit, QueryDocumentSnapshot, getDoc, setDoc } from 'firebase/firestore';
 import type { DocumentData } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
-import { Search, Shield, User } from 'lucide-react';
+import { Search, Shield, User, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
+
+const BOOTSTRAP_ADMIN_UID = 'EeiBBDTu5jOooHbxyOC98JSlt6r1';
 
 export default function AdminPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
+  const [canBootstrap, setCanBootstrap] = useState(false);
 
   const [pending, setPending] = useState<{ id: string; uid: string; plan: string; price: number; createdAt: unknown }[]>([]);
   const [userSearch, setUserSearch] = useState('');
   const [users, setUsers] = useState<{ id: string; email: string; plan: string; cardCount: number }[]>([]);
   const [, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+
+  const loadPending = async () => {
+    try {
+      const snap = await getDocs(query(collection(db, 'pendingUpgrades'), where('used', '==', false), orderBy('createdAt', 'desc'), limit(50)));
+      setPending(snap.docs.map((d) => ({ id: d.id, ...d.data() } as { id: string; uid: string; plan: string; price: number; createdAt: unknown })));
+    } catch { toast.error('Failed to load pending upgrades'); }
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -26,26 +36,28 @@ export default function AdminPage() {
         const snap = await getDoc(doc(db, 'users', user.uid));
         const data = snap.exists() ? snap.data() : null;
         if (data?.isAdmin) { setIsAdmin(true); loadPending(); }
+        else if (user.uid === BOOTSTRAP_ADMIN_UID) { setCanBootstrap(true); }
         else { toast.error('Access denied'); navigate('/dashboard'); }
       } catch { navigate('/dashboard'); }
       finally { setCheckingAdmin(false); }
     })();
   }, [user, authLoading, navigate]);
 
-  const loadPending = async () => {
-    try {
-      const snap = await getDocs(query(collection(db, 'pendingUpgrades'), where('used', '==', false), orderBy('createdAt', 'desc'), limit(50)));
-      setPending(snap.docs.map((d) => ({ id: d.id, ...d.data() } as { id: string; uid: string; plan: string; price: number; createdAt: unknown })));
-    } catch { toast.error('Failed to load pending upgrades'); }
-  };
-
   const searchUsers = async () => {
     try {
-      const q = userSearch.trim()
-        ? query(collection(db, 'users'), where('email', '>=', userSearch), where('email', '<=', userSearch + '\uf8ff'), limit(20))
-        : query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(20));
+      const search = userSearch.trim();
+      let q;
+      if (search) {
+        q = query(collection(db, 'users'), where('email', '>=', search), where('email', '<=', search + '\uf8ff'), limit(20));
+      } else {
+        // Simple query without orderBy to avoid composite index requirement
+        q = query(collection(db, 'users'), limit(20));
+      }
       const snap = await getDocs(q);
-      setUsers(snap.docs.map((d) => ({ id: d.id, email: d.data().email || '-', plan: d.data().plan || 'free', cardCount: d.data().cardCount || 0 })));
+      const list = snap.docs.map((d) => ({ id: d.id, email: d.data().email || '-', plan: d.data().plan || 'free', cardCount: d.data().cardCount || 0 }));
+      // Sort client-side to avoid needing a composite index
+      list.sort((a, b) => a.email.localeCompare(b.email));
+      setUsers(list);
       setLastDoc(snap.docs[snap.docs.length - 1] || null);
     } catch { toast.error('Search failed'); }
   };
@@ -67,11 +79,39 @@ export default function AdminPage() {
     } catch { toast.error('Failed to update plan'); }
   };
 
+  const handleBootstrap = async () => {
+    if (!user) return;
+    try {
+      await setDoc(doc(db, 'users', user.uid), { isAdmin: true, plan: 'business', planUpdatedAt: serverTimestamp() }, { merge: true });
+      toast.success('You are now admin');
+      setIsAdmin(true);
+      setCanBootstrap(false);
+      loadPending();
+    } catch {
+      toast.error('Failed to set admin');
+    }
+  };
+
   if (checkingAdmin) {
     return (
       <div className="min-h-screen bg-space flex flex-col items-center justify-center text-ink-muted">
         <div className="w-6 h-6 border-2 border-line border-t-accent rounded-full animate-spin mb-4" />
         <p>Checking access…</p>
+      </div>
+    );
+  }
+
+  if (canBootstrap) {
+    return (
+      <div className="min-h-screen bg-space flex flex-col items-center justify-center px-6">
+        <div className="bg-tile border border-line rounded-2xl p-8 max-w-sm w-full text-center">
+          <KeyRound className="w-10 h-10 text-accent mx-auto mb-4" />
+          <h1 className="text-xl font-extrabold mb-2">Admin Setup</h1>
+          <p className="text-sm text-ink-muted mb-6">This account is eligible for admin privileges. Click below to activate admin access.</p>
+          <button onClick={handleBootstrap} className="w-full px-5 py-2.5 bg-accent text-space font-bold rounded-full hover:brightness-110 transition">
+            Activate Admin
+          </button>
+        </div>
       </div>
     );
   }

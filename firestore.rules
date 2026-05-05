@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // Users: self access; admin full access
+    match /users/{uid} {
+      allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow create: if request.auth != null && request.auth.uid == uid;
+      allow update, delete: if request.auth != null && (request.auth.uid == uid || isAdmin());
+    }
+
+    // Cards: owners and team owners have control; public readable; admin can read any
+    match /cards/{cardId} {
+      allow read: if resource.data.isPublic == true || (request.auth != null && resource.data.ownerId == request.auth.uid) || (request.auth != null && resource.data.teamOwnerId == request.auth.uid) || isAdmin();
+      allow create: if request.auth != null && (request.resource.data.ownerId == request.auth.uid || request.resource.data.teamOwnerId == request.auth.uid);
+      allow update: if request.auth != null && (resource.data.ownerId == request.auth.uid || resource.data.teamOwnerId == request.auth.uid || isAdmin());
+      allow delete: if request.auth != null && (resource.data.ownerId == request.auth.uid || resource.data.teamOwnerId == request.auth.uid || isAdmin());
+    }
+
+    // Public cards: readable by anyone, writable only by admin/cloud functions
+    match /publicCards/{slug} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Analytics: writable by anyone (for tap tracking), readable by auth users or admin
+    match /analytics/{docId} {
+      allow read: if request.auth != null || isAdmin();
+      allow write: if true;
+    }
+
+    // Pending upgrades: owner CRUD; admin read all
+    match /pendingUpgrades/{docId} {
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow read: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
+      allow update: if isAdmin();
+      allow delete: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
+    }
+
+    // Upgrades: readable by admin only
+    match /upgrades/{docId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+  }
+}

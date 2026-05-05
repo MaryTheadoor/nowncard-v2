@@ -40,7 +40,13 @@ export function generateVCard(card: Card | Partial<Card>): string {
     parts.push(`EMAIL;TYPE=WORK:${card.email}`);
   }
 
-  if (card.website) {
+  if (card.websites?.length) {
+    card.websites.forEach((w) => {
+      if (!w.url) return;
+      const url = w.url.startsWith('http') ? w.url : `https://${w.url}`;
+      parts.push(`URL:${url}`);
+    });
+  } else if (card.website) {
     const url = card.website.startsWith('http') ? card.website : `https://${card.website}`;
     parts.push(`URL:${url}`);
   }

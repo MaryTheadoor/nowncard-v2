@@ -8,7 +8,7 @@ export default function CancelPage() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        try { await cancelPendingUpgrades(user.uid); } catch {}
+        try { await cancelPendingUpgrades(user.uid); } catch { /* no-op */ }
       }
     });
     return unsub;

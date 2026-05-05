@@ -1,16 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Smartphone, QrCode, Download, Palette, Zap } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import AuthModal from '@/components/AuthModal';
 import { useAuth } from '@/hooks/useAuth';
 import { createPendingUpgrade, SQUARE_LINKS } from '@/lib/payments';
+import { toast } from 'sonner';
 
 export default function LandingPage() {
-  const { user, signInEmail, signUpEmail, signInGoogle, signInAnon, error } = useAuth();
+  const { user, signInEmail, signUpEmail, signInGoogle, linkGoogle, signInAnon, error } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
 
+  useEffect(() => {
+    if (window.location.hash) {
+      const el = document.querySelector(window.location.hash);
+      if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 100);
+    }
+  }, []);
+
   return (
-    <div className="min-h-screen bg-space">
+    <div className="min-h-screen bg-space overflow-x-hidden">
       <Navbar onAuthClick={() => setAuthOpen(true)} userEmail={user?.email} />
 
       {/* Hero */}
@@ -25,7 +34,12 @@ export default function LandingPage() {
           Create a beautiful digital card in seconds. Share via NFC, QR code, link, or vCard. No app required for recipients.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <a href="/editor" className="px-7 py-3 bg-accent text-space font-bold rounded-full hover:brightness-110 transition">Create Your Card</a>
+          {user ? (
+            <Link to="/editor" className="px-7 py-3 bg-accent text-space font-bold rounded-full hover:brightness-110 transition inline-block no-underline">Create Your Card</Link>
+          ) : (
+            <button onClick={() => setAuthOpen(true)} className="px-7 py-3 bg-accent text-space font-bold rounded-full hover:brightness-110 transition cursor-pointer">Create Your Card</button>
+          )}
+          <Link to="/rolodex" className="px-7 py-3 border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition inline-block no-underline">Browse Cards</Link>
           <a href="#features" className="px-7 py-3 border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition">Learn More</a>
         </div>
 
@@ -90,46 +104,65 @@ export default function LandingPage() {
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> 1 digital card</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> NFC + QR sharing</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> vCard export</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Basic themes</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Light &amp; dark themes</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Rolodex directory</li>
               </ul>
-              <a href="/editor" className="block w-full py-2.5 text-center border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition text-sm">Get Started</a>
+              {user ? (
+                <Link to="/editor" className="block w-full py-2.5 text-center border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition text-sm no-underline">Get Started</Link>
+              ) : (
+                <button onClick={() => setAuthOpen(true)} className="block w-full py-2.5 text-center border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition text-sm cursor-pointer">Get Started</button>
+              )}
             </div>
 
             <div className="bg-tile border-2 border-accent rounded-2xl p-7 relative hover:-translate-y-1 hover:shadow-surface transition">
               <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-space text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Most Popular</span>
               <h3 className="text-xl font-extrabold">Pro</h3>
               <p className="text-sm text-ink-faint mt-1">For professionals</p>
-              <div className="flex items-baseline gap-1 my-4"><span className="text-4xl font-extrabold">$19</span><span className="text-sm text-ink-faint">one-time</span></div>
+              <div className="flex items-baseline gap-1 my-4"><span className="text-4xl font-extrabold">$19</span><span className="text-sm text-ink-faint">/year</span></div>
               <ul className="space-y-2 text-sm text-ink-muted mb-6">
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Up to 5 cards</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Custom domain</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Analytics</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Priority support</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> All themes</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> 10 curated fonts</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Custom colors &amp; backgrounds</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Analytics dashboard</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> No branding</li>
               </ul>
-              <button onClick={async () => { if (!user) { setAuthOpen(true); return; } try { await createPendingUpgrade(user.uid, 'pro', 19); const url = SQUARE_LINKS.pro + '&redirect_url=' + encodeURIComponent(window.location.origin + '/success') + '&cancel_url=' + encodeURIComponent(window.location.origin + '/cancel'); window.location.href = url; } catch {} }} className="block w-full py-2.5 text-center bg-accent text-space font-bold rounded-full hover:brightness-110 transition text-sm">Upgrade</button>
+              <button onClick={async () => { if (!user) { setAuthOpen(true); return; } try { await createPendingUpgrade(user.uid, 'pro', 19); const url = SQUARE_LINKS.pro + '&redirect_url=' + encodeURIComponent(window.location.origin + '/success') + '&cancel_url=' + encodeURIComponent(window.location.origin + '/cancel'); window.location.href = url; } catch (e) { console.error(e); toast.error('Payment setup failed. Please try again.'); } }} className="block w-full py-2.5 text-center bg-accent text-space font-bold rounded-full hover:brightness-110 transition text-sm cursor-pointer">Upgrade</button>
             </div>
 
             <div className="bg-tile border border-line rounded-2xl p-7 hover:-translate-y-1 hover:shadow-surface transition">
               <h3 className="text-xl font-extrabold">Business</h3>
               <p className="text-sm text-ink-faint mt-1">For teams</p>
-              <div className="flex items-baseline gap-1 my-4"><span className="text-4xl font-extrabold">$49</span><span className="text-sm text-ink-faint">one-time</span></div>
+              <div className="flex items-baseline gap-1 my-4"><span className="text-4xl font-extrabold">$39</span><span className="text-sm text-ink-faint">/year</span></div>
               <ul className="space-y-2 text-sm text-ink-muted mb-6">
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Unlimited cards</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Team management</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> White-label</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> API access</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Dedicated support</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Upload your own font</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Business name layout</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> White-label cards</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Everything in Pro</li>
               </ul>
-              <button onClick={async () => { if (!user) { setAuthOpen(true); return; } try { await createPendingUpgrade(user.uid, 'business', 49); const url = SQUARE_LINKS.business + '&redirect_url=' + encodeURIComponent(window.location.origin + '/success') + '&cancel_url=' + encodeURIComponent(window.location.origin + '/cancel'); window.location.href = url; } catch {} }} className="block w-full py-2.5 text-center border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition text-sm">Upgrade</button>
+              <button onClick={async () => { if (!user) { setAuthOpen(true); return; } try { await createPendingUpgrade(user.uid, 'business', 49); const url = SQUARE_LINKS.business + '&redirect_url=' + encodeURIComponent(window.location.origin + '/success') + '&cancel_url=' + encodeURIComponent(window.location.origin + '/cancel'); window.location.href = url; } catch (e) { console.error(e); toast.error('Payment setup failed. Please try again.'); } }} className="block w-full py-2.5 text-center border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition text-sm cursor-pointer">Upgrade</button>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Support */}
+      <section className="py-14 px-6 text-center max-w-xl mx-auto">
+        <h2 className="text-xl font-extrabold mb-2">Support NownCard</h2>
+        <p className="text-sm text-ink-muted mb-5">
+          We're keeping the platform ad-free. If NownCard helps you land a client or save a contact, a tip goes directly toward server costs.
+        </p>
+        <a href="https://square.link/u/ZyAyKBUp?src=sheet" target="_blank" rel="noopener noreferrer" className="px-6 py-2.5 border border-line text-ink text-sm font-bold rounded-full hover:bg-tile-soft transition inline-block no-underline">
+          Leave a Tip
+        </a>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-line-soft py-8 text-center">
-        <p className="text-sm text-ink-faint">© 2025 NownCard. All rights reserved.</p>
+        <p className="text-sm text-ink-faint">
+          © 2026 NownCard — A product of{' '}
+          <a href="https://www.nowndigital.com" target="_blank" rel="noopener noreferrer" className="text-ink-muted hover:text-ink underline underline-offset-2">NOWN Digital</a>
+        </p>
       </footer>
 
       <AuthModal
@@ -138,8 +171,10 @@ export default function LandingPage() {
         onSignInEmail={signInEmail}
         onSignUpEmail={signUpEmail}
         onSignInGoogle={signInGoogle}
+        onLinkGoogle={linkGoogle}
         onSignInAnon={signInAnon}
         error={error}
+        isAuthenticated={!!user}
       />
     </div>
   );

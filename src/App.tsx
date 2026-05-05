@@ -7,6 +7,9 @@ import CardViewerPage from '@/pages/CardViewerPage';
 import SuccessPage from '@/pages/SuccessPage';
 import CancelPage from '@/pages/CancelPage';
 import AdminPage from '@/pages/AdminPage';
+import NfcPage from '@/pages/NfcPage';
+import AnalyticsPage from '@/pages/AnalyticsPage';
+import RolodexPage from '@/pages/RolodexPage';
 
 function App() {
   return (
@@ -20,6 +23,9 @@ function App() {
         <Route path="/cancel" element={<CancelPage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/card/:slug" element={<CardViewerPage />} />
+        <Route path="/nfc/:slug" element={<NfcPage />} />
+        <Route path="/analytics/:id" element={<AnalyticsPage />} />
+        <Route path="/rolodex" element={<RolodexPage />} />
         <Route path="*" element={<LandingPage />} />
       </Routes>
       <Toaster position="top-center" richColors toastOptions={{ style: { background: '#111827', border: '1px solid #1e293b', color: '#f8f9fc' } }} />
