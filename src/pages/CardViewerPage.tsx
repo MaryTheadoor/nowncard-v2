@@ -229,7 +229,7 @@ export default function CardViewerPage() {
       <Navbar onAuthClick={() => setAuthOpen(true)} onSignOut={() => {}} userEmail={user?.email} />
 
       {/* Card stage */}
-      <div className="flex-1 flex flex-col items-center px-5 pt-2 pb-24">
+      <div className="flex-1 flex flex-col items-center px-5 pt-2 pb-8">
         <div className="w-full max-w-[380px] aspect-[2/3.5] perspective-1200 relative">
           <div className={`w-full h-full preserve-3d transition-transform duration-[800ms] ${flipped ? 'rotate-y-180' : ''}`} style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }} onClick={handleFlip} role="button" aria-label="Flip card">
             {/* Front */}
@@ -342,35 +342,22 @@ export default function CardViewerPage() {
           </div>
         </div>
 
-        {/* Desktop action bar */}
-        <div className="hidden md:flex flex-wrap gap-2.5 justify-center mt-6 max-w-[380px] w-full">
-          <button onClick={async () => { downloadVCard(card); track('save'); if (cardsDocId) { try { await updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch { /* no-op */ } } }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-card-bg text-space border-none cursor-pointer hover:brightness-105 transition">
-            <IconDownload /> Save
+        {/* Action bar — pinned below card, dark palette */}
+        <div className="flex flex-wrap gap-2.5 justify-center mt-6 max-w-[380px] w-full">
+          <button onClick={async () => { downloadVCard(card); track('save'); if (cardsDocId) { try { await updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch { /* no-op */ } } }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-accent text-space border-none cursor-pointer hover:brightness-110 transition">
+            <IconDownload /> Save to Contacts
           </button>
-          <button onClick={handleFlip} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-transparent text-ink border border-line cursor-pointer hover:bg-tile-soft transition">
+          <button onClick={handleFlip} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-tile text-ink border border-line cursor-pointer hover:bg-tile-soft transition">
             {flipped ? 'Show Card' : 'Show QR'}
           </button>
-          <button onClick={() => { const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); return; } promise.then(() => track('share')).catch(() => setShareOpen(true)); }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-transparent text-ink border border-line cursor-pointer hover:bg-tile-soft transition">
+          <button onClick={() => { const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); return; } promise.then(() => track('share')).catch(() => setShareOpen(true)); }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-tile text-ink border border-line cursor-pointer hover:bg-tile-soft transition">
             Share
           </button>
         </div>
       </div>
 
-      {/* Mobile sticky bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-[rgba(42,37,32,0.12)] bg-[#f4f1ec] px-4 py-3 flex gap-2.5">
-        <button onClick={async () => { downloadVCard(card); track('save'); if (cardsDocId) { try { await updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch { /* no-op */ } } }} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[15px] font-bold bg-[#1a1612] text-[#f4f1ec] border-none cursor-pointer hover:brightness-110 transition">
-          <IconDownload /> Save to Contacts
-        </button>
-        <button onClick={handleFlip} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[15px] font-bold bg-transparent text-[#1a1612] border border-[rgba(42,37,32,0.2)] cursor-pointer hover:bg-[rgba(42,37,32,0.06)] transition">
-          {flipped ? 'Card' : 'QR'}
-        </button>
-        <button onClick={() => { const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); return; } promise.then(() => track('share')).catch(() => setShareOpen(true)); }} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[15px] font-bold bg-transparent text-[#1a1612] border border-[rgba(42,37,32,0.2)] cursor-pointer hover:bg-[rgba(42,37,32,0.06)] transition">
-          Share
-        </button>
-      </div>
-
       {/* Footer */}
-      <div className="text-center py-6 pb-24 md:pb-6">
+      <div className="text-center py-6">
         <Link to="/" className="text-xs font-semibold text-ink-faint hover:text-ink no-underline">Built with NownCard</Link>
         <p className="text-[10px] text-ink-faint mt-1">
           © 2026 NownCard — A product of{' '}

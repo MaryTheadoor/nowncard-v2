@@ -28,21 +28,27 @@ export default function DashboardPage() {
         const userSnap = await getDoc(doc(db, 'users', user.uid));
         if (userSnap.exists()) setPlan(userSnap.data().plan || 'free');
 
-        // Load personal cards (owned by user, not team cards)
-        const personalSnap = await getDocs(query(
-          collection(db, 'cards'),
-          where('ownerUid', '==', user.uid)
-        ));
-        const personalList = personalSnap.docs
-          .map((d) => ({ id: d.id, ...d.data() } as Card))
-          .filter((c) => !c.isTeamCard);
+        // Load personal cards — query both ownerUid (new + old static app) and ownerId (legacy React cards)
+        const [personalSnapUid, personalSnapId] = await Promise.all([
+          getDocs(query(collection(db, 'cards'), where('ownerUid', '==', user.uid))),
+          getDocs(query(collection(db, 'cards'), where('ownerId', '==', user.uid))),
+        ]);
+        const personalMap = new Map<string, Card>();
+        [...personalSnapUid.docs, ...personalSnapId.docs].forEach((d) => {
+          if (!personalMap.has(d.id)) personalMap.set(d.id, { id: d.id, ...d.data() } as Card);
+        });
+        const personalList = Array.from(personalMap.values()).filter((c) => !c.isTeamCard);
 
-        // Load team cards where user is the team owner
-        const teamSnap = await getDocs(query(
-          collection(db, 'cards'),
-          where('teamOwnerUid', '==', user.uid)
-        ));
-        const teamList = teamSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Card));
+        // Load team cards — query both teamOwnerUid and teamOwnerId
+        const [teamSnapUid, teamSnapId] = await Promise.all([
+          getDocs(query(collection(db, 'cards'), where('teamOwnerUid', '==', user.uid))),
+          getDocs(query(collection(db, 'cards'), where('teamOwnerId', '==', user.uid))),
+        ]);
+        const teamMap = new Map<string, Card>();
+        [...teamSnapUid.docs, ...teamSnapId.docs].forEach((d) => {
+          if (!teamMap.has(d.id)) teamMap.set(d.id, { id: d.id, ...d.data() } as Card);
+        });
+        const teamList = Array.from(teamMap.values());
 
         // Combine and sort by updatedAt
         const sortByUpdated = (a: Card, b: Card) => {

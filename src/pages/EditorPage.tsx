@@ -65,7 +65,9 @@ export default function EditorPage() {
       try {
         const snap = await getDoc(doc(db, 'cards', id));
         const data = snap.data();
-        if (snap.exists() && (data?.ownerUid === user.uid || data?.teamOwnerUid === user.uid)) {
+        const isOwner = data?.ownerUid === user.uid || data?.ownerId === user.uid;
+        const isTeamOwner = data?.teamOwnerUid === user.uid || data?.teamOwnerId === user.uid;
+        if (snap.exists() && (isOwner || isTeamOwner)) {
           setCard(data as Card);
         } else {
           toast.error('Card not found');
