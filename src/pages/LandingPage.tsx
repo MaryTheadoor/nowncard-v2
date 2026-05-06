@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Smartphone, QrCode, Download, Palette, Zap } from 'lucide-react';
-import CardPreview from '@/components/CardPreview';
+import { Link2, QrCode, Download, Palette, Smartphone } from 'lucide-react';
+import DemoCard from '@/components/DemoCard';
 import Navbar from '@/components/Navbar';
 import AuthModal from '@/components/AuthModal';
 import { useAuth } from '@/hooks/useAuth';
@@ -26,13 +26,13 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="text-center px-6 pt-16 pb-12 max-w-2xl mx-auto">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-tile border border-line rounded-full text-accent text-xs font-bold uppercase tracking-wider mb-8">
-          <Zap className="w-3.5 h-3.5" /> Your card. Your brand. Anywhere.
+          Your card. Your brand. Anywhere.
         </div>
         <h1 className="text-4xl md:text-5xl font-extrabold leading-tight tracking-tight mb-5">
           Digital Business Cards<br /><span className="text-accent">That Work Everywhere</span>
         </h1>
         <p className="text-lg text-ink-muted max-w-lg mx-auto mb-8">
-          Create a beautiful digital card in seconds. Share via NFC, QR code, link, or vCard. No app required for recipients.
+          Create a beautiful digital card in seconds. Share via link, QR code, or NFC tap. Download as a vCard. No app required for recipients.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           {user ? (
@@ -40,45 +40,29 @@ export default function LandingPage() {
           ) : (
             <button onClick={() => setAuthOpen(true)} className="px-7 py-3 bg-accent text-space font-bold rounded-full hover:brightness-110 transition cursor-pointer">Create Your Card</button>
           )}
-          <Link to="/rolodex" className="px-7 py-3 border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition inline-block no-underline">Browse</Link>
+          <Link to="/rolodex" className="px-7 py-3 border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition inline-block no-underline">Card Directory</Link>
           <a href="#features" className="px-7 py-3 border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition">Learn More</a>
         </div>
 
-        {/* Demo card preview */}
-        <div className="mt-12 mx-auto max-w-[380px]">
-          <CardPreview
-            card={{
-              id: 'demo',
-              slug: 'jane-doe',
-              firstName: 'Jane',
-              lastName: 'Doe',
-              jobTitle: 'Product Designer',
-              company: 'NownCard',
-              email: 'jane@example.com',
-              phone: '+1 555 123 4567',
-              website: 'https://jane.design',
-              bio: 'Building beautiful digital experiences. Always happy to connect.',
-              cardTheme: 'dark',
-              accentColor: '#c9a278',
-              isPublic: true,
-              socialLinks: { linkedin: 'https://linkedin.com', twitter: 'https://twitter.com' },
-            }}
-          />
+        {/* Interactive demo card */}
+        <div className="mt-14 mx-auto max-w-[380px]">
+          <DemoCard />
         </div>
       </section>
 
       {/* Features */}
       <section id="features" className="bg-space-2 py-16 px-6">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-10">Everything You Need</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {[
-              { icon: <Smartphone className="w-5 h-5" />, title: 'NFC Ready', desc: 'Tap-to-share with any NFC-enabled phone. No app needed on the receiving end.' },
-              { icon: <QrCode className="w-5 h-5" />, title: 'QR Code', desc: 'Instant QR code for every card. Print it, share it, scan it anywhere.' },
+              { icon: <Link2 className="w-5 h-5" />, title: 'Shareable Link', desc: 'Every card gets a clean URL. Share it anywhere — text, email, social, or embed it in your signature.' },
+              { icon: <QrCode className="w-5 h-5" />, title: 'QR Code', desc: 'Instant QR for every card. Print it on flyers, posters, or your phone lock screen.' },
               { icon: <Download className="w-5 h-5" />, title: 'vCard Export', desc: 'One tap adds your contact to any phone. Works with Apple, Android, and Outlook.' },
-              { icon: <Palette className="w-5 h-5" />, title: 'Custom Design', desc: 'Choose your theme, accent color, and layout. Make it unmistakably yours.' },
+              { icon: <Palette className="w-5 h-5" />, title: 'Custom Design', desc: 'Choose your theme, accent color, fonts, and layout. Make it unmistakably yours.' },
+              { icon: <Smartphone className="w-5 h-5" />, title: 'NFC Ready', desc: 'Tap-to-share with any NFC-enabled phone. Program physical tags to share instantly.' },
             ].map((f) => (
-              <div key={f.title} className="bg-tile border border-line rounded-2xl p-6 text-left hover:-translate-y-1 hover:shadow-surface transition">
+              <div key={f.title} className="bg-tile border border-line rounded-2xl p-5 text-left hover:-translate-y-1 hover:shadow-surface transition">
                 <div className="w-10 h-10 rounded-xl bg-tile-soft border border-line flex items-center justify-center text-accent mb-4">{f.icon}</div>
                 <h3 className="text-base font-bold mb-2">{f.title}</h3>
                 <p className="text-sm text-ink-muted leading-relaxed">{f.desc}</p>
@@ -90,10 +74,10 @@ export default function LandingPage() {
 
       {/* Audience */}
       <section className="py-16 px-6 max-w-3xl mx-auto text-center">
-        <h2 className="text-2xl md:text-3xl font-extrabold mb-8">Who Is It For?</h2>
-        <div className="flex flex-wrap justify-center gap-2.5">
-          {['Freelancers', 'Consultants', 'Real Estate Agents', 'Sales Professionals', 'Startups', 'Small Business', 'Creative Agencies', 'Coaches', 'Event Organizers', 'Anyone Networking'].map((tag) => (
-            <span key={tag} className="px-4 py-2 bg-tile border border-line rounded-full text-sm text-ink-muted hover:border-accent hover:text-accent transition cursor-default">{tag}</span>
+        <h2 className="text-2xl md:text-3xl font-extrabold mb-10">Who Is It For?</h2>
+        <div className="flex flex-wrap justify-center gap-3">
+          {['Freelancers', 'Consultants', 'Real Estate Agents', 'Sales Professionals', 'Startups', 'Small Business Owners', 'Creative Agencies', 'Coaches & Trainers', 'Event Organizers', 'Anyone Networking'].map((tag) => (
+            <span key={tag} className="px-5 py-2.5 bg-tile border border-line rounded-full text-sm text-ink hover:border-accent hover:text-accent transition cursor-default">{tag}</span>
           ))}
         </div>
       </section>
@@ -110,10 +94,10 @@ export default function LandingPage() {
               <div className="flex items-baseline gap-1 my-4"><span className="text-4xl font-extrabold">$0</span><span className="text-sm text-ink-faint">forever</span></div>
               <ul className="space-y-2 text-sm text-ink-muted mb-6">
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> 1 digital card</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> NFC + QR sharing</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Shareable link + QR</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> vCard export</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Light &amp; dark themes</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Browse directory</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Card directory</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Basic analytics</li>
               </ul>
               {user ? (

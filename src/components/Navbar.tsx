@@ -66,7 +66,7 @@ export default function Navbar({ onAuthClick, onSignOut, userEmail, isAdmin, def
               {resolved === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
 
-            <Link to="/rolodex" className="ml-2 px-4 py-1.5 border border-line text-ink text-sm font-bold rounded-full hover:bg-tile-soft transition">Browse</Link>
+            <Link to="/rolodex" className="ml-2 px-4 py-1.5 border border-line text-ink text-sm font-bold rounded-full hover:bg-tile-soft transition">Directory</Link>
 
             {userEmail ? (
               <Link to="/dashboard" className="ml-2 px-4 py-1.5 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition">My Cards</Link>
@@ -104,13 +104,13 @@ export default function Navbar({ onAuthClick, onSignOut, userEmail, isAdmin, def
                 <>
                   <div className="text-sm text-ink-muted truncate">{userEmail}</div>
                   <Link to="/dashboard" onClick={() => setOpen(false)} className="px-4 py-2.5 bg-accent text-space text-sm font-bold rounded-full text-center">My Cards</Link>
-                  <Link to="/rolodex" onClick={() => setOpen(false)} className="px-4 py-2.5 border border-line text-ink text-sm font-bold rounded-full text-center">Browse</Link>
+                  <Link to="/rolodex" onClick={() => setOpen(false)} className="px-4 py-2.5 border border-line text-ink text-sm font-bold rounded-full text-center">Directory</Link>
                   <button onClick={() => { setOpen(false); onSignOut?.(); }} className="px-4 py-2.5 border border-line text-ink text-sm font-bold rounded-full">Sign Out</button>
                 </>
               ) : (
                 <>
                   <button onClick={() => { setOpen(false); onAuthClick?.(); }} className="px-4 py-2.5 bg-accent text-space text-sm font-bold rounded-full">Sign In</button>
-                  <Link to="/rolodex" onClick={() => setOpen(false)} className="px-4 py-2.5 border border-line text-ink text-sm font-bold rounded-full text-center">Browse</Link>
+                  <Link to="/rolodex" onClick={() => setOpen(false)} className="px-4 py-2.5 border border-line text-ink text-sm font-bold rounded-full text-center">Directory</Link>
                 </>
               )}
             </div>
