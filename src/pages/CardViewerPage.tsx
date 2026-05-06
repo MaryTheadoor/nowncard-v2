@@ -224,8 +224,10 @@ export default function CardViewerPage() {
     profileFallbackText: isDark ? 'text-[#c9c3ba]' : 'text-[#6b6256]',
   };
 
+  const pageBg = card.pageBgColor || undefined;
+
   return (
-    <div className="min-h-screen bg-space flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: pageBg }}>
       <Navbar onAuthClick={() => setAuthOpen(true)} onSignOut={() => {}} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} />
 
       {/* Card stage */}
