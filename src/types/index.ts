@@ -68,6 +68,7 @@ export interface Card {
   saveCount?: number;
   createdAt?: unknown;
   updatedAt?: unknown;
+  industry?: string;
 }
 
 export type Plan = 'free' | 'pro' | 'business';
