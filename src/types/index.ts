@@ -57,6 +57,7 @@ export interface Card {
   accentColor?: string;
   cardTheme?: 'light' | 'dark';
   cardBgColor?: string;
+  pageBgColor?: string;
   fontFamily?: string;
   fontSizeScale?: number;
   customFontUrl?: string;

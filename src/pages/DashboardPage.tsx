@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Users, ClipboardCheck, Star } from 'lucide-react';
+import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Users, ClipboardCheck, Star, Search, X } from 'lucide-react';
 import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const [teamCards, setTeamCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
   const [plan, setPlan] = useState<string>('free');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     if (authLoading) return;
@@ -28,7 +29,6 @@ export default function DashboardPage() {
         const userSnap = await getDoc(doc(db, 'users', user.uid));
         if (userSnap.exists()) setPlan(userSnap.data().plan || 'free');
 
-        // Load personal cards — query both ownerUid (new + old static app) and ownerId (legacy React cards)
         const [personalSnapUid, personalSnapId] = await Promise.all([
           getDocs(query(collection(db, 'cards'), where('ownerUid', '==', user.uid))),
           getDocs(query(collection(db, 'cards'), where('ownerId', '==', user.uid))),
@@ -39,7 +39,6 @@ export default function DashboardPage() {
         });
         const personalList = Array.from(personalMap.values()).filter((c) => !c.isTeamCard);
 
-        // Load team cards — query both teamOwnerUid and teamOwnerId
         const [teamSnapUid, teamSnapId] = await Promise.all([
           getDocs(query(collection(db, 'cards'), where('teamOwnerUid', '==', user.uid))),
           getDocs(query(collection(db, 'cards'), where('teamOwnerId', '==', user.uid))),
@@ -50,7 +49,6 @@ export default function DashboardPage() {
         });
         const teamList = Array.from(teamMap.values());
 
-        // Combine and sort by updatedAt
         const sortByUpdated = (a: Card, b: Card) => {
           const ta = a.updatedAt && typeof a.updatedAt === 'object' && 'toMillis' in a.updatedAt ? (a.updatedAt as unknown as { toMillis: () => number }).toMillis() : 0;
           const tb = b.updatedAt && typeof b.updatedAt === 'object' && 'toMillis' in b.updatedAt ? (b.updatedAt as unknown as { toMillis: () => number }).toMillis() : 0;
@@ -71,7 +69,7 @@ export default function DashboardPage() {
   }, [user, authLoading, navigate]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this card?')) return;
+    if (!confirm('Are you sure you want to delete this card? This cannot be undone.')) return;
     try {
       await deleteDoc(doc(db, 'cards', id));
       setPersonalCards(personalCards.filter((c) => c.id !== id));
@@ -104,6 +102,36 @@ export default function DashboardPage() {
       toast.error('Failed to set default card');
     }
   };
+
+  const filteredPersonal = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return personalCards;
+    return personalCards.filter((c) => {
+      const name = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase();
+      const company = (c.company || '').toLowerCase();
+      const job = (c.jobTitle || '').toLowerCase();
+      const slug = (c.slug || '').toLowerCase();
+      const bio = (c.bio || '').toLowerCase();
+      const phones = (c.phones || []).map((p) => p.number).join(' ').toLowerCase();
+      const emails = (c.emails || []).map((e) => e.address).join(' ').toLowerCase();
+      return name.includes(q) || company.includes(q) || job.includes(q) || slug.includes(q) || bio.includes(q) || phones.includes(q) || emails.includes(q);
+    });
+  }, [personalCards, search]);
+
+  const filteredTeam = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return teamCards;
+    return teamCards.filter((c) => {
+      const name = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase();
+      const company = (c.company || '').toLowerCase();
+      const job = (c.jobTitle || '').toLowerCase();
+      const slug = (c.slug || '').toLowerCase();
+      const bio = (c.bio || '').toLowerCase();
+      const phones = (c.phones || []).map((p) => p.number).join(' ').toLowerCase();
+      const emails = (c.emails || []).map((e) => e.address).join(' ').toLowerCase();
+      return name.includes(q) || company.includes(q) || job.includes(q) || slug.includes(q) || bio.includes(q) || phones.includes(q) || emails.includes(q);
+    });
+  }, [teamCards, search]);
 
   if (loading) {
     return (
@@ -162,7 +190,7 @@ export default function DashboardPage() {
           <Copy className="w-3 h-3" /> Copy
         </button>
         <button onClick={() => handleTogglePublic(c)} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
-          {c.isPublic ? 'Private' : 'Public'}
+          {c.isPublic ? 'Make Private' : 'Make Public'}
         </button>
         <button onClick={() => downloadVCard(c)} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
           <Download className="w-3 h-3" /> vCard
@@ -191,7 +219,7 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-extrabold">Your Cards</h1>
+            <h1 className="text-2xl font-extrabold">My Cards</h1>
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border ${plan === 'business' ? 'bg-purple-950 text-purple-400 border-purple-800' : plan === 'pro' ? 'bg-amber-950 text-amber-400 border-amber-800' : 'bg-tile-soft text-ink-faint border-line'}`}>
               {plan} · {personalCards.length}/{getCardLimit(plan) === Infinity ? '∞' : getCardLimit(plan)}
             </span>
@@ -228,6 +256,24 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Search */}
+        {personalCards.length > 0 && (
+          <div className="relative mb-6">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search your cards by name, company, phone, email…"
+              className="w-full pl-10 pr-10 py-3 bg-tile border border-line rounded-xl text-ink text-sm focus:outline-none focus:border-accent"
+            />
+            {search && (
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink">
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Personal Cards */}
         {personalCards.length === 0 ? (
           <div className="bg-tile border border-line border-dashed rounded-2xl p-12 text-center mb-8">
@@ -247,10 +293,13 @@ export default function DashboardPage() {
             })()}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
-            {personalCards.map((c) => (
+          <div className="flex flex-col gap-4 mb-8">
+            {filteredPersonal.map((c) => (
               <CardRow key={c.id} c={c} />
             ))}
+            {filteredPersonal.length === 0 && search.trim() && (
+              <div className="text-center py-8 text-ink-muted text-sm">No cards match your search.</div>
+            )}
           </div>
         )}
 
@@ -286,10 +335,13 @@ export default function DashboardPage() {
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                {teamCards.map((c) => (
+              <div className="flex flex-col gap-4">
+                {filteredTeam.map((c) => (
                   <CardRow key={c.id} c={c} showTeamBadge />
                 ))}
+                {filteredTeam.length === 0 && search.trim() && (
+                  <div className="text-center py-8 text-ink-muted text-sm">No team cards match your search.</div>
+                )}
               </div>
             )}
           </>
