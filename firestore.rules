@@ -7,6 +7,20 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
+    function isOwner(data) {
+      return request.auth != null && (
+        data.ownerId == request.auth.uid ||
+        data.ownerUid == request.auth.uid
+      );
+    }
+
+    function isTeamOwner(data) {
+      return request.auth != null && (
+        data.teamOwnerId == request.auth.uid ||
+        data.teamOwnerUid == request.auth.uid
+      );
+    }
+
     // Users: self access; admin full access
     match /users/{uid} {
       allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
@@ -16,10 +30,16 @@ service cloud.firestore {
 
     // Cards: owners and team owners have control; public readable; admin can read any
     match /cards/{cardId} {
-      allow read: if resource.data.isPublic == true || (request.auth != null && resource.data.ownerId == request.auth.uid) || (request.auth != null && resource.data.teamOwnerId == request.auth.uid) || isAdmin();
-      allow create: if request.auth != null && (request.resource.data.ownerId == request.auth.uid || request.resource.data.teamOwnerId == request.auth.uid);
-      allow update: if request.auth != null && (resource.data.ownerId == request.auth.uid || resource.data.teamOwnerId == request.auth.uid || isAdmin());
-      allow delete: if request.auth != null && (resource.data.ownerId == request.auth.uid || resource.data.teamOwnerId == request.auth.uid || isAdmin());
+      allow read: if resource.data.isPublic == true || (request.auth != null && isOwner(resource.data)) || (request.auth != null && isTeamOwner(resource.data)) || isAdmin();
+      allow create: if request.auth != null && (isOwner(request.resource.data) || isTeamOwner(request.resource.data));
+      allow update: if request.auth != null && (isOwner(resource.data) || isTeamOwner(resource.data) || isAdmin());
+      allow delete: if request.auth != null && (isOwner(resource.data) || isTeamOwner(resource.data) || isAdmin());
+    }
+
+    // Card analytics: writable by anyone (for tap tracking), readable by owner or admin
+    match /cards/{cardId}/analytics/{eventId} {
+      allow read: if request.auth != null && (isOwner(get(/databases/$(database)/documents/cards/$(cardId)).data) || isAdmin());
+      allow write: if true;
     }
 
     // Public cards: readable by anyone, writable only by admin/cloud functions
@@ -28,7 +48,7 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Analytics: writable by anyone (for tap tracking), readable by auth users or admin
+    // Analytics (legacy): writable by anyone (for tap tracking), readable by auth users or admin
     match /analytics/{docId} {
       allow read: if request.auth != null || isAdmin();
       allow write: if true;
@@ -46,6 +66,28 @@ service cloud.firestore {
     match /upgrades/{docId} {
       allow read: if isAdmin();
       allow write: if false;
+    }
+
+    // Stripe subscriptions (managed by Firebase Extension)
+    match /customers/{uid}/subscriptions/{subId} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Stripe checkout sessions (managed by Firebase Extension)
+    match /customers/{uid}/checkout_sessions/{sessionId} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // Stripe portal sessions (managed by Firebase Extension)
+    match /customers/{uid}/portal_sessions/{sessionId} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid;
+      allow update: if false;
+      allow delete: if false;
     }
   }
 }

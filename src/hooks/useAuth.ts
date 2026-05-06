@@ -4,9 +4,11 @@ import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import type { User } from 'firebase/auth';
 
+const ADMIN_UIDS = new Set(['EeiBBDTu5jOooHbxyOC98JSlt6r1']);
+
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
-  const [userData, setUserData] = useState<{ plan?: string; cardCount?: number } | null>(null);
+  const [userData, setUserData] = useState<{ plan?: string; cardCount?: number; isAdmin?: boolean; defaultCardSlug?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -14,31 +16,42 @@ export function useAuth() {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
       setLoading(false);
+      setError(null);
       if (!u) {
         setUserData(null);
         return;
       }
-      if (u) {
-        const userRef = doc(db, 'users', u.uid);
-        getDoc(userRef).then((snap) => {
-          if (!snap.exists()) {
-            const data = { plan: 'free', createdAt: serverTimestamp(), lastLogin: serverTimestamp(), email: u.email || null, isAdmin: false };
-            setDoc(userRef, data, { merge: true }).catch(() => {});
-            setUserData(data);
-          } else {
-            const data = snap.data();
-            setUserData({ plan: data.plan || 'free', cardCount: data.cardCount || 0 });
-            setDoc(userRef, { lastLogin: serverTimestamp(), email: u.email || null }, { merge: true }).catch(() => {});
-          }
-        }).catch(() => {});
-      }
+      const userRef = doc(db, 'users', u.uid);
+      getDoc(userRef).then((snap) => {
+        if (!snap.exists()) {
+          const isAdmin = ADMIN_UIDS.has(u.uid);
+          const data = { plan: 'free', createdAt: serverTimestamp(), lastLogin: serverTimestamp(), email: u.email || null, isAdmin };
+          setDoc(userRef, data, { merge: true }).catch(() => {});
+          setUserData(data);
+        } else {
+          const data = snap.data();
+          const isAdmin = ADMIN_UIDS.has(u.uid) || data.isAdmin === true;
+          setUserData({ plan: data.plan || 'free', cardCount: data.cardCount || 0, isAdmin, defaultCardSlug: data.defaultCardSlug || undefined });
+          setDoc(userRef, { lastLogin: serverTimestamp(), email: u.email || null }, { merge: true }).catch(() => {});
+        }
+      }).catch(() => {});
     });
     return unsub;
   }, []);
 
   const handleError = (err: unknown) => {
-    if (err instanceof Error) setError(err.message);
-    else setError('Authentication failed');
+    const code = (err as { code?: string })?.code || '';
+    const messages: Record<string, string> = {
+      'auth/user-not-found': 'No account found with this email.',
+      'auth/wrong-password': 'Incorrect password.',
+      'auth/email-already-in-use': 'An account already exists with this email.',
+      'auth/invalid-email': 'Please enter a valid email address.',
+      'auth/weak-password': 'Password should be at least 6 characters.',
+      'auth/invalid-credential': 'Invalid email or password.',
+      'auth/too-many-requests': 'Too many attempts. Please try again later.',
+      'auth/internal-error': 'Authentication service error. Please try again.',
+    };
+    setError(messages[code] || (err instanceof Error ? err.message : 'Authentication failed'));
   };
 
   const signInEmail = useCallback(async (email: string, password: string) => {

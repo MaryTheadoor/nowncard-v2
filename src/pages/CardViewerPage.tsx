@@ -25,7 +25,7 @@ const IconDownload = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentC
 
 export default function CardViewerPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { user, signInEmail, signUpEmail, signInGoogle, linkGoogle, signInAnon, error: authError } = useAuth();
+  const { user, userData, signInEmail, signUpEmail, signInGoogle, linkGoogle, signInAnon, error: authError } = useAuth();
   const [card, setCard] = useState<Card | null>(null);
   const [cardsDocId, setCardsDocId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -226,7 +226,7 @@ export default function CardViewerPage() {
 
   return (
     <div className="min-h-screen bg-space flex flex-col">
-      <Navbar onAuthClick={() => setAuthOpen(true)} onSignOut={() => {}} userEmail={user?.email} />
+      <Navbar onAuthClick={() => setAuthOpen(true)} onSignOut={() => {}} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} />
 
       {/* Card stage */}
       <div className="flex-1 flex flex-col items-center px-5 pt-2 pb-8">

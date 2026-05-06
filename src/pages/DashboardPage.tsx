@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Users, ClipboardCheck } from 'lucide-react';
-import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Users, ClipboardCheck, Star } from 'lucide-react';
+import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { downloadVCard } from '@/lib/vcard';
@@ -13,7 +13,7 @@ import { createDemoCard } from '@/lib/demo';
 import { initials, getCardLimit } from '@/lib/utils';
 
 export default function DashboardPage() {
-  const { user, loading: authLoading, logOut } = useAuth();
+  const { user, userData, loading: authLoading, logOut } = useAuth();
   const navigate = useNavigate();
   const [personalCards, setPersonalCards] = useState<Card[]>([]);
   const [teamCards, setTeamCards] = useState<Card[]>([]);
@@ -95,6 +95,16 @@ export default function DashboardPage() {
     }
   };
 
+  const setDefaultCard = async (slug: string) => {
+    if (!user) return;
+    try {
+      await setDoc(doc(db, 'users', user.uid), { defaultCardSlug: slug }, { merge: true });
+      toast.success('Set as your default card');
+    } catch {
+      toast.error('Failed to set default card');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-space flex flex-col items-center justify-center text-ink-muted">
@@ -123,6 +133,13 @@ export default function DashboardPage() {
           </div>
         </div>
         <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            onClick={() => setDefaultCard(c.slug)}
+            className={`p-1 rounded transition ${userData?.defaultCardSlug === c.slug ? 'text-accent' : 'text-ink-faint hover:text-accent'}`}
+            title={userData?.defaultCardSlug === c.slug ? 'Your default card' : 'Set as default card'}
+          >
+            <Star className="w-3.5 h-3.5" fill={userData?.defaultCardSlug === c.slug ? 'currentColor' : 'none'} />
+          </button>
           {showTeamBadge && (
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-purple-950 text-purple-400 border border-purple-800">Team</span>
           )}
@@ -168,7 +185,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-space overflow-x-hidden">
-      <Navbar onAuthClick={() => navigate('/')} onSignOut={() => { logOut(); navigate('/'); }} userEmail={user?.email} />
+      <Navbar onAuthClick={() => navigate('/')} onSignOut={() => { logOut(); navigate('/'); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} />
 
       <main className="max-w-4xl mx-auto px-5 py-8">
         {/* Header */}

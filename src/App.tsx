@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
+import { ThemeProvider } from '@/hooks/useTheme';
 import LandingPage from '@/pages/LandingPage';
 import DashboardPage from '@/pages/DashboardPage';
 import EditorPage from '@/pages/EditorPage';
@@ -13,6 +14,7 @@ import RolodexPage from '@/pages/RolodexPage';
 
 function App() {
   return (
+    <ThemeProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -30,6 +32,7 @@ function App() {
       </Routes>
       <Toaster position="top-center" richColors toastOptions={{ style: { background: '#111827', border: '1px solid #1e293b', color: '#f8f9fc' } }} />
     </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

@@ -62,11 +62,11 @@ export default function RolodexPage() {
 
   return (
     <div className="min-h-screen bg-space overflow-x-hidden">
-      <Navbar onAuthClick={() => {}} onSignOut={() => {}} />
+      <Navbar onAuthClick={() => {}} onSignOut={() => {}} defaultCardSlug={undefined} />
 
       <main className="max-w-3xl mx-auto px-5 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-extrabold mb-2">Rolodex</h1>
+          <h1 className="text-2xl font-extrabold mb-2">Browse</h1>
           <p className="text-sm text-ink-muted">Search public business cards</p>
         </div>
 

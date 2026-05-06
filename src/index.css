@@ -1,19 +1,53 @@
 @import "tailwindcss";
 
+/* Light theme (default) */
+:root {
+  --space: #f8f9fa;
+  --space-2: #ffffff;
+  --tile: #ffffff;
+  --tile-soft: #f1f5f9;
+  --ink: #0f172a;
+  --ink-muted: #64748b;
+  --ink-faint: #94a3b8;
+  --accent: #c9a278;
+  --accent-hover: #b08a5f;
+  --line: #e2e8f0;
+  --line-soft: #f1f5f9;
+  --card-bg: #ffffff;
+  --danger: #ef4444;
+}
+
+/* Dark theme */
+.dark {
+  --space: #0a0e1a;
+  --space-2: #0d1220;
+  --tile: #111827;
+  --tile-soft: #1a2235;
+  --ink: #f8f9fc;
+  --ink-muted: #8a93a5;
+  --ink-faint: #525b70;
+  --accent: #c9a278;
+  --accent-hover: #b08a5f;
+  --line: #1e293b;
+  --line-soft: #1a2235;
+  --card-bg: #f4f1ec;
+  --danger: #ef4444;
+}
+
 @theme {
-  --color-space: #0a0e1a;
-  --color-space-2: #0d1220;
-  --color-tile: #111827;
-  --color-tile-soft: #1a2235;
-  --color-ink: #f8f9fc;
-  --color-ink-muted: #8a93a5;
-  --color-ink-faint: #525b70;
-  --color-accent: #c9a278;
-  --color-accent-hover: #b08a5f;
-  --color-line: #1e293b;
-  --color-line-soft: #1a2235;
-  --color-card-bg: #f4f1ec;
-  --color-danger: #ef4444;
+  --color-space: var(--space);
+  --color-space-2: var(--space-2);
+  --color-tile: var(--tile);
+  --color-tile-soft: var(--tile-soft);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-card-bg: var(--card-bg);
+  --color-danger: var(--danger);
 
   --font-family-sans: 'Manrope', system-ui, -apple-system, sans-serif;
 }
@@ -22,14 +56,14 @@
   html { scroll-behavior: smooth; }
   body {
     font-family: var(--font-family-sans);
-    background: var(--color-space);
-    color: var(--color-ink);
+    background: var(--space);
+    color: var(--ink);
     -webkit-font-smoothing: antialiased;
     -webkit-tap-highlight-color: transparent;
   }
   ::selection {
     background: rgba(201, 162, 120, 0.35);
-    color: #f8f9fc;
+    color: var(--ink);
   }
 }
 
@@ -41,8 +75,6 @@
     -webkit-backface-visibility: hidden;
     border-radius: 20px;
     overflow: hidden;
-    /* Push face forward in 3D space to ensure clean separation from the opposite face.
-       Increased from 1px to 3px for stronger isolation across all browsers. */
     -webkit-transform: translateZ(3px);
     transform: translateZ(3px);
     box-shadow:

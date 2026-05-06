@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Smartphone, QrCode, Download, Palette, Zap } from 'lucide-react';
+import CardPreview from '@/components/CardPreview';
 import Navbar from '@/components/Navbar';
 import AuthModal from '@/components/AuthModal';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,7 +9,7 @@ import { createPendingUpgrade, SQUARE_LINKS } from '@/lib/payments';
 import { toast } from 'sonner';
 
 export default function LandingPage() {
-  const { user, signInEmail, signUpEmail, signInGoogle, linkGoogle, signInAnon, error } = useAuth();
+  const { user, userData, signInEmail, signUpEmail, signInGoogle, linkGoogle, signInAnon, error } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
 
   useEffect(() => {
@@ -20,7 +21,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-space overflow-x-hidden">
-      <Navbar onAuthClick={() => setAuthOpen(true)} userEmail={user?.email} />
+      <Navbar onAuthClick={() => setAuthOpen(true)} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} />
 
       {/* Hero */}
       <section className="text-center px-6 pt-16 pb-12 max-w-2xl mx-auto">
@@ -39,23 +40,30 @@ export default function LandingPage() {
           ) : (
             <button onClick={() => setAuthOpen(true)} className="px-7 py-3 bg-accent text-space font-bold rounded-full hover:brightness-110 transition cursor-pointer">Create Your Card</button>
           )}
-          <Link to="/rolodex" className="px-7 py-3 border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition inline-block no-underline">Browse Cards</Link>
+          <Link to="/rolodex" className="px-7 py-3 border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition inline-block no-underline">Browse</Link>
           <a href="#features" className="px-7 py-3 border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition">Learn More</a>
         </div>
 
-        {/* Demo card */}
-        <div className="mt-12 mx-auto max-w-[260px] rounded-[20px] overflow-hidden bg-tile border border-line shadow-card">
-          <div className="h-20 bg-gradient-to-br from-accent-hover to-accent opacity-70" />
-          <div className="px-5 pb-5 text-center relative">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#64748b] to-[#94a3b8] mx-auto -mt-8 flex items-center justify-center text-xl font-extrabold text-white border-4 border-tile shadow-lg">JD</div>
-            <h3 className="mt-3 text-base font-bold">Jane Doe</h3>
-            <p className="text-xs text-ink-muted mt-1">Product Designer</p>
-            <div className="flex gap-1.5 justify-center mt-3">
-              <span className="px-2 py-0.5 bg-tile-soft text-accent text-[10px] font-bold rounded border border-line">NFC</span>
-              <span className="px-2 py-0.5 bg-tile-soft text-accent text-[10px] font-bold rounded border border-line">QR</span>
-              <span className="px-2 py-0.5 bg-tile-soft text-accent text-[10px] font-bold rounded border border-line">vCard</span>
-            </div>
-          </div>
+        {/* Demo card preview */}
+        <div className="mt-12 mx-auto max-w-[380px]">
+          <CardPreview
+            card={{
+              id: 'demo',
+              slug: 'jane-doe',
+              firstName: 'Jane',
+              lastName: 'Doe',
+              jobTitle: 'Product Designer',
+              company: 'NownCard',
+              email: 'jane@example.com',
+              phone: '+1 555 123 4567',
+              website: 'https://jane.design',
+              bio: 'Building beautiful digital experiences. Always happy to connect.',
+              cardTheme: 'dark',
+              accentColor: '#c9a278',
+              isPublic: true,
+              socialLinks: { linkedin: 'https://linkedin.com', twitter: 'https://twitter.com' },
+            }}
+          />
         </div>
       </section>
 
@@ -105,7 +113,8 @@ export default function LandingPage() {
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> NFC + QR sharing</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> vCard export</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Light &amp; dark themes</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Rolodex directory</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Browse directory</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Basic analytics</li>
               </ul>
               {user ? (
                 <Link to="/editor" className="block w-full py-2.5 text-center border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition text-sm no-underline">Get Started</Link>
@@ -123,7 +132,8 @@ export default function LandingPage() {
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Up to 5 cards</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> 10 curated fonts</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Custom colors &amp; backgrounds</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Analytics dashboard</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Full analytics dashboard</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> NFC + QR + vCard</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> No branding</li>
               </ul>
               <button onClick={async () => { if (!user) { setAuthOpen(true); return; } try { await createPendingUpgrade(user.uid, 'pro', 19); const url = SQUARE_LINKS.pro + '&redirect_url=' + encodeURIComponent(window.location.origin + '/success') + '&cancel_url=' + encodeURIComponent(window.location.origin + '/cancel'); window.location.href = url; } catch (e) { console.error(e); toast.error('Payment setup failed. Please try again.'); } }} className="block w-full py-2.5 text-center bg-accent text-space font-bold rounded-full hover:brightness-110 transition text-sm cursor-pointer">Upgrade</button>
@@ -135,9 +145,11 @@ export default function LandingPage() {
               <div className="flex items-baseline gap-1 my-4"><span className="text-4xl font-extrabold">$39</span><span className="text-sm text-ink-faint">/year</span></div>
               <ul className="space-y-2 text-sm text-ink-muted mb-6">
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Unlimited cards</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Team cards for employees</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Upload your own font</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Business name layout</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> White-label cards</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Priority support</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Everything in Pro</li>
               </ul>
               <button onClick={async () => { if (!user) { setAuthOpen(true); return; } try { await createPendingUpgrade(user.uid, 'business', 49); const url = SQUARE_LINKS.business + '&redirect_url=' + encodeURIComponent(window.location.origin + '/success') + '&cancel_url=' + encodeURIComponent(window.location.origin + '/cancel'); window.location.href = url; } catch (e) { console.error(e); toast.error('Payment setup failed. Please try again.'); } }} className="block w-full py-2.5 text-center border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition text-sm cursor-pointer">Upgrade</button>
