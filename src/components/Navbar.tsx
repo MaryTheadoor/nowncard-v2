@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Menu, X, Shield, Sun, Moon, Heart } from 'lucide-react';
-import { useTheme } from '@/hooks/useTheme';
+import { useTheme } from '@/hooks/useThemeContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
