@@ -110,7 +110,7 @@ export default function EditorPage() {
       try {
         const [ownSnap, publicSnap] = await Promise.all([
           getDocs(query(collection(db, 'cards'), where('slug', '==', slug), where('ownerUid', '==', user!.uid))),
-          getDocs(query(collection(db, 'publicCards'), where('slug', '==', slug), limit(1))),
+          getDocs(query(collection(db, 'cards'), where('slug', '==', slug), where('isPublic', '==', true), limit(1))),
         ]);
         const ownMatch = ownSnap.docs.some((d) => d.id !== id);
         const publicMatch = !publicSnap.empty && publicSnap.docs[0].id !== id;

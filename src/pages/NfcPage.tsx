@@ -44,17 +44,9 @@ export default function NfcPage() {
     (async () => {
       if (!slug) { setLoading(false); return; }
       try {
-        // Try public cards by slug field first
         const cardsSnap = await getDocs(query(collection(db, 'cards'), where('slug', '==', slug), where('isPublic', '==', true), limit(1)));
         if (!cardsSnap.empty) {
           setCard({ id: cardsSnap.docs[0].id, ...cardsSnap.docs[0].data() } as Card);
-          setLoading(false);
-          return;
-        }
-        // Fallback to publicCards
-        const publicSnap = await getDocs(query(collection(db, 'publicCards'), where('slug', '==', slug), limit(1)));
-        if (!publicSnap.empty) {
-          setCard({ id: publicSnap.docs[0].id, ...publicSnap.docs[0].data() } as Card);
         } else {
           toast.error('Card not found');
         }

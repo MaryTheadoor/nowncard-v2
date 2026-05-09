@@ -75,13 +75,6 @@ export default function CardViewerPage() {
           data = { id: d.id, ...d.data() } as Card;
           cardsDocId = d.id;
         }
-        if (!data) {
-          const p = await getDocs(query(collection(db, 'publicCards'), where('slug', '==', slug), limit(1)));
-          if (!p.empty) {
-            const d = p.docs[0];
-            data = { id: d.id, ...d.data() } as Card;
-          }
-        }
         if (cancelled) return;
         if (!data) { setError(`The card "${escHtml(slug)}" does not exist or is not public.`); }
         else {
