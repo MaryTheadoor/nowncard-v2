@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { collection, query, where, orderBy, getDocs, doc, updateDoc, serverTimestamp, limit, QueryDocumentSnapshot, getDoc, setDoc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, limit, QueryDocumentSnapshot, getDoc, setDoc } from 'firebase/firestore';
 import type { DocumentData } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
+import Navbar from '@/components/Navbar';
 import { Search, Shield, User, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
 
 const BOOTSTRAP_ADMIN_UID = 'EeiBBDTu5jOooHbxyOC98JSlt6r1';
 
 export default function AdminPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, userData, logOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
@@ -23,8 +24,14 @@ export default function AdminPage() {
 
   const loadPending = async () => {
     try {
-      const snap = await getDocs(query(collection(db, 'pendingUpgrades'), where('used', '==', false), orderBy('createdAt', 'desc'), limit(50)));
-      setPending(snap.docs.map((d) => ({ id: d.id, ...d.data() } as { id: string; uid: string; plan: string; price: number; createdAt: unknown })));
+      const snap = await getDocs(query(collection(db, 'pendingUpgrades'), where('used', '==', false), limit(50)));
+      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() } as { id: string; uid: string; plan: string; price: number; createdAt: unknown }));
+      list.sort((a, b) => {
+        const aTime = a.createdAt && typeof a.createdAt === 'object' && 'toMillis' in a.createdAt ? (a.createdAt as { toMillis: () => number }).toMillis() : 0;
+        const bTime = b.createdAt && typeof b.createdAt === 'object' && 'toMillis' in b.createdAt ? (b.createdAt as { toMillis: () => number }).toMillis() : 0;
+        return bTime - aTime;
+      });
+      setPending(list);
     } catch { toast.error('Failed to load pending upgrades'); }
   };
 
@@ -120,15 +127,13 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-space">
-      <header className="sticky top-0 z-40 bg-space/80 backdrop-blur-xl border-b border-line-soft">
-        <div className="max-w-5xl mx-auto px-5 flex items-center justify-between h-14">
-          <Link to="/" className="flex items-center gap-2.5 text-ink font-bold text-[15px]">
-            <img src="/nowncard-logo.png" alt="" className="h-[28px] w-auto object-contain rounded-lg" />
-            <span>Admin</span>
-          </Link>
-          <Link to="/dashboard" className="text-sm font-medium text-ink-muted hover:text-ink transition">Dashboard</Link>
-        </div>
-      </header>
+      <Navbar
+        onAuthClick={() => navigate('/')}
+        onSignOut={() => { logOut(); navigate('/'); }}
+        userEmail={user?.email}
+        isAdmin={true}
+        defaultCardSlug={userData?.defaultCardSlug}
+      />
 
       <main className="max-w-5xl mx-auto px-5 py-8 space-y-8">
         {/* Pending Upgrades */}

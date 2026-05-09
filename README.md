@@ -1,73 +1,85 @@
-# React + TypeScript + Vite
+# NownCard v2
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Digital business cards that work everywhere. Create a beautiful card in seconds, share via QR code, NFC, or link — no app required for recipients.
 
-Currently, two official plugins are available:
+**Live:** https://nowncard.com
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## What is NownCard?
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+NownCard lets professionals create digital business cards with:
 
-## Expanding the ESLint configuration
+- **Rich contact info** — multiple phones, emails, addresses, websites, social links
+- **Custom design** — colors, fonts, background images, light/dark themes
+- **QR codes** — scannable vCard or URL on the back of every card
+- **NFC support** — program physical NFC tags with your card
+- **Analytics** — track views, saves, and engagement
+- **Direct messaging** — visitors can send inquiries straight to your dashboard
+- **vCard export** — one-tap save to any phone's contacts
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Tech Stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- **Frontend:** React 19 + TypeScript + Vite 8 + Tailwind CSS v4
+- **Backend:** Firebase (Auth, Firestore, Storage, Hosting, Cloud Functions v2)
+- **Payments:** Square Checkout Links
+- **Push Notifications:** OneSignal (client-side)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+---
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start dev server
+npm run dev
+
+# Build for production
+npm run build
+
+# Deploy to Firebase
+firebase deploy --only hosting
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Cloud Functions:
+```bash
+cd functions && npm install && npm run build
+cd ..
+firebase deploy --only functions
 ```
+
+---
+
+## Project Structure
+
+See [`AGENTS.md`](./AGENTS.md) for complete architecture documentation, data models, and coding conventions.
+
+Key directories:
+- `src/pages/` — Route-level page components
+- `src/components/` — Reusable UI components
+- `src/lib/` — Utilities, Firebase init, vCard generation
+- `functions/src/` — Cloud Functions (Square webhook, push notifications)
+- `docs/` — Product requirements, deployment guides, roadmaps
+
+---
+
+## Documentation
+
+| File | Purpose |
+|------|---------|
+| `AGENTS.md` | Full agent/developer onboarding guide |
+| `MASTER_AUDIT.md` | Feature inventory, data model, audit findings |
+| `PRODUCTION_STATUS.md` | Current live state, recent deployments, action items |
+| `DEVELOPMENT_LOG.md` | Chronological change history |
+| `docs/PRD-NownCard-v2.md` | Product Requirements Document |
+| `docs/ROADMAP.md` | Future feature plans |
+
+---
+
+## License
+
+Proprietary — all rights reserved.

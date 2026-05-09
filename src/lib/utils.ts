@@ -29,6 +29,7 @@ export function fullName(card: Partial<Card>): string {
 export function orgLine(card: Partial<Card>): string {
   const parts: string[] = [];
   if (card.jobTitle) parts.push(card.jobTitle);
+  if (card.department) parts.push(card.department);
   if (card.company) parts.push(card.company);
   return parts.join(' · ');
 }
@@ -90,6 +91,25 @@ export function detectDevice(): 'mobile' | 'tablet' | 'desktop' {
   if (/iPad|Tablet|Android(?!.*Mobile)/i.test(ua)) return 'tablet';
   if (/Mobile|iPhone|Android/i.test(ua)) return 'mobile';
   return 'desktop';
+}
+
+export function timeAgo(date: Date | number | { toMillis?: () => number } | unknown): string {
+  let ts: number;
+  if (date instanceof Date) ts = date.getTime();
+  else if (typeof date === 'number') ts = date;
+  else if (date && typeof date === 'object' && 'toMillis' in date && typeof (date as { toMillis: () => number }).toMillis === 'function') ts = (date as { toMillis: () => number }).toMillis();
+  else return '';
+  const seconds = Math.floor((Date.now() - ts) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  return `${Math.floor(days / 365)}y ago`;
 }
 
 export function compressImage(file: File, maxWidth = 800, quality = 0.85): Promise<Blob> {

@@ -1,15 +1,17 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { collection, query, where, limit, getDocs, doc, updateDoc, increment, setDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, limit, getDocs, doc, updateDoc, increment, setDoc, serverTimestamp, addDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { downloadVCard } from '@/lib/vcard';
+import { downloadVCard, generateVCard } from '@/lib/vcard';
 import { escHtml, initials, fullName, orgLine, formatAddress, shareNative, isLightBg, detectDevice } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import AuthModal from '@/components/AuthModal';
 import ShareModal from '@/components/ShareModal';
 import { QRCodeSVG } from 'qrcode.react';
-import type { Card } from '@/types';
+import { toast } from 'sonner';
+import type { Card, Message } from '@/types';
 
 const PLAT: Record<string, string> = {
   linkedin: 'LinkedIn', twitter: 'X/Twitter', x: 'X/Twitter',
@@ -25,12 +27,15 @@ const IconDownload = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentC
 
 export default function CardViewerPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { user, userData, signInEmail, signUpEmail, signInGoogle, linkGoogle, signInAnon, error: authError } = useAuth();
+  const { user, userData, signInEmail, signUpEmail, signInGoogle, linkGoogle, logOut, error: authError } = useAuth();
   const [card, setCard] = useState<Card | null>(null);
   const [cardsDocId, setCardsDocId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const [messageText, setMessageText] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [messageSent, setMessageSent] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [flipped, setFlipped] = useState(false);
   const trackedMeta = useRef(false);
@@ -181,8 +186,8 @@ export default function CardViewerPage() {
   const init = initials(card.firstName, card.lastName);
   const org = orgLine(card);
   const cardUrl = `${window.location.origin}/card/${card.slug}`;
-  const bgStyle = card.backgroundImage ? { backgroundImage: `url('${card.backgroundImage}')` } : undefined;
   const accent = card.accentColor || '#c9a278';
+  const bgOpacity = card.bgOpacity ?? 0.6;
 
   const phones = (card.phones?.length ? card.phones : (card.phone ? [{ type: 'cell', number: card.phone }] : [])).filter((p) => p.number?.trim());
   const emails = (card.emails?.length ? card.emails : (card.email ? [{ type: 'work', address: card.email }] : [])).filter((e) => e.address?.trim());
@@ -203,6 +208,8 @@ export default function CardViewerPage() {
   const fontScale = card.fontSizeScale || 1;
   const sfs = (px: number) => `${Math.round(px * fontScale)}px`;
 
+  const primaryTextColor = card.textColor || (isDark ? '#f4f1ec' : '#1a1612');
+  const textColorStyle = card.textColor ? { color: card.textColor } : undefined;
   const tc = {
     faceBg: customBg || (isDark ? '#12121a' : undefined),
     faceShadow: isDark ? '0 1px 0 rgba(255,255,255,0.05) inset, 0 24px 60px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4)' : undefined,
@@ -212,9 +219,7 @@ export default function CardViewerPage() {
     linkText: isDark ? 'text-[#c9c3ba]' : 'text-[#4a4238]',
     linkHover: isDark ? 'hover:text-[#f4f1ec]' : 'hover:text-[#2a2520]',
     divider: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(42,37,32,0.12)',
-    overlayGradient: isDark
-      ? 'linear-gradient(to bottom right, rgba(18,18,26,0.55), rgba(18,18,26,0.4), rgba(18,18,26,0.6))'
-      : 'linear-gradient(to bottom right, rgba(244,241,236,0.35), rgba(244,241,236,0.25), rgba(244,241,236,0.4))',
+    overlayBg: isDark ? '#12121a' : '#f4f1ec',
     socialBorder: isDark ? 'border-white/10' : 'border-[rgba(42,37,32,0.12)]',
     socialText: isDark ? 'text-[#9a9186]' : 'text-[#5a5046]',
     socialHoverBg: isDark ? 'hover:bg-white/5' : 'hover:bg-[rgba(42,37,32,0.06)]',
@@ -228,18 +233,20 @@ export default function CardViewerPage() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: pageBg }}>
-      <Navbar onAuthClick={() => setAuthOpen(true)} onSignOut={() => {}} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} />
+      {!card.hideNavbar && (
+        <Navbar onAuthClick={() => setAuthOpen(true)} onSignOut={() => { logOut(); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} />
+      )}
 
       {/* Card stage */}
-      <div className="flex-1 flex flex-col items-center px-5 pt-2 pb-8">
+      <div className={`flex-1 flex flex-col items-center px-5 pb-8 ${card.hideNavbar ? 'pt-8' : 'pt-2'}`}>
         <div className="w-full max-w-[380px] aspect-[2/3.5] perspective-1200 relative">
           <div className={`w-full h-full preserve-3d transition-transform duration-[800ms] ${flipped ? 'rotate-y-180' : ''}`} style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }} onClick={handleFlip} role="button" aria-label="Flip card">
             {/* Front */}
             <div className={`card-face flex flex-col ${!customBg && !isDark ? 'bg-card-bg' : ''}`} style={{ backgroundColor: tc.faceBg, boxShadow: tc.faceShadow }}>
               {card.backgroundImage && (
                 <>
-                  <div className="absolute inset-0 bg-cover bg-center" style={bgStyle} />
-                  <div className="absolute inset-0" style={{ background: tc.overlayGradient }} />
+                  <div className="absolute inset-0" style={{ backgroundImage: `url('${card.backgroundImage}')`, backgroundPosition: card.bgPosition || 'center', backgroundSize: card.bgSize || 'cover', backgroundRepeat: 'no-repeat' }} />
+                  <div className="absolute inset-0" style={{ backgroundColor: tc.overlayBg, opacity: bgOpacity }} />
                 </>
               )}
               <div className="relative z-10 flex-1 flex flex-col items-center p-6 pb-5 text-center" style={{ fontFamily }}>
@@ -250,7 +257,7 @@ export default function CardViewerPage() {
                       <img src={card.profileImage} alt="" className="w-full h-full object-cover" />
                     </div>
                   ) : (
-                    <div className={`w-[72px] h-[72px] rounded-full flex items-center justify-center font-extrabold border-[3px] shadow-lg mx-auto ${tc.profileFallbackBg} ${tc.profileFallbackText}`} style={{ borderColor: accent, fontSize: sfs(22) }}>
+                    <div className={`w-[72px] h-[72px] rounded-full flex items-center justify-center font-extrabold border-[3px] shadow-lg mx-auto ${tc.profileFallbackBg} ${tc.profileFallbackText}`} style={{ ...textColorStyle, borderColor: accent, fontSize: sfs(22) }}>
                       {init}
                     </div>
                   )}
@@ -260,16 +267,16 @@ export default function CardViewerPage() {
                 <div className="mb-4">
                   {card.nameLayout === 'business' && card.company ? (
                     <>
-                      <div className={`font-extrabold leading-tight tracking-tight ${tc.textPrimary}`} style={{ fontSize: sfs(22) }}>{card.company}</div>
-                      {name && <div className={`font-semibold mt-1 ${tc.textSecondary}`} style={{ fontSize: sfs(13) }}>{name}{card.jobTitle ? ` · ${card.jobTitle}` : ''}</div>}
+                      <div className={`font-extrabold leading-tight tracking-tight ${tc.textPrimary}`} style={{ color: primaryTextColor, fontSize: sfs(22) }}>{card.company}</div>
+                      {name && <div className={`font-semibold mt-1 ${tc.textSecondary}`} style={{ ...textColorStyle, fontSize: sfs(13) }}>{name}{card.jobTitle ? ` · ${card.jobTitle}` : ''}</div>}
                     </>
                   ) : (
                     <>
-                      <div className={`font-extrabold leading-tight tracking-tight ${tc.textPrimary}`} style={{ fontSize: sfs(22) }}>{name || 'Anonymous'}</div>
-                      {org && <div className={`font-semibold mt-1 ${tc.textSecondary}`} style={{ fontSize: sfs(13) }}>{org}</div>}
+                      <div className={`font-extrabold leading-tight tracking-tight ${tc.textPrimary}`} style={{ color: primaryTextColor, fontSize: sfs(22) }}>{name || 'Anonymous'}</div>
+                      {org && <div className={`font-semibold mt-1 ${tc.textSecondary}`} style={{ ...textColorStyle, fontSize: sfs(13) }}>{org}</div>}
                     </>
                   )}
-                  {card.bio && <div className={`leading-relaxed mt-2 max-w-[260px] mx-auto ${tc.textMuted}`} style={{ fontSize: sfs(12) }}>{card.bio}</div>}
+                  {card.bio && <div className={`leading-relaxed mt-2 max-w-[260px] mx-auto ${tc.textMuted}`} style={{ ...textColorStyle, fontSize: sfs(12) }}>{card.bio}</div>}
                 </div>
 
                 <div className="h-px w-full my-2" style={{ background: `linear-gradient(to right, transparent, ${tc.divider}, transparent)` }} />
@@ -277,24 +284,24 @@ export default function CardViewerPage() {
                 {/* Contact links */}
                 <div className="flex flex-col gap-2 items-center w-full">
                   {phones.map((p, i) => (
-                    <a key={`p-${i}`} href={`tel:${p.number}`} className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ fontSize: sfs(13) }} onClick={(e) => { e.stopPropagation(); track('call'); }}>
+                    <a key={`p-${i}`} href={`tel:${p.number}`} className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ ...textColorStyle, fontSize: sfs(13) }} onClick={(e) => { e.stopPropagation(); track('call'); }}>
                       <IconPhone /> {p.number}
                     </a>
                   ))}
                   {emails.map((e, i) => (
-                    <a key={`e-${i}`} href={`mailto:${e.address}`} className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ fontSize: sfs(13) }} onClick={(e) => { e.stopPropagation(); track('email'); }}>
+                    <a key={`e-${i}`} href={`mailto:${e.address}`} className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ ...textColorStyle, fontSize: sfs(13) }} onClick={(e) => { e.stopPropagation(); track('email'); }}>
                       <IconMail /> {e.address}
                     </a>
                   ))}
                   {websites.map((w, i) => (
-                    <a key={`w-${i}`} href={w.url?.startsWith('http') ? w.url : `https://${w.url}`} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ fontSize: sfs(13) }} onClick={(e) => { e.stopPropagation(); track('website'); }}>
+                    <a key={`w-${i}`} href={w.url?.startsWith('http') ? w.url : `https://${w.url}`} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ ...textColorStyle, fontSize: sfs(13) }} onClick={(e) => { e.stopPropagation(); track('website'); }}>
                       <IconGlobe /> {w.url}
                     </a>
                   ))}
                   {addrs.map((a, i) => {
                     const line = formatAddress(a);
                     return line ? (
-                      <a key={`a-${i}`} href={`https://maps.google.com/?q=${encodeURIComponent(line)}`} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ fontSize: sfs(13) }} onClick={(e) => { e.stopPropagation(); track('map'); }}>
+                      <a key={`a-${i}`} href={`https://maps.google.com/?q=${encodeURIComponent(line)}`} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ ...textColorStyle, fontSize: sfs(13) }} onClick={(e) => { e.stopPropagation(); track('map'); }}>
                         <IconPin /> {line}
                       </a>
                     ) : null;
@@ -311,7 +318,7 @@ export default function CardViewerPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className={`px-3 py-1.5 rounded-full font-bold lowercase tracking-wide border no-underline transition-colors ${tc.socialBorder} ${tc.socialText} ${tc.socialHoverBg} ${tc.socialHoverText}`}
-                        style={{ fontSize: sfs(11) }}
+                        style={{ ...textColorStyle, fontSize: sfs(11) }}
                         onClick={(e) => { e.stopPropagation(); track(`social:${s.platform}`); }}
                       >
                         {PLAT[s.platform.toLowerCase()] || s.platform}
@@ -320,33 +327,41 @@ export default function CardViewerPage() {
                   </div>
                 )}
               </div>
-              <p className="mt-3 text-[11px] text-ink-faint" style={{ fontFamily }}>Tap to flip · QR on back</p>
+              <p className={`mt-3 text-[11px] w-full text-center ${tc.textMuted}`} style={{ ...textColorStyle, fontFamily }}>Tap to flip · QR on back</p>
             </div>
 
             {/* Back */}
-            <div className={`card-face flex flex-col items-center justify-center p-7 text-center ${!customBg && !isDark ? 'bg-card-bg' : ''}`} style={{ transform: 'rotateY(180deg) translateZ(3px)', backgroundColor: tc.faceBg, boxShadow: tc.faceShadow }}>
-              <img src="/nowncard-logo.png" alt="" className="h-10 w-auto object-contain mb-3" />
-              <div className={`font-extrabold mb-1 ${tc.textPrimary}`} style={{ fontFamily, fontSize: sfs(18) }}>{name || 'Contact'}</div>
-              <div className={`mb-5 ${tc.qrSub}`} style={{ fontFamily, fontSize: sfs(12) }}>Scan to save</div>
-              <div className="bg-white rounded-xl p-3 shadow-sm mb-5">
-                <QRCodeSVG value={cardUrl} size={150} level="M" includeMargin={false} />
+            <div className={`card-face flex flex-col ${!customBg && !isDark ? 'bg-card-bg' : ''}`} style={{ transform: 'rotateY(180deg) translateZ(3px)', backgroundColor: tc.faceBg, boxShadow: tc.faceShadow }}>
+              {card.backgroundImage && (
+                <>
+                  <div className="absolute inset-0" style={{ backgroundImage: `url('${card.backgroundImage}')`, backgroundPosition: card.bgPosition || 'center', backgroundSize: card.bgSize || 'cover', backgroundRepeat: 'no-repeat' }} />
+                  <div className="absolute inset-0" style={{ backgroundColor: tc.overlayBg, opacity: bgOpacity }} />
+                </>
+              )}
+              <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-7 text-center" style={{ fontFamily }}>
+                <img src="/nowncard-logo.png" alt="" className="h-10 w-auto object-contain mb-3" />
+                <div className={`font-extrabold mb-1 ${tc.textPrimary}`} style={{ color: primaryTextColor, fontFamily, fontSize: sfs(18) }}>{name || 'Contact'}</div>
+                <div className={`mb-5 ${tc.qrSub}`} style={{ ...textColorStyle, fontFamily, fontSize: sfs(12) }}>{card.qrMode === 'vcard' ? 'Scan to add contact' : 'Scan to save'}</div>
+                <div className="bg-white rounded-xl p-3 shadow-sm mb-5">
+                  <QRCodeSVG value={card.qrMode === 'vcard' ? generateVCard(card, cardUrl) : cardUrl} size={150} level="M" includeMargin={false} />
+                </div>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <button onClick={(e) => { e.stopPropagation(); downloadVCard(card, undefined, cardUrl); track('save'); if (cardsDocId) { try { updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch { /* no-op */ } } }} className="px-4 py-2 rounded-full text-sm font-bold bg-card-bg hover:brightness-105 transition" style={textColorStyle}>
+                    Save Contact
+                  </button>
+                  <button onClick={(e) => { e.stopPropagation(); const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); } else { promise.then(() => track('share')).catch(() => setShareOpen(true)); } }} className={`px-4 py-2 rounded-full text-sm font-bold bg-transparent border border-line hover:bg-tile-soft transition ${tc.textPrimary}`} style={{ color: primaryTextColor }}>
+                    Share
+                  </button>
+                </div>
+                <p className={`mt-4 text-[11px] w-full text-center ${tc.textMuted}`} style={{ ...textColorStyle, fontFamily }}>Tap to flip back</p>
               </div>
-              <div className="flex flex-wrap gap-2 justify-center">
-                <button onClick={(e) => { e.stopPropagation(); downloadVCard(card); track('save'); if (cardsDocId) { try { updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch { /* no-op */ } } }} className="px-4 py-2 rounded-full text-sm font-bold bg-card-bg text-space hover:brightness-105 transition">
-                  Save Contact
-                </button>
-                <button onClick={(e) => { e.stopPropagation(); const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); } else { promise.then(() => track('share')).catch(() => setShareOpen(true)); } }} className="px-4 py-2 rounded-full text-sm font-bold bg-transparent text-ink border border-line hover:bg-tile-soft transition">
-                  Share
-                </button>
-              </div>
-              <p className="mt-4 text-[11px] text-ink-faint" style={{ fontFamily }}>Tap to flip back</p>
             </div>
           </div>
         </div>
 
         {/* Action bar — pinned below card, dark palette */}
         <div className="flex flex-wrap gap-2.5 justify-center mt-6 max-w-[380px] w-full">
-          <button onClick={async () => { downloadVCard(card); track('save'); if (cardsDocId) { try { await updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch { /* no-op */ } } }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-accent text-space border-none cursor-pointer hover:brightness-110 transition">
+          <button onClick={async () => { downloadVCard(card, undefined, cardUrl); track('save'); if (cardsDocId) { try { await updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch { /* no-op */ } } }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-accent text-space border-none cursor-pointer hover:brightness-110 transition">
             <IconDownload /> Save to Contacts
           </button>
           <button onClick={handleFlip} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-tile text-ink border border-line cursor-pointer hover:bg-tile-soft transition">
@@ -358,14 +373,81 @@ export default function CardViewerPage() {
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="text-center py-6">
-        <Link to="/" className="text-xs font-semibold text-ink-faint hover:text-ink no-underline">Built with NownCard</Link>
-        <p className="text-[10px] text-ink-faint mt-1">
-          © 2026 NownCard — A product of{' '}
-          <a href="https://www.nowndigital.com" target="_blank" rel="noopener noreferrer" className="text-ink-muted hover:text-ink underline underline-offset-2">NOWN Digital</a>
-        </p>
-      </div>
+        {/* Send Message */}
+        {user?.uid !== (card.ownerUid || (card as unknown as Record<string, unknown>).ownerId) && (
+          <div className="w-full max-w-[380px] mt-6 mx-auto">
+            <div className="bg-tile border border-line rounded-2xl p-5">
+              <h3 className="text-sm font-bold mb-1">Send a message</h3>
+              <p className="text-xs text-ink-muted mb-3">
+                Reach out directly — {card.firstName || 'the card owner'} will see this in their dashboard.
+              </p>
+              {user ? (
+                messageSent ? (
+                  <div className="text-sm text-emerald-400 font-semibold">Message sent! ✓</div>
+                ) : (
+                  <>
+                    <textarea
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value.slice(0, 500))}
+                      placeholder="Write your message…"
+                      rows={3}
+                      className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent resize-none"
+                    />
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-[11px] text-ink-faint">{messageText.length}/500</span>
+                      <button
+                        onClick={async () => {
+                          if (!messageText.trim() || !user) return;
+                          const recipientUid = card.ownerUid || (card as unknown as Record<string, unknown>).ownerId as string | undefined;
+                          if (!recipientUid) {
+                            toast.error('Cannot send message — card owner not found');
+                            return;
+                          }
+                          setSendingMessage(true);
+                          try {
+                            await addDoc(collection(db, 'messages'), {
+                              senderUid: user.uid,
+                              senderName: user.displayName || user.email?.split('@')[0] || 'Anonymous',
+                              senderEmail: user.email || '',
+                              recipientUid,
+                              cardId: card.id,
+                              cardSlug: card.slug,
+                              content: messageText.trim(),
+                              createdAt: serverTimestamp(),
+                              read: false,
+                            } as Omit<Message, 'id'>);
+                            setMessageSent(true);
+                            setMessageText('');
+                            toast.success('Message sent');
+                          } catch (err) {
+                            const msg = err instanceof Error ? err.message : String(err);
+                            console.error('Send message error:', err);
+                            toast.error(`Failed to send message: ${msg}`);
+                          } finally {
+                            setSendingMessage(false);
+                          }
+                        }}
+                        disabled={sendingMessage || !messageText.trim()}
+                        className="px-4 py-2 bg-accent text-space text-sm font-bold rounded-lg hover:brightness-110 transition disabled:opacity-50 cursor-pointer"
+                      >
+                        {sendingMessage ? 'Sending…' : 'Send'}
+                      </button>
+                    </div>
+                  </>
+                )
+              ) : (
+                <button
+                  onClick={() => setAuthOpen(true)}
+                  className="px-4 py-2 bg-tile-soft border border-line text-ink text-sm font-bold rounded-lg hover:border-accent transition cursor-pointer"
+                >
+                  Sign in to send a message
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+      <Footer compact />
 
       <ShareModal
         open={shareOpen}
@@ -381,7 +463,6 @@ export default function CardViewerPage() {
         onSignUpEmail={signUpEmail}
         onSignInGoogle={signInGoogle}
         onLinkGoogle={linkGoogle}
-        onSignInAnon={signInAnon}
         error={authError}
         isAuthenticated={!!user}
       />

@@ -69,7 +69,10 @@ export default function Navbar({ onAuthClick, onSignOut, userEmail, isAdmin, def
             <Link to="/rolodex" className="ml-2 px-4 py-1.5 border border-line text-ink text-sm font-bold rounded-full hover:bg-tile-soft transition">Directory</Link>
 
             {userEmail ? (
-              <Link to="/dashboard" className="ml-2 px-4 py-1.5 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition">My Cards</Link>
+              <>
+                <Link to="/dashboard" className="ml-2 px-4 py-1.5 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition">My Cards</Link>
+                <button onClick={onSignOut} className="ml-2 px-4 py-1.5 border border-line text-ink text-sm font-bold rounded-full hover:bg-tile-soft transition">Sign Out</button>
+              </>
             ) : (
               <button onClick={onAuthClick} className="ml-2 px-4 py-1.5 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition">Sign In</button>
             )}

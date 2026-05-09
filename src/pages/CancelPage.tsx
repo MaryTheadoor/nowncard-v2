@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { auth } from '@/lib/firebase';
+import Footer from '@/components/Footer';
 import { cancelPendingUpgrades } from '@/lib/payments';
 import { onAuthStateChanged } from 'firebase/auth';
 
@@ -35,6 +36,8 @@ export default function CancelPage() {
           </div>
         </div>
       </main>
+
+      <Footer compact />
     </div>
   );
 }

@@ -1,29 +1,55 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Users, ClipboardCheck, Star, Search, X } from 'lucide-react';
-import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
+import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Users, ClipboardCheck, Star, Search, X, MessageCircle, Mail, Check, Bell } from 'lucide-react';
+import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
+import { useOneSignal } from '@/hooks/useOneSignal';
 import { downloadVCard } from '@/lib/vcard';
 import Navbar from '@/components/Navbar';
-import type { Card } from '@/types';
+import type { Card, Message } from '@/types';
 import { toast } from 'sonner';
 
 import { createDemoCard } from '@/lib/demo';
-import { initials, getCardLimit } from '@/lib/utils';
+import { initials, getCardLimit, timeAgo } from '@/lib/utils';
+import Footer from '@/components/Footer';
 
 export default function DashboardPage() {
   const { user, userData, loading: authLoading, logOut } = useAuth();
+  const { subscribed: pushSubscribed, enableNotifications } = useOneSignal(user?.uid);
   const navigate = useNavigate();
   const [personalCards, setPersonalCards] = useState<Card[]>([]);
   const [teamCards, setTeamCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
   const [plan, setPlan] = useState<string>('free');
   const [search, setSearch] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(true);
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate('/'); return; }
+
+    // Subscribe to incoming messages (no composite index needed — sort client-side)
+    const messagesQuery = query(
+      collection(db, 'messages'),
+      where('recipientUid', '==', user.uid)
+    );
+    const unsub = onSnapshot(messagesQuery, (snap) => {
+      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Message));
+      list.sort((a, b) => {
+        const ta = a.createdAt && typeof a.createdAt === 'object' && 'toMillis' in a.createdAt ? (a.createdAt as unknown as { toMillis: () => number }).toMillis() : 0;
+        const tb = b.createdAt && typeof b.createdAt === 'object' && 'toMillis' in b.createdAt ? (b.createdAt as unknown as { toMillis: () => number }).toMillis() : 0;
+        return tb - ta;
+      });
+      setMessages(list);
+      setMessagesLoading(false);
+    }, (err) => {
+      console.error('Messages query error:', err);
+      toast.error('Failed to load messages: ' + err.message);
+      setMessagesLoading(false);
+    });
+
     (async () => {
       try {
         const userSnap = await getDoc(doc(db, 'users', user.uid));
@@ -66,15 +92,24 @@ export default function DashboardPage() {
         setLoading(false);
       }
     })();
+
+    return () => unsub();
   }, [user, authLoading, navigate]);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (cardId: string) => {
     if (!confirm('Are you sure you want to delete this card? This cannot be undone.')) return;
     try {
-      await deleteDoc(doc(db, 'cards', id));
-      setPersonalCards(personalCards.filter((c) => c.id !== id));
-      setTeamCards(teamCards.filter((c) => c.id !== id));
-      toast.success('Card deleted');
+      const deletedCard = [...personalCards, ...teamCards].find((c) => c.id === cardId);
+      await deleteDoc(doc(db, 'cards', cardId));
+      setPersonalCards(personalCards.filter((c) => c.id !== cardId));
+      setTeamCards(teamCards.filter((c) => c.id !== cardId));
+      // Clear defaultCardSlug if this was the default card
+      if (deletedCard?.slug && userData?.defaultCardSlug === deletedCard.slug && user) {
+        await setDoc(doc(db, 'users', user.uid), { defaultCardSlug: null }, { merge: true });
+        toast.success('Card deleted — default card cleared');
+      } else {
+        toast.success('Card deleted');
+      }
     } catch {
       toast.error('Failed to delete');
     }
@@ -163,7 +198,7 @@ export default function DashboardPage() {
         <div className="flex items-center gap-1 flex-shrink-0">
           <button
             onClick={() => setDefaultCard(c.slug)}
-            className={`p-1 rounded transition ${userData?.defaultCardSlug === c.slug ? 'text-accent' : 'text-ink-faint hover:text-accent'}`}
+            className={`p-1 rounded transition cursor-pointer ${userData?.defaultCardSlug === c.slug ? 'text-accent' : 'text-ink-faint hover:text-accent'}`}
             title={userData?.defaultCardSlug === c.slug ? 'Your default card' : 'Set as default card'}
           >
             <Star className="w-3.5 h-3.5" fill={userData?.defaultCardSlug === c.slug ? 'currentColor' : 'none'} />
@@ -186,13 +221,13 @@ export default function DashboardPage() {
         <Link to={`/card/${c.slug}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
           <ExternalLink className="w-3 h-3" /> View
         </Link>
-        <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/card/${c.slug}`); toast.success('Link copied'); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
+        <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/card/${c.slug}`); toast.success('Link copied'); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition cursor-pointer">
           <Copy className="w-3 h-3" /> Copy
         </button>
-        <button onClick={() => handleTogglePublic(c)} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
+        <button onClick={() => handleTogglePublic(c)} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition cursor-pointer">
           {c.isPublic ? 'Make Private' : 'Make Public'}
         </button>
-        <button onClick={() => downloadVCard(c)} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
+        <button onClick={() => downloadVCard(c, undefined, `${window.location.origin}/card/${c.slug}`)} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition cursor-pointer">
           <Download className="w-3 h-3" /> vCard
         </button>
         <Link to={`/nfc/${c.slug}`} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
@@ -204,7 +239,7 @@ export default function DashboardPage() {
         <Link to={`/editor/${c.id}`} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
           <Pencil className="w-3 h-3" /> Edit
         </Link>
-        <button onClick={() => handleDelete(c.id!)} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-danger hover:border-danger transition">
+        <button onClick={() => handleDelete(c.id!)} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-danger hover:border-danger transition cursor-pointer">
           <Trash2 className="w-3 h-3" /> Delete
         </button>
       </div>
@@ -230,6 +265,15 @@ export default function DashboardPage() {
             >
               <ClipboardCheck className="w-3 h-3" /> UID
             </button>
+            {!pushSubscribed && (
+              <button
+                onClick={enableNotifications}
+                className="flex items-center gap-1 text-[10px] text-accent hover:text-accent/80 transition"
+                title="Get notified when someone sends you an inquiry"
+              >
+                <Bell className="w-3 h-3" /> Enable notifications
+              </button>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <button onClick={async () => { if (!user) return; try { const result = await createDemoCard(user.uid); toast.success('Demo card created'); navigate(`/editor/${result.id}`); } catch { toast.error('Failed to create demo'); } }} className="flex items-center gap-1.5 px-3 py-2 border border-line text-ink text-xs font-bold rounded-full hover:bg-tile-soft transition">
@@ -346,7 +390,102 @@ export default function DashboardPage() {
             )}
           </>
         )}
+        {/* Inquiries */}
+        <div className="mt-10">
+          <div className="flex items-center gap-3 mb-4">
+            <h2 className="text-xl font-extrabold">Inquiries</h2>
+            {messages.filter((m) => !m.read).length > 0 && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-accent text-space">
+                {messages.filter((m) => !m.read).length} new
+              </span>
+            )}
+          </div>
+
+          {messagesLoading ? (
+            <div className="flex items-center gap-2 text-sm text-ink-muted">
+              <div className="w-4 h-4 border-2 border-line border-t-accent rounded-full animate-spin" />
+              Loading inquiries…
+            </div>
+          ) : messages.length === 0 ? (
+            <div className="bg-tile border border-line border-dashed rounded-2xl p-8 text-center">
+              <MessageCircle className="w-8 h-8 text-ink-faint mx-auto mb-2" />
+              <p className="text-sm text-ink-muted">No inquiries yet.</p>
+              <p className="text-xs text-ink-faint mt-1">When someone sends you a message from your card page, it will appear here.</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {messages.map((m) => (
+                <div
+                  key={m.id}
+                  className={`bg-tile border rounded-2xl p-5 transition ${m.read ? 'border-line' : 'border-accent'}`}
+                >
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm">{m.senderName}</span>
+                        {!m.read && <span className="w-2 h-2 rounded-full bg-accent" />}
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <Mail className="w-3 h-3 text-ink-faint" />
+                        <a
+                          href={`mailto:${m.senderEmail}?subject=Re: Your inquiry on NownCard`}
+                          className="text-xs text-ink-muted hover:text-accent truncate no-underline"
+                        >
+                          {m.senderEmail}
+                        </a>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <Link
+                        to={`/card/${m.cardSlug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-tile-soft border border-line text-ink-muted hover:text-ink no-underline"
+                      >
+                        /card/{m.cardSlug}
+                      </Link>
+                      <span className="text-[11px] text-ink-faint whitespace-nowrap">{timeAgo(m.createdAt)}</span>
+                    </div>
+                  </div>
+                  <p className="text-sm text-ink mb-3 whitespace-pre-wrap">{m.content}</p>
+                  <div className="flex items-center gap-2">
+                    {!m.read && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            await updateDoc(doc(db, 'messages', m.id), { read: true });
+                          } catch {
+                            toast.error('Failed to mark as read');
+                          }
+                        }}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition cursor-pointer"
+                      >
+                        <Check className="w-3 h-3" /> Mark as read
+                      </button>
+                    )}
+                    <button
+                      onClick={async () => {
+                        if (!confirm('Delete this inquiry?')) return;
+                        try {
+                          await deleteDoc(doc(db, 'messages', m.id));
+                          toast.success('Inquiry deleted');
+                        } catch {
+                          toast.error('Failed to delete');
+                        }
+                      }}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-danger hover:border-danger transition cursor-pointer"
+                    >
+                      <Trash2 className="w-3 h-3" /> Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </main>
+
+      <Footer />
     </div>
   );
 }

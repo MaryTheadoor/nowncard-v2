@@ -85,8 +85,9 @@ export default function EditorPage() {
     })();
   }, [id, user, authLoading, navigate, isNewTeamCard]);
 
-  // Auto-generate slug from name if not manually set
+  // Auto-generate slug from name if not manually set (new cards only)
   useEffect(() => {
+    if (id) return; // don't auto-regenerate slug when editing existing card
     if (slugManuallySet.current) return;
     const fn = (card.firstName || '').trim();
     const ln = (card.lastName || '').trim();
@@ -95,7 +96,7 @@ export default function EditorPage() {
     if (auto.length >= 2) {
       queueMicrotask(() => setCard((prev) => ({ ...prev, slug: auto })));
     }
-  }, [card.firstName, card.lastName]);
+  }, [card.firstName, card.lastName, id]);
 
   // Debounced slug availability check
   useEffect(() => {
@@ -158,6 +159,7 @@ export default function EditorPage() {
       const data = stripUndefined({
         ...rest,
         slug,
+        ownerUid: user.uid,
         updatedAt: serverTimestamp(),
       });
 
@@ -207,24 +209,28 @@ export default function EditorPage() {
       const url = await getDownloadURL(ref);
       setCard((prev) => ({ ...prev, customFontUrl: url, fontFamily: undefined }));
       toast.success('Custom font uploaded');
-    } catch {
+    } catch (err) {
+      console.error('[FontUpload] Failed:', err);
       toast.error('Font upload failed');
     }
   };
 
   const handleUpload = async (field: 'profileImage' | 'backgroundImage', file: File) => {
-    if (!user || !card.slug) return;
+    if (!user) return;
     if (file.size > 5 * 1024 * 1024) { toast.error('Image must be under 5MB'); return; }
     try {
-      const compressed = await compressImage(file, 800, 0.85);
+      const compressed = await compressImage(file, 1200, 0.85);
       const ext = file.type === 'image/png' ? 'png' : 'jpg';
-      const ref = storageRef(storage, `users/${user.uid}/cards/${card.slug}/${field}.${ext}`);
+      // Use card ID for existing cards, slug for new cards, or draft fallback
+      const pathPrefix = id || card.slug?.trim() || `draft-${Date.now()}`;
+      const ref = storageRef(storage, `users/${user.uid}/cards/${pathPrefix}/${field}.${ext}`);
       await uploadBytes(ref, compressed);
       const url = await getDownloadURL(ref);
-      setCard({ ...card, [field]: url });
+      setCard((prev) => ({ ...prev, [field]: url }));
       toast.success('Image uploaded');
-    } catch {
-      toast.error('Upload failed');
+    } catch (err) {
+      console.error('[Upload] Failed:', err);
+      toast.error('Upload failed — please try again');
     }
   };
 
@@ -249,26 +255,115 @@ export default function EditorPage() {
 
   const populateFromContacts = async () => {
     try {
-      const props = ['name', 'tel', 'email', 'address'];
+      // Use only standard Contact Picker API properties. 'url' is non-standard and can cause throws.
+      const baseProps = ['name', 'tel', 'email', 'address'];
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const contacts = await (navigator as any).contacts.select(props, { multiple: false });
-      if (!contacts || contacts.length === 0) return;
-      const contact = contacts[0];
+      const navContacts = (navigator as any).contacts;
+
+      // Try with icon support first; fall back to base props if browser rejects it
+      let contacts: unknown[] = [];
+      try {
+        contacts = await navContacts.select([...baseProps, 'icon'], { multiple: false });
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : '';
+        // If icon caused the failure, retry without it
+        if (msg.toLowerCase().includes('icon') || msg.toLowerCase().includes('type')) {
+          contacts = await navContacts.select(baseProps, { multiple: false });
+        } else {
+          throw err;
+        }
+      }
+
+      if (!contacts || (contacts as unknown[]).length === 0) return;
+      const contact = (contacts as Record<string, unknown>[])[0];
       const updates: Partial<Card> = {};
-      if (contact.name?.length) {
-        const parts = contact.name[0].split(' ');
-        updates.firstName = parts[0];
-        updates.lastName = parts.slice(1).join(' ');
+
+      // Name: handle "Dr. Jane Doe" → prefix=Dr., firstName=Jane, lastName=Doe
+      if ((contact.name as unknown[] | undefined)?.length && typeof (contact.name as string[])[0] === 'string') {
+        const raw = (contact.name as string[])[0].trim();
+        const prefixes = ['dr', 'mr', 'mrs', 'ms', 'prof'];
+        const parts = raw.split(/\s+/);
+        let start = 0;
+        if (parts.length > 2 && prefixes.includes(parts[0].toLowerCase().replace('.', ''))) {
+          updates.prefix = parts[0];
+          start = 1;
+        }
+        updates.firstName = parts[start] || raw;
+        updates.lastName = parts.slice(start + 1).join(' ') || '';
       }
-      if (contact.tel?.length) updates.phones = [{ type: 'Cell', number: contact.tel[0] }];
-      if (contact.email?.length) updates.emails = [{ type: 'Work', address: contact.email[0] }];
-      if (contact.address?.length) {
-        const a = contact.address[0];
-        updates.addresses = [{ type: 'Work', street: a.street || a.addressLine || '', city: a.city || '', state: a.region || '', zip: a.postalCode || '', country: a.country || '' }];
+
+      // Tel: might be string[] or ContactTelField[]
+      if ((contact.tel as unknown[] | undefined)?.length) {
+        const tels = (contact.tel as unknown[]).map((t: unknown) => {
+          if (typeof t === 'string') return { type: 'Cell', number: t };
+          const obj = t as { value?: string; type?: string[] | string };
+          const num = obj.value || String(t);
+          let label = 'Cell';
+          if (obj.type) {
+            const typeArr = Array.isArray(obj.type) ? obj.type : [obj.type];
+            const rawType = typeArr[0]?.toLowerCase() || 'cell';
+            label = rawType.charAt(0).toUpperCase() + rawType.slice(1);
+          }
+          return { type: label, number: num };
+        }).filter((t: { number?: string }) => t.number?.trim());
+        if (tels.length) updates.phones = tels;
       }
+
+      // Email: might be string[] or objects
+      if ((contact.email as unknown[] | undefined)?.length) {
+        const emails = (contact.email as unknown[]).map((e: unknown) => {
+          if (typeof e === 'string') return { type: 'Work', address: e };
+          const obj = e as { value?: string; type?: string[] | string };
+          const addr = obj.value || String(e);
+          let label = 'Work';
+          if (obj.type) {
+            const typeArr = Array.isArray(obj.type) ? obj.type : [obj.type];
+            const rawType = typeArr[0]?.toLowerCase() || 'work';
+            label = rawType.charAt(0).toUpperCase() + rawType.slice(1);
+          }
+          return { type: label, address: addr };
+        }).filter((e: { address?: string }) => e.address?.trim());
+        if (emails.length) updates.emails = emails;
+      }
+
+      // Address: addressLine may be string[]
+      if ((contact.address as unknown[] | undefined)?.length) {
+        const a = (contact.address as Record<string, unknown>[])[0];
+        let street = '';
+        if (a.street && typeof a.street === 'string') street = a.street;
+        else if (a.addressLine) {
+          const lines = Array.isArray(a.addressLine) ? a.addressLine as string[] : [a.addressLine as string];
+          street = lines.filter((l: string) => l?.trim()).join(', ');
+        }
+        updates.addresses = [{
+          type: 'Work',
+          street: street || undefined,
+          city: (a.city as string) || undefined,
+          state: (a.region as string) || undefined,
+          zip: (a.postalCode as string) || undefined,
+          country: (a.country as string) || undefined,
+        }];
+      }
+
+      // Photo/icon: upload Blob to Firebase Storage
+      if ((contact.icon as unknown[] | undefined)?.length && user) {
+        const blob = (contact.icon as Blob[])[0];
+        try {
+          const ext = blob.type?.includes('png') ? 'png' : 'jpg';
+          const path = `users/${user.uid}/contacts/${Date.now()}.${ext}`;
+          const ref = storageRef(storage, path);
+          await uploadBytes(ref, blob);
+          const url = await getDownloadURL(ref);
+          updates.profileImage = url;
+        } catch (err) {
+          console.warn('[ContactPicker] Photo upload failed:', err);
+        }
+      }
+
       setCard((prev) => ({ ...prev, ...updates }));
       toast.success('Contact imported');
-    } catch {
+    } catch (err: unknown) {
+      console.error('[ContactPicker] Import failed:', err);
       toast.error('Contact picker failed or was cancelled');
     }
   };
@@ -278,13 +373,22 @@ export default function EditorPage() {
     reader.onload = () => {
       try {
         const text = reader.result as string;
+        // Basic validation — must contain vCard markers
+        if (!text.includes('BEGIN:VCARD') || !text.includes('END:VCARD')) {
+          toast.error('File does not appear to be a valid vCard');
+          return;
+        }
         const parsed = parseVCard(text);
         setCard((prev) => ({ ...prev, ...parsed }));
         if (parsed.birthday || parsed.anniversary) setShowDates(true);
         toast.success('vCard imported');
-      } catch {
+      } catch (err) {
+        console.error('[vCard] Parse error:', err);
         toast.error('Failed to parse vCard');
       }
+    };
+    reader.onerror = () => {
+      toast.error('Failed to read the selected file');
     };
     reader.readAsText(file);
   };
@@ -307,7 +411,12 @@ export default function EditorPage() {
             <span className="hidden sm:inline">{id ? 'Edit Card' : 'New Card'}</span>
           </Link>
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-            <button onClick={() => { if (id) downloadVCard(card as Card); }} className="px-3 sm:px-4 py-2 border border-line text-ink text-sm font-bold rounded-full hover:bg-tile-soft transition" disabled={!id}>
+            <button
+              onClick={() => { if (id) downloadVCard(card as Card, undefined, `${typeof window !== 'undefined' ? window.location.origin : 'https://nowncard.com'}/card/${card.slug}`); }}
+              className="px-3 sm:px-4 py-2 border border-line text-ink text-sm font-bold rounded-full hover:bg-tile-soft transition cursor-pointer disabled:cursor-not-allowed"
+              disabled={!id}
+              title={id ? 'Download vCard' : 'Save your card first to download'}
+            >
               vCard
             </button>
             {card.slug?.trim() && (
@@ -339,7 +448,7 @@ export default function EditorPage() {
               )}
               <label className="flex items-center gap-1.5 px-3 py-2 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition cursor-pointer">
                 <Upload className="w-3.5 h-3.5" /> Upload .vcf
-                <input type="file" accept=".vcf" className="hidden" onChange={(e) => e.target.files?.[0] && handleVCardUpload(e.target.files[0])} />
+                <input type="file" accept=".vcf,.vcard,text/vcard,text/x-vcard" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleVCardUpload(f); e.target.value = ''; }} />
               </label>
             </div>
           </div>
@@ -422,6 +531,18 @@ export default function EditorPage() {
                   {isNewTeamCard && <span className="text-[10px] font-bold uppercase tracking-wider">— Pre-set</span>}
                 </label>
               )}
+              {(userData?.plan === 'pro' || userData?.plan === 'business') ? (
+                <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
+                  <input type="checkbox" checked={card.hideNavbar ?? false} onChange={(e) => updateField('hideNavbar', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
+                  Hide branding nav on card page
+                </label>
+              ) : (
+                <div className="flex items-center gap-2 text-sm text-ink-faint">
+                  <input type="checkbox" disabled className="w-4 h-4 accent-accent rounded opacity-50" />
+                  <span>Hide branding nav on card page</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-accent">— Pro</span>
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-3 mb-4">
               <span className="text-sm text-ink-muted">Name layout</span>
@@ -432,34 +553,97 @@ export default function EditorPage() {
               <span className="text-xs text-ink-faint">{card.nameLayout === 'business' ? 'Company name is the header' : 'Person name is the header'}</span>
             </div>
             <div className="flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-3">
+              {/* Accent */}
+              <div className="flex items-center gap-2">
                 <span className="text-sm text-ink-muted">Accent</span>
                 <input type="color" value={card.accentColor || '#e8a628'} onChange={(e) => updateField('accentColor', e.target.value)} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
+                <input
+                  type="text"
+                  value={card.accentColor || '#e8a628'}
+                  onChange={(e) => {
+                    const v = e.target.value.trim();
+                    if (/^#[0-9A-Fa-f]{6}$/.test(v)) updateField('accentColor', v);
+                  }}
+                  className="w-20 px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-xs font-mono uppercase focus:outline-none focus:border-accent"
+                />
               </div>
-              <div className="flex items-center gap-3">
+              {/* Card BG */}
+              <div className="flex items-center gap-2">
                 <span className="text-sm text-ink-muted">Card BG</span>
-                <div className="flex items-center gap-2">
-                  <input type="color" value={card.cardBgColor || '#f4f1ec'} onChange={(e) => updateField('cardBgColor', e.target.value)} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
-                  {card.cardBgColor && (
-                    <button onClick={() => updateField('cardBgColor', undefined)} className="text-xs text-ink-muted hover:text-ink underline">Reset</button>
-                  )}
-                </div>
+                <input type="color" value={card.cardBgColor || '#f4f1ec'} onChange={(e) => updateField('cardBgColor', e.target.value)} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
+                <input
+                  type="text"
+                  value={card.cardBgColor || '#f4f1ec'}
+                  onChange={(e) => {
+                    const v = e.target.value.trim();
+                    if (/^#[0-9A-Fa-f]{6}$/.test(v)) updateField('cardBgColor', v);
+                  }}
+                  className="w-20 px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-xs font-mono uppercase focus:outline-none focus:border-accent"
+                />
+                {card.cardBgColor && (
+                  <button onClick={() => updateField('cardBgColor', undefined)} className="text-xs text-ink-muted hover:text-ink underline">Reset</button>
+                )}
               </div>
-              <div className="flex items-center gap-3">
+              {/* Page BG */}
+              <div className="flex items-center gap-2">
                 <span className="text-sm text-ink-muted">Page BG</span>
-                <div className="flex items-center gap-2">
-                  <input type="color" value={card.pageBgColor || '#0a0e1a'} onChange={(e) => updateField('pageBgColor', e.target.value)} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
-                  {card.pageBgColor && (
-                    <button onClick={() => updateField('pageBgColor', undefined)} className="text-xs text-ink-muted hover:text-ink underline">Reset</button>
-                  )}
-                </div>
+                <input type="color" value={card.pageBgColor || '#0a0e1a'} onChange={(e) => updateField('pageBgColor', e.target.value)} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
+                <input
+                  type="text"
+                  value={card.pageBgColor || '#0a0e1a'}
+                  onChange={(e) => {
+                    const v = e.target.value.trim();
+                    if (/^#[0-9A-Fa-f]{6}$/.test(v)) updateField('pageBgColor', v);
+                  }}
+                  className="w-20 px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-xs font-mono uppercase focus:outline-none focus:border-accent"
+                />
+                {card.pageBgColor && (
+                  <button onClick={() => updateField('pageBgColor', undefined)} className="text-xs text-ink-muted hover:text-ink underline">Reset</button>
+                )}
               </div>
+              {/* Text */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-ink-muted">Text</span>
+                <button onClick={() => updateField('textColor', undefined)} className={`w-7 h-7 rounded-full border-2 ${!card.textColor ? 'border-accent' : 'border-line'}`} style={{ background: 'linear-gradient(135deg, #f4f1ec 50%, #1a1612 50%)' }} title="Auto" />
+                <button onClick={() => updateField('textColor', '#1a1612')} className={`w-7 h-7 rounded-full border-2 ${card.textColor === '#1a1612' ? 'border-accent' : 'border-line'}`} style={{ background: '#1a1612' }} title="Black" />
+                <button onClick={() => updateField('textColor', '#f4f1ec')} className={`w-7 h-7 rounded-full border-2 ${card.textColor === '#f4f1ec' ? 'border-accent' : 'border-line'}`} style={{ background: '#f4f1ec' }} title="White" />
+                <button onClick={() => updateField('textColor', '#7a7166')} className={`w-7 h-7 rounded-full border-2 ${card.textColor === '#7a7166' ? 'border-accent' : 'border-line'}`} style={{ background: '#7a7166' }} title="Gray" />
+                {(userData?.plan === 'pro' || userData?.plan === 'business') ? (
+                  <>
+                    <input type="color" value={card.textColor || '#1a1612'} onChange={(e) => updateField('textColor', e.target.value)} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
+                    <input
+                      type="text"
+                      value={card.textColor || '#1a1612'}
+                      onChange={(e) => {
+                        const v = e.target.value.trim();
+                        if (/^#[0-9A-Fa-f]{6}$/.test(v)) updateField('textColor', v);
+                      }}
+                      className="w-20 px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-xs font-mono uppercase focus:outline-none focus:border-accent"
+                    />
+                  </>
+                ) : (
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-accent">— Pro</span>
+                )}
+                {card.textColor && (
+                  <button onClick={() => updateField('textColor', undefined)} className="text-xs text-ink-muted hover:text-ink underline">Reset</button>
+                )}
+              </div>
+              {/* Preset */}
               <div className="flex items-center gap-3">
                 <span className="text-sm text-ink-muted">Preset</span>
                 <div className="flex rounded-lg border border-line overflow-hidden">
                   <button onClick={() => { updateField('cardBgColor', undefined); updateField('cardTheme', 'light'); }} className={`px-3 py-1.5 text-sm font-semibold transition ${card.cardTheme !== 'dark' && !card.cardBgColor ? 'bg-accent text-space' : 'text-ink-muted hover:bg-tile-soft'}`}>Light</button>
                   <button onClick={() => { updateField('cardBgColor', undefined); updateField('cardTheme', 'dark'); }} className={`px-3 py-1.5 text-sm font-semibold transition ${card.cardTheme === 'dark' && !card.cardBgColor ? 'bg-accent text-space' : 'text-ink-muted hover:bg-tile-soft'}`}>Dark</button>
                 </div>
+              </div>
+              {/* QR */}
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-ink-muted">QR code</span>
+                <div className="flex rounded-lg border border-line overflow-hidden">
+                  <button onClick={() => updateField('qrMode', undefined)} className={`px-3 py-1.5 text-sm font-semibold transition ${card.qrMode !== 'vcard' ? 'bg-accent text-space' : 'text-ink-muted hover:bg-tile-soft'}`}>Link to card</button>
+                  <button onClick={() => updateField('qrMode', 'vcard')} className={`px-3 py-1.5 text-sm font-semibold transition ${card.qrMode === 'vcard' ? 'bg-accent text-space' : 'text-ink-muted hover:bg-tile-soft'}`}>Contact card</button>
+                </div>
+                <span className="text-xs text-ink-faint">{card.qrMode === 'vcard' ? 'Scan adds contact directly' : 'Scan opens your card page'}</span>
               </div>
             </div>
           </div>
@@ -668,6 +852,57 @@ export default function EditorPage() {
                     <button type="button" onClick={() => updateField('backgroundImage', undefined)} className="text-xs text-danger font-bold border border-line rounded-lg px-2 py-1 hover:border-danger transition">Remove</button>
                   </div>
                 )}
+                {/* Background tuning controls — always visible */}
+                <div className={`mt-2 space-y-3 border-t border-line pt-3 ${!card.backgroundImage ? 'opacity-50 pointer-events-none' : ''}`}>
+                  {!card.backgroundImage && (
+                    <p className="text-[11px] text-ink-faint">Upload a background photo to enable these controls</p>
+                  )}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-ink-muted">Overlay opacity</span>
+                      <span className="text-xs font-bold text-ink">{Math.round((card.bgOpacity ?? 0.6) * 100)}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={1}
+                      step={0.05}
+                      value={card.bgOpacity ?? 0.6}
+                      onChange={(e) => updateField('bgOpacity', parseFloat(e.target.value))}
+                      className="w-full accent-accent"
+                    />
+                    <div className="flex justify-between text-[10px] text-ink-faint mt-0.5">
+                      <span>Clear image</span>
+                      <span>Solid color</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-ink-muted w-16">Position</span>
+                    <select
+                      value={card.bgPosition || 'center'}
+                      onChange={(e) => updateField('bgPosition', e.target.value)}
+                      className="flex-1 px-2.5 py-2 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent"
+                    >
+                      <option value="center">Center</option>
+                      <option value="top">Top</option>
+                      <option value="bottom">Bottom</option>
+                      <option value="left">Left</option>
+                      <option value="right">Right</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-ink-muted w-16">Size</span>
+                    <select
+                      value={card.bgSize || 'cover'}
+                      onChange={(e) => updateField('bgSize', e.target.value)}
+                      className="flex-1 px-2.5 py-2 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent"
+                    >
+                      <option value="cover">Cover</option>
+                      <option value="contain">Contain</option>
+                      <option value="auto">Auto</option>
+                    </select>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

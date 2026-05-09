@@ -89,5 +89,23 @@ service cloud.firestore {
       allow update: if false;
       allow delete: if false;
     }
+
+    // Messages: authenticated senders only; readable by sender or recipient
+    match /messages/{messageId} {
+      allow create: if request.auth != null
+        && request.resource.data.senderUid == request.auth.uid
+        && request.resource.data.content.size() > 0
+        && request.resource.data.content.size() <= 1000
+        && request.resource.data.keys().hasAll(['senderUid', 'recipientUid', 'content', 'cardId', 'cardSlug', 'createdAt']);
+      allow read: if request.auth != null
+        && (resource.data.recipientUid == request.auth.uid
+            || resource.data.senderUid == request.auth.uid);
+      allow update: if request.auth != null
+        && resource.data.recipientUid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow delete: if request.auth != null
+        && (resource.data.recipientUid == request.auth.uid
+            || resource.data.senderUid == request.auth.uid);
+    }
   }
 }

@@ -21,7 +21,6 @@ export default function CardPreview({ card, className = '' }: CardPreviewProps) 
   const name = fullName(card);
   const init = initials(card.firstName, card.lastName);
   const org = orgLine(card);
-  const bgStyle = card.backgroundImage ? { backgroundImage: `url('${card.backgroundImage}')` } : undefined;
   const accent = card.accentColor || '#c9a278';
 
   const phones = (card.phones?.length ? card.phones : (card.phone ? [{ type: 'cell', number: card.phone }] : [])).filter((p) => p.number?.trim());
@@ -37,11 +36,14 @@ export default function CardPreview({ card, className = '' }: CardPreviewProps) 
   const hasCustomBg = !!card.cardBgColor;
   const isDark = hasCustomBg ? !isLightBg(card.cardBgColor!) : card.cardTheme === 'dark';
   const customBg = card.cardBgColor || undefined;
+  const bgOpacity = card.bgOpacity ?? 0.6;
 
   const fontFamily = card.customFontUrl ? "'EditorCustomFont', sans-serif" : (card.fontFamily || 'Manrope');
   const fontScale = card.fontSizeScale || 1;
   const sfs = (px: number) => `${Math.round(px * fontScale)}px`;
 
+  const primaryTextColor = card.textColor || (isDark ? '#f4f1ec' : '#1a1612');
+  const textColorStyle = card.textColor ? { color: card.textColor } : undefined;
   const tc = {
     faceBg: customBg || (isDark ? '#12121a' : undefined),
     textPrimary: isDark ? 'text-[#f4f1ec]' : 'text-[#1a1612]',
@@ -50,9 +52,6 @@ export default function CardPreview({ card, className = '' }: CardPreviewProps) 
     linkText: isDark ? 'text-[#c9c3ba]' : 'text-[#4a4238]',
     linkHover: isDark ? 'hover:text-[#f4f1ec]' : 'hover:text-[#2a2520]',
     divider: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(42,37,32,0.12)',
-    overlayGradient: isDark
-      ? 'linear-gradient(to bottom right, rgba(18,18,26,0.92), rgba(18,18,26,0.75), rgba(18,18,26,0.9))'
-      : 'linear-gradient(to bottom right, rgba(244,241,236,0.92), rgba(244,241,236,0.75), rgba(244,241,236,0.9))',
     socialBorder: isDark ? 'border-white/10' : 'border-[rgba(42,37,32,0.12)]',
     socialText: isDark ? 'text-[#9a9186]' : 'text-[#5a5046]',
     socialHoverBg: isDark ? 'hover:bg-white/5' : 'hover:bg-[rgba(42,37,32,0.06)]',
@@ -68,8 +67,8 @@ export default function CardPreview({ card, className = '' }: CardPreviewProps) 
         <div className={`card-face flex flex-col ${!customBg && !isDark ? 'bg-card-bg' : ''}`} style={{ backgroundColor: tc.faceBg }}>
           {card.backgroundImage && (
             <>
-              <div className="absolute inset-0 bg-cover bg-center" style={bgStyle} />
-              <div className="absolute inset-0" style={{ background: tc.overlayGradient }} />
+              <div className="absolute inset-0" style={{ backgroundImage: `url('${card.backgroundImage}')`, backgroundPosition: card.bgPosition || 'center', backgroundSize: card.bgSize || 'cover', backgroundRepeat: 'no-repeat' }} />
+              <div className="absolute inset-0" style={{ backgroundColor: isDark ? '#12121a' : '#f4f1ec', opacity: bgOpacity }} />
             </>
           )}
           <div className="relative z-10 flex-1 flex flex-col items-center p-6 pb-5 text-center" style={{ fontFamily }}>
@@ -80,7 +79,7 @@ export default function CardPreview({ card, className = '' }: CardPreviewProps) 
                   <img src={card.profileImage} alt="" className="w-full h-full object-cover" />
                 </div>
               ) : (
-                <div className={`w-[88px] h-[88px] rounded-full flex items-center justify-center font-extrabold border-[3px] shadow-lg mx-auto ${tc.profileFallbackBg} ${tc.profileFallbackText}`} style={{ borderColor: accent, fontSize: sfs(26) }}>
+                <div className={`w-[88px] h-[88px] rounded-full flex items-center justify-center font-extrabold border-[3px] shadow-lg mx-auto ${tc.profileFallbackBg} ${tc.profileFallbackText}`} style={{ ...textColorStyle, borderColor: accent, fontSize: sfs(26) }}>
                   {init}
                 </div>
               )}
@@ -90,16 +89,16 @@ export default function CardPreview({ card, className = '' }: CardPreviewProps) 
             <div className="mb-4">
               {card.nameLayout === 'business' && card.company ? (
                 <>
-                  <div className={`font-extrabold leading-tight tracking-tight ${tc.textPrimary}`} style={{ fontSize: sfs(22) }}>{card.company}</div>
-                  {name && <div className={`font-semibold mt-1 ${tc.textSecondary}`} style={{ fontSize: sfs(13) }}>{name}{card.jobTitle ? ` · ${card.jobTitle}` : ''}</div>}
+                  <div className={`font-extrabold leading-tight tracking-tight ${tc.textPrimary}`} style={{ color: primaryTextColor, fontSize: sfs(22) }}>{card.company}</div>
+                  {name && <div className={`font-semibold mt-1 ${tc.textSecondary}`} style={{ ...textColorStyle, fontSize: sfs(13) }}>{name}{card.jobTitle ? ` · ${card.jobTitle}` : ''}</div>}
                 </>
               ) : (
                 <>
-                  <div className={`font-extrabold leading-tight tracking-tight ${tc.textPrimary}`} style={{ fontSize: sfs(22) }}>{name || 'Anonymous'}</div>
-                  {org && <div className={`font-semibold mt-1 ${tc.textSecondary}`} style={{ fontSize: sfs(13) }}>{org}</div>}
+                  <div className={`font-extrabold leading-tight tracking-tight ${tc.textPrimary}`} style={{ color: primaryTextColor, fontSize: sfs(22) }}>{name || 'Anonymous'}</div>
+                  {org && <div className={`font-semibold mt-1 ${tc.textSecondary}`} style={{ ...textColorStyle, fontSize: sfs(13) }}>{org}</div>}
                 </>
               )}
-              {card.bio && <div className={`leading-relaxed mt-2 max-w-[260px] mx-auto ${tc.textMuted}`} style={{ fontSize: sfs(12) }}>{card.bio}</div>}
+              {card.bio && <div className={`leading-relaxed mt-2 max-w-[260px] mx-auto ${tc.textMuted}`} style={{ ...textColorStyle, fontSize: sfs(12) }}>{card.bio}</div>}
             </div>
 
             <div className="h-px w-full my-2" style={{ background: `linear-gradient(to right, transparent, ${tc.divider}, transparent)` }} />
@@ -107,24 +106,24 @@ export default function CardPreview({ card, className = '' }: CardPreviewProps) 
             {/* Contact links */}
             <div className="flex flex-col gap-2 items-center w-full">
               {phones.map((p, i) => (
-                <span key={`p-${i}`} className={`flex items-center gap-2.5 rounded-md px-1.5 py-0.5 ${tc.linkText}`} style={{ fontSize: sfs(13) }}>
+                <span key={`p-${i}`} className={`flex items-center gap-2.5 rounded-md px-1.5 py-0.5 ${tc.linkText}`} style={{ ...textColorStyle, fontSize: sfs(13) }}>
                   <IconPhone /> {p.number}
                 </span>
               ))}
               {emails.map((e, i) => (
-                <span key={`e-${i}`} className={`flex items-center gap-2.5 rounded-md px-1.5 py-0.5 ${tc.linkText}`} style={{ fontSize: sfs(13) }}>
+                <span key={`e-${i}`} className={`flex items-center gap-2.5 rounded-md px-1.5 py-0.5 ${tc.linkText}`} style={{ ...textColorStyle, fontSize: sfs(13) }}>
                   <IconMail /> {e.address}
                 </span>
               ))}
               {websites.map((w, i) => (
-                <span key={`w-${i}`} className={`flex items-center gap-2.5 rounded-md px-1.5 py-0.5 ${tc.linkText}`} style={{ fontSize: sfs(13) }}>
+                <span key={`w-${i}`} className={`flex items-center gap-2.5 rounded-md px-1.5 py-0.5 ${tc.linkText}`} style={{ ...textColorStyle, fontSize: sfs(13) }}>
                   <IconGlobe /> {w.url}
                 </span>
               ))}
               {addrs.map((a, i) => {
                 const line = formatAddress(a);
                 return line ? (
-                  <span key={`a-${i}`} className={`flex items-center gap-2.5 rounded-md px-1.5 py-0.5 ${tc.linkText}`} style={{ fontSize: sfs(13) }}>
+                  <span key={`a-${i}`} className={`flex items-center gap-2.5 rounded-md px-1.5 py-0.5 ${tc.linkText}`} style={{ ...textColorStyle, fontSize: sfs(13) }}>
                     <IconPin /> {line}
                   </span>
                 ) : null;
@@ -138,7 +137,7 @@ export default function CardPreview({ card, className = '' }: CardPreviewProps) 
                   <span
                     key={`s-${i}`}
                     className={`px-3 py-1.5 rounded-md font-bold uppercase tracking-wide border ${tc.socialBorder} ${tc.socialText} ${tc.socialHoverBg} ${tc.socialHoverText}`}
-                    style={{ fontSize: sfs(11) }}
+                    style={{ ...textColorStyle, fontSize: sfs(11) }}
                   >
                     {PLAT[s.platform.toLowerCase()] || s.platform}
                   </span>

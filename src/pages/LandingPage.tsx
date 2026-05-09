@@ -4,12 +4,13 @@ import { Link2, QrCode, Download, Palette, Smartphone } from 'lucide-react';
 import DemoCard from '@/components/DemoCard';
 import Navbar from '@/components/Navbar';
 import AuthModal from '@/components/AuthModal';
+import Footer from '@/components/Footer';
 import { useAuth } from '@/hooks/useAuth';
 import { createPendingUpgrade, SQUARE_LINKS } from '@/lib/payments';
 import { toast } from 'sonner';
 
 export default function LandingPage() {
-  const { user, userData, signInEmail, signUpEmail, signInGoogle, linkGoogle, signInAnon, error } = useAuth();
+  const { user, userData, signInEmail, signUpEmail, signInGoogle, linkGoogle, logOut, error } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
 
   useEffect(() => {
@@ -21,7 +22,13 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-space overflow-x-hidden">
-      <Navbar onAuthClick={() => setAuthOpen(true)} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} />
+      <Navbar
+        onAuthClick={() => setAuthOpen(true)}
+        onSignOut={() => { logOut(); }}
+        userEmail={user?.email}
+        isAdmin={userData?.isAdmin}
+        defaultCardSlug={userData?.defaultCardSlug}
+      />
 
       {/* Hero */}
       <section className="text-center px-6 pt-16 pb-12 max-w-2xl mx-auto">
@@ -136,7 +143,7 @@ export default function LandingPage() {
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Priority support</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Everything in Pro</li>
               </ul>
-              <button onClick={async () => { if (!user) { setAuthOpen(true); return; } try { await createPendingUpgrade(user.uid, 'business', 49); const url = SQUARE_LINKS.business + '&redirect_url=' + encodeURIComponent(window.location.origin + '/success') + '&cancel_url=' + encodeURIComponent(window.location.origin + '/cancel'); window.location.href = url; } catch (e) { console.error(e); toast.error('Payment setup failed. Please try again.'); } }} className="block w-full py-2.5 text-center border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition text-sm cursor-pointer">Upgrade</button>
+              <button onClick={async () => { if (!user) { setAuthOpen(true); return; } try { await createPendingUpgrade(user.uid, 'business', 39); const url = SQUARE_LINKS.business + '&redirect_url=' + encodeURIComponent(window.location.origin + '/success') + '&cancel_url=' + encodeURIComponent(window.location.origin + '/cancel'); window.location.href = url; } catch (e) { console.error(e); toast.error('Payment setup failed. Please try again.'); } }} className="block w-full py-2.5 text-center border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition text-sm cursor-pointer">Upgrade</button>
             </div>
           </div>
         </div>
@@ -153,13 +160,7 @@ export default function LandingPage() {
         </a>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-line-soft py-8 text-center">
-        <p className="text-sm text-ink-faint">
-          © 2026 NownCard — A product of{' '}
-          <a href="https://www.nowndigital.com" target="_blank" rel="noopener noreferrer" className="text-ink-muted hover:text-ink underline underline-offset-2">NOWN Digital</a>
-        </p>
-      </footer>
+      <Footer />
 
       <AuthModal
         open={authOpen}
@@ -168,7 +169,6 @@ export default function LandingPage() {
         onSignUpEmail={signUpEmail}
         onSignInGoogle={signInGoogle}
         onLinkGoogle={linkGoogle}
-        onSignInAnon={signInAnon}
         error={error}
         isAuthenticated={!!user}
       />

@@ -59,6 +59,8 @@ export default function DemoCard() {
   const isDark = card.cardTheme === 'dark';
   const customBg = card.cardBgColor || undefined;
 
+  const primaryTextColor = card.textColor || (isDark ? '#f4f1ec' : '#1a1612');
+  const textColorStyle = card.textColor ? { color: card.textColor } : undefined;
   const tc = {
     faceBg: customBg || (isDark ? '#12121a' : '#f4f1ec'),
     faceShadow: isDark ? '0 1px 0 rgba(255,255,255,0.05) inset, 0 24px 60px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4)' : undefined,
@@ -68,9 +70,7 @@ export default function DemoCard() {
     linkText: isDark ? 'text-[#c9c3ba]' : 'text-[#4a4238]',
     linkHover: isDark ? 'hover:text-[#f4f1ec]' : 'hover:text-[#2a2520]',
     divider: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(42,37,32,0.12)',
-    overlayGradient: isDark
-      ? 'linear-gradient(to bottom right, rgba(18,18,26,0.55), rgba(18,18,26,0.4), rgba(18,18,26,0.6))'
-      : 'linear-gradient(to bottom right, rgba(244,241,236,0.35), rgba(244,241,236,0.25), rgba(244,241,236,0.4))',
+    overlayBg: isDark ? '#12121a' : '#f4f1ec',
     socialBorder: isDark ? 'border-white/10' : 'border-[rgba(42,37,32,0.12)]',
     socialText: isDark ? 'text-[#9a9186]' : 'text-[#5a5046]',
     socialHoverBg: isDark ? 'hover:bg-white/5' : 'hover:bg-[rgba(42,37,32,0.06)]',
@@ -83,7 +83,7 @@ export default function DemoCard() {
   const handleFlip = () => setFlipped((f) => !f);
 
   const handleSave = () => {
-    downloadVCard(card);
+    downloadVCard(card, undefined, cardUrl);
   };
 
   const handleShare = () => {
@@ -111,16 +111,16 @@ export default function DemoCard() {
             <div className="relative z-10 flex-1 flex flex-col items-center p-6 pb-5 text-center" style={{ fontFamily: 'Manrope' }}>
               {/* Profile */}
               <div className="mb-4">
-                <div className={`w-[72px] h-[72px] rounded-full flex items-center justify-center font-extrabold border-[3px] shadow-lg mx-auto ${tc.profileFallbackBg} ${tc.profileFallbackText}`} style={{ borderColor: accent, fontSize: 22 }}>
+                <div className={`w-[72px] h-[72px] rounded-full flex items-center justify-center font-extrabold border-[3px] shadow-lg mx-auto ${tc.profileFallbackBg} ${tc.profileFallbackText}`} style={{ ...textColorStyle, borderColor: accent, fontSize: 22 }}>
                   {init}
                 </div>
               </div>
 
               {/* Name / org / bio */}
               <div className="mb-4">
-                <div className={`font-extrabold leading-tight tracking-tight ${tc.textPrimary}`} style={{ fontSize: 22 }}>{name}</div>
-                {org && <div className={`font-semibold mt-1 ${tc.textSecondary}`} style={{ fontSize: 13 }}>{org}</div>}
-                {card.bio && <div className={`leading-relaxed mt-2 max-w-[260px] mx-auto ${tc.textMuted}`} style={{ fontSize: 12 }}>{card.bio}</div>}
+                <div className={`font-extrabold leading-tight tracking-tight ${tc.textPrimary}`} style={{ color: primaryTextColor, fontSize: 22 }}>{name}</div>
+                {org && <div className={`font-semibold mt-1 ${tc.textSecondary}`} style={{ ...textColorStyle, fontSize: 13 }}>{org}</div>}
+                {card.bio && <div className={`leading-relaxed mt-2 max-w-[260px] mx-auto ${tc.textMuted}`} style={{ ...textColorStyle, fontSize: 12 }}>{card.bio}</div>}
               </div>
 
               <div className="h-px w-full my-2" style={{ background: `linear-gradient(to right, transparent, ${tc.divider}, transparent)` }} />
@@ -128,24 +128,24 @@ export default function DemoCard() {
               {/* Contact links */}
               <div className="flex flex-col gap-2 items-center w-full">
                 {phones.map((p, i) => (
-                  <a key={`p-${i}`} href={`tel:${p.number}`} className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ fontSize: 13 }} onClick={(e) => e.stopPropagation()}>
+                  <a key={`p-${i}`} href={`tel:${p.number}`} className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ ...textColorStyle, fontSize: 13 }} onClick={(e) => e.stopPropagation()}>
                     <IconPhone /> {p.number}
                   </a>
                 ))}
                 {emails.map((e, i) => (
-                  <a key={`e-${i}`} href={`mailto:${e.address}`} className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ fontSize: 13 }} onClick={(e) => e.stopPropagation()}>
+                  <a key={`e-${i}`} href={`mailto:${e.address}`} className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ ...textColorStyle, fontSize: 13 }} onClick={(e) => e.stopPropagation()}>
                     <IconMail /> {e.address}
                   </a>
                 ))}
                 {websites.map((w, i) => (
-                  <a key={`w-${i}`} href={w.url?.startsWith('http') ? w.url : `https://${w.url}`} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ fontSize: 13 }} onClick={(e) => e.stopPropagation()}>
+                  <a key={`w-${i}`} href={w.url?.startsWith('http') ? w.url : `https://${w.url}`} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ ...textColorStyle, fontSize: 13 }} onClick={(e) => e.stopPropagation()}>
                     <IconGlobe /> {w.url}
                   </a>
                 ))}
                 {addrs.map((a, i) => {
                   const line = formatAddress(a);
                   return line ? (
-                    <a key={`a-${i}`} href={`https://maps.google.com/?q=${encodeURIComponent(line)}`} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ fontSize: 13 }} onClick={(e) => e.stopPropagation()}>
+                    <a key={`a-${i}`} href={`https://maps.google.com/?q=${encodeURIComponent(line)}`} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2.5 no-underline rounded-md px-1.5 py-0.5 transition-colors ${tc.linkText} ${tc.linkHover}`} style={{ ...textColorStyle, fontSize: 13 }} onClick={(e) => e.stopPropagation()}>
                       <IconPin /> {line}
                     </a>
                   ) : null;
@@ -159,7 +159,7 @@ export default function DemoCard() {
                     <span
                       key={`s-${i}`}
                       className={`px-3 py-1.5 rounded-full font-bold lowercase tracking-wide border no-underline transition-colors ${tc.socialBorder} ${tc.socialText} ${tc.socialHoverBg} ${tc.socialHoverText}`}
-                      style={{ fontSize: 11 }}
+                      style={{ ...textColorStyle, fontSize: 11 }}
                     >
                       {PLAT[s.platform.toLowerCase()] || s.platform}
                     </span>
@@ -167,26 +167,28 @@ export default function DemoCard() {
                 </div>
               )}
             </div>
-            <p className="mt-3 text-[11px] text-ink-faint" style={{ fontFamily: 'Manrope' }}>Tap to flip · QR on back</p>
+            <p className={`mt-3 text-[11px] w-full text-center ${tc.textMuted}`} style={{ ...textColorStyle, fontFamily: 'Manrope' }}>Tap to flip · QR on back</p>
           </div>
 
           {/* Back */}
-          <div className={`card-face flex flex-col items-center justify-center p-7 text-center ${!customBg && !isDark ? 'bg-card-bg' : ''}`} style={{ transform: 'rotateY(180deg) translateZ(3px)', backgroundColor: tc.faceBg, boxShadow: tc.faceShadow }}>
-            <img src="/nowncard-logo.png" alt="" className="h-10 w-auto object-contain mb-3" />
-            <div className={`font-extrabold mb-1 ${tc.textPrimary}`} style={{ fontFamily: 'Manrope', fontSize: 18 }}>{name}</div>
-            <div className={`mb-5 ${tc.qrSub}`} style={{ fontFamily: 'Manrope', fontSize: 12 }}>Scan to save</div>
-            <div className="bg-white rounded-xl p-3 shadow-sm mb-5">
-              <QRCodeSVG value={cardUrl} size={150} level="M" includeMargin={false} />
+          <div className={`card-face flex flex-col ${!customBg && !isDark ? 'bg-card-bg' : ''}`} style={{ transform: 'rotateY(180deg) translateZ(3px)', backgroundColor: tc.faceBg, boxShadow: tc.faceShadow }}>
+            <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-7 text-center" style={{ fontFamily: 'Manrope' }}>
+              <img src="/nowncard-logo.png" alt="" className="h-10 w-auto object-contain mb-3" />
+              <div className={`font-extrabold mb-1 ${tc.textPrimary}`} style={{ color: primaryTextColor, fontFamily: 'Manrope', fontSize: 18 }}>{name}</div>
+              <div className={`mb-5 ${tc.qrSub}`} style={{ ...textColorStyle, fontFamily: 'Manrope', fontSize: 12 }}>Scan to save</div>
+              <div className="bg-white rounded-xl p-3 shadow-sm mb-5">
+                <QRCodeSVG value={cardUrl} size={150} level="M" includeMargin={false} />
+              </div>
+              <div className="flex flex-wrap gap-2 justify-center">
+                <button onClick={(e) => { e.stopPropagation(); handleSave(); }} className="px-4 py-2 rounded-full text-sm font-bold bg-card-bg hover:brightness-105 transition" style={textColorStyle}>
+                  Save Contact
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); handleShare(); }} className={`px-4 py-2 rounded-full text-sm font-bold bg-transparent border border-line hover:bg-tile-soft transition ${tc.textPrimary}`} style={{ color: primaryTextColor }}>
+                  Share
+                </button>
+              </div>
+              <p className={`mt-4 text-[11px] w-full text-center ${tc.textMuted}`} style={{ ...textColorStyle, fontFamily: 'Manrope' }}>Tap to flip back</p>
             </div>
-            <div className="flex flex-wrap gap-2 justify-center">
-              <button onClick={(e) => { e.stopPropagation(); handleSave(); }} className="px-4 py-2 rounded-full text-sm font-bold bg-card-bg text-space hover:brightness-105 transition">
-                Save Contact
-              </button>
-              <button onClick={(e) => { e.stopPropagation(); handleShare(); }} className="px-4 py-2 rounded-full text-sm font-bold bg-transparent text-ink border border-line hover:bg-tile-soft transition">
-                Share
-              </button>
-            </div>
-            <p className="mt-4 text-[11px] text-ink-faint" style={{ fontFamily: 'Manrope' }}>Tap to flip back</p>
           </div>
         </div>
       </div>

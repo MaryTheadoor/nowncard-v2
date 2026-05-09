@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { auth } from '@/lib/firebase';
+import Footer from '@/components/Footer';
 import { applyPendingUpgrades } from '@/lib/payments';
 import { onAuthStateChanged } from 'firebase/auth';
 
@@ -55,6 +56,8 @@ export default function SuccessPage() {
           <Link to="/dashboard" className="inline-block px-6 py-2.5 bg-accent text-space font-bold rounded-full text-sm hover:brightness-110 transition">Go to Dashboard</Link>
         </div>
       </main>
+
+      <Footer compact />
     </div>
   );
 }

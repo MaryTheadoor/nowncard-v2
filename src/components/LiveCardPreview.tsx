@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { downloadVCard } from '@/lib/vcard';
+import { downloadVCard, generateVCard } from '@/lib/vcard';
 import { shareNative, initials, fullName, orgLine, formatAddress, isLightBg } from '@/lib/utils';
 import type { Card } from '@/types';
 
@@ -38,11 +38,14 @@ export default function LiveCardPreview({ card, className = '' }: LiveCardPrevie
   const hasCustomBg = !!card.cardBgColor;
   const isDark = hasCustomBg ? !isLightBg(card.cardBgColor!) : card.cardTheme === 'dark';
   const customBg = card.cardBgColor || undefined;
+  const bgOpacity = card.bgOpacity ?? 0.6;
 
   const fontFamily = card.customFontUrl ? "'EditorCustomFont', sans-serif" : (card.fontFamily || 'Manrope');
   const fontScale = card.fontSizeScale || 1;
   const sfs = (px: number) => `${Math.round(px * fontScale)}px`;
 
+  const primaryTextColor = card.textColor || (isDark ? '#f4f1ec' : '#1a1612');
+  const textColorStyle = card.textColor ? { color: card.textColor } : undefined;
   const tc = {
     faceBg: customBg || (isDark ? '#12121a' : '#f4f1ec'),
     textPrimary: isDark ? 'text-[#f4f1ec]' : 'text-[#1a1612]',
@@ -68,6 +71,12 @@ export default function LiveCardPreview({ card, className = '' }: LiveCardPrevie
         <div className={`w-full h-full preserve-3d transition-transform duration-[800ms] ${flipped ? 'rotate-y-180' : ''}`} style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
           {/* Front */}
           <div className={`card-face flex flex-col ${!customBg && !isDark ? 'bg-card-bg' : ''}`} style={{ backgroundColor: tc.faceBg }}>
+            {card.backgroundImage && (
+              <>
+                <div className="absolute inset-0" style={{ backgroundImage: `url('${card.backgroundImage}')`, backgroundPosition: card.bgPosition || 'center', backgroundSize: card.bgSize || 'cover', backgroundRepeat: 'no-repeat' }} />
+                <div className="absolute inset-0" style={{ backgroundColor: isDark ? '#12121a' : '#f4f1ec', opacity: bgOpacity }} />
+              </>
+            )}
             <div className="relative z-10 flex-1 flex flex-col items-center p-6 pb-5 text-center" style={{ fontFamily }}>
               <div className="mb-4">
                 {card.profileImage ? (
@@ -75,7 +84,7 @@ export default function LiveCardPreview({ card, className = '' }: LiveCardPrevie
                     <img src={card.profileImage} alt="" className="w-full h-full object-cover" />
                   </div>
                 ) : (
-                  <div className={`w-[72px] h-[72px] rounded-full flex items-center justify-center font-extrabold border-[3px] shadow-lg mx-auto ${tc.profileFallbackBg} ${tc.profileFallbackText}`} style={{ borderColor: accent, fontSize: sfs(22) }}>
+                  <div className={`w-[72px] h-[72px] rounded-full flex items-center justify-center font-extrabold border-[3px] shadow-lg mx-auto ${tc.profileFallbackBg} ${tc.profileFallbackText}`} style={{ ...textColorStyle, borderColor: accent, fontSize: sfs(22) }}>
                     {init}
                   </div>
                 )}
@@ -84,40 +93,40 @@ export default function LiveCardPreview({ card, className = '' }: LiveCardPrevie
               <div className="mb-4">
                 {card.nameLayout === 'business' && card.company ? (
                   <>
-                    <div className={`font-extrabold leading-tight tracking-tight ${tc.textPrimary}`} style={{ fontSize: sfs(22) }}>{card.company}</div>
-                    {name && <div className={`font-semibold mt-1 ${tc.textSecondary}`} style={{ fontSize: sfs(13) }}>{name}{card.jobTitle ? ` · ${card.jobTitle}` : ''}</div>}
+                    <div className={`font-extrabold leading-tight tracking-tight ${tc.textPrimary}`} style={{ color: primaryTextColor, fontSize: sfs(22) }}>{card.company}</div>
+                    {name && <div className={`font-semibold mt-1 ${tc.textSecondary}`} style={{ ...textColorStyle, fontSize: sfs(13) }}>{name}{card.jobTitle ? ` · ${card.jobTitle}` : ''}</div>}
                   </>
                 ) : (
                   <>
-                    <div className={`font-extrabold leading-tight tracking-tight ${tc.textPrimary}`} style={{ fontSize: sfs(22) }}>{name || 'Your Name'}</div>
-                    {org && <div className={`font-semibold mt-1 ${tc.textSecondary}`} style={{ fontSize: sfs(13) }}>{org}</div>}
+                    <div className={`font-extrabold leading-tight tracking-tight ${tc.textPrimary}`} style={{ color: primaryTextColor, fontSize: sfs(22) }}>{name || 'Your Name'}</div>
+                    {org && <div className={`font-semibold mt-1 ${tc.textSecondary}`} style={{ ...textColorStyle, fontSize: sfs(13) }}>{org}</div>}
                   </>
                 )}
-                {card.bio && <div className={`leading-relaxed mt-2 max-w-[260px] mx-auto ${tc.textMuted}`} style={{ fontSize: sfs(12) }}>{card.bio}</div>}
+                {card.bio && <div className={`leading-relaxed mt-2 max-w-[260px] mx-auto ${tc.textMuted}`} style={{ ...textColorStyle, fontSize: sfs(12) }}>{card.bio}</div>}
               </div>
 
               <div className="h-px w-full my-2" style={{ background: `linear-gradient(to right, transparent, ${tc.divider}, transparent)` }} />
 
               <div className="flex flex-col gap-2 items-center w-full">
                 {phones.map((p, i) => (
-                  <span key={`p-${i}`} className={`flex items-center gap-2.5 rounded-md px-1.5 py-0.5 ${tc.linkText}`} style={{ fontSize: sfs(13) }}>
+                  <span key={`p-${i}`} className={`flex items-center gap-2.5 rounded-md px-1.5 py-0.5 ${tc.linkText}`} style={{ ...textColorStyle, fontSize: sfs(13) }}>
                     <IconPhone /> {p.number}
                   </span>
                 ))}
                 {emails.map((e, i) => (
-                  <span key={`e-${i}`} className={`flex items-center gap-2.5 rounded-md px-1.5 py-0.5 ${tc.linkText}`} style={{ fontSize: sfs(13) }}>
+                  <span key={`e-${i}`} className={`flex items-center gap-2.5 rounded-md px-1.5 py-0.5 ${tc.linkText}`} style={{ ...textColorStyle, fontSize: sfs(13) }}>
                     <IconMail /> {e.address}
                   </span>
                 ))}
                 {websites.map((w, i) => (
-                  <span key={`w-${i}`} className={`flex items-center gap-2.5 rounded-md px-1.5 py-0.5 ${tc.linkText}`} style={{ fontSize: sfs(13) }}>
+                  <span key={`w-${i}`} className={`flex items-center gap-2.5 rounded-md px-1.5 py-0.5 ${tc.linkText}`} style={{ ...textColorStyle, fontSize: sfs(13) }}>
                     <IconGlobe /> {w.url}
                   </span>
                 ))}
                 {addrs.map((a, i) => {
                   const line = formatAddress(a);
                   return line ? (
-                    <span key={`a-${i}`} className={`flex items-center gap-2.5 rounded-md px-1.5 py-0.5 ${tc.linkText}`} style={{ fontSize: sfs(13) }}>
+                    <span key={`a-${i}`} className={`flex items-center gap-2.5 rounded-md px-1.5 py-0.5 ${tc.linkText}`} style={{ ...textColorStyle, fontSize: sfs(13) }}>
                       <IconPin /> {line}
                     </span>
                   ) : null;
@@ -130,7 +139,7 @@ export default function LiveCardPreview({ card, className = '' }: LiveCardPrevie
                     <span
                       key={`s-${i}`}
                       className={`px-3 py-1.5 rounded-full font-bold lowercase tracking-wide border ${tc.socialBorder} ${tc.socialText} ${tc.socialHoverBg} ${tc.socialHoverText}`}
-                      style={{ fontSize: sfs(11) }}
+                      style={{ ...textColorStyle, fontSize: sfs(11) }}
                     >
                       {PLAT[s.platform.toLowerCase()] || s.platform}
                     </span>
@@ -138,26 +147,34 @@ export default function LiveCardPreview({ card, className = '' }: LiveCardPrevie
                 </div>
               )}
             </div>
-            <p className="mt-3 text-[11px] text-ink-faint" style={{ fontFamily }}>Tap to flip · QR on back</p>
+            <p className={`mt-3 text-[11px] w-full text-center ${tc.textMuted}`} style={{ ...textColorStyle, fontFamily }}>Tap to flip · QR on back</p>
           </div>
 
           {/* Back */}
-          <div className={`card-face flex flex-col items-center justify-center p-7 text-center ${!customBg && !isDark ? 'bg-card-bg' : ''}`} style={{ transform: 'rotateY(180deg) translateZ(3px)', backgroundColor: tc.faceBg }}>
-            <img src="/nowncard-logo.png" alt="" className="h-10 w-auto object-contain mb-3" />
-            <div className={`font-extrabold mb-1 ${tc.textPrimary}`} style={{ fontFamily, fontSize: sfs(18) }}>{name || 'Contact'}</div>
-            <div className={`mb-5 ${tc.qrSub}`} style={{ fontFamily, fontSize: sfs(12) }}>Scan to save</div>
-            <div className="bg-white rounded-xl p-3 shadow-sm mb-5">
-              <QRCodeSVG value={cardUrl} size={150} level="M" includeMargin={false} />
+          <div className={`card-face flex flex-col ${!customBg && !isDark ? 'bg-card-bg' : ''}`} style={{ transform: 'rotateY(180deg) translateZ(3px)', backgroundColor: tc.faceBg }}>
+            {card.backgroundImage && (
+              <>
+                <div className="absolute inset-0" style={{ backgroundImage: `url('${card.backgroundImage}')`, backgroundPosition: card.bgPosition || 'center', backgroundSize: card.bgSize || 'cover', backgroundRepeat: 'no-repeat' }} />
+                <div className="absolute inset-0" style={{ backgroundColor: isDark ? '#12121a' : '#f4f1ec', opacity: bgOpacity }} />
+              </>
+            )}
+            <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-7 text-center" style={{ fontFamily }}>
+              <img src="/nowncard-logo.png" alt="" className="h-10 w-auto object-contain mb-3" />
+              <div className={`font-extrabold mb-1 ${tc.textPrimary}`} style={{ color: primaryTextColor, fontFamily, fontSize: sfs(18) }}>{name || 'Contact'}</div>
+              <div className={`mb-5 ${tc.qrSub}`} style={{ ...textColorStyle, fontFamily, fontSize: sfs(12) }}>{card.qrMode === 'vcard' ? 'Scan to add contact' : 'Scan to save'}</div>
+              <div className="bg-white rounded-xl p-3 shadow-sm mb-5">
+                <QRCodeSVG value={card.qrMode === 'vcard' ? generateVCard(card, cardUrl) : cardUrl} size={150} level="M" includeMargin={false} />
+              </div>
+              <div className="flex flex-wrap gap-2 justify-center">
+                <button onClick={(e) => { e.stopPropagation(); downloadVCard(card, undefined, cardUrl); }} className="px-4 py-2 rounded-full text-sm font-bold bg-card-bg hover:brightness-105 transition" style={textColorStyle}>
+                  Save Contact
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); const promise = shareNative({ title: name, url: cardUrl }); if (promise) promise.catch(() => {}); }} className={`px-4 py-2 rounded-full text-sm font-bold bg-transparent border border-line hover:bg-tile-soft transition ${tc.textPrimary}`} style={{ color: primaryTextColor }}>
+                  Share
+                </button>
+              </div>
+              <p className={`mt-4 text-[11px] w-full text-center ${tc.textMuted}`} style={{ ...textColorStyle, fontFamily }}>Tap to flip back</p>
             </div>
-            <div className="flex flex-wrap gap-2 justify-center">
-              <button onClick={(e) => { e.stopPropagation(); downloadVCard(card); }} className="px-4 py-2 rounded-full text-sm font-bold bg-card-bg text-space hover:brightness-105 transition">
-                Save Contact
-              </button>
-              <button onClick={(e) => { e.stopPropagation(); const promise = shareNative({ title: name, url: cardUrl }); if (promise) promise.catch(() => {}); }} className="px-4 py-2 rounded-full text-sm font-bold bg-transparent text-ink border border-line hover:bg-tile-soft transition">
-                Share
-              </button>
-            </div>
-            <p className="mt-4 text-[11px] text-ink-faint" style={{ fontFamily }}>Tap to flip back</p>
           </div>
         </div>
       </div>

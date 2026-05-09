@@ -1,6 +1,6 @@
 import type { Card } from '@/types';
 
-export function generateVCard(card: Card | Partial<Card>): string {
+export function generateVCard(card: Card | Partial<Card>, cardPageUrl?: string): string {
   const parts: string[] = ['BEGIN:VCARD', 'VERSION:3.0'];
 
   const name = [];
@@ -66,12 +66,16 @@ export function generateVCard(card: Card | Partial<Card>): string {
     });
   }
 
+  if (cardPageUrl) {
+    parts.push(`URL:${cardPageUrl}`);
+  }
+
   parts.push('END:VCARD');
   return parts.join('\r\n');
 }
 
-export function downloadVCard(card: Card | Partial<Card>, filename?: string) {
-  const vcard = generateVCard(card);
+export function downloadVCard(card: Card | Partial<Card>, filename?: string, cardPageUrl?: string) {
+  const vcard = generateVCard(card, cardPageUrl);
   const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

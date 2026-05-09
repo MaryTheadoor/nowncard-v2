@@ -54,6 +54,9 @@ export interface Card {
   bio?: string;
   profileImage?: string;
   backgroundImage?: string;
+  bgOpacity?: number;
+  bgPosition?: string;
+  bgSize?: string;
   accentColor?: string;
   cardTheme?: 'light' | 'dark';
   cardBgColor?: string;
@@ -70,6 +73,22 @@ export interface Card {
   createdAt?: unknown;
   updatedAt?: unknown;
   industry?: string;
+  hideNavbar?: boolean;
+  textColor?: string;
+  qrMode?: 'url' | 'vcard';
+}
+
+export interface Message {
+  id: string;
+  senderUid: string;
+  senderName: string;
+  senderEmail: string;
+  recipientUid: string;
+  cardId: string;
+  cardSlug: string;
+  content: string;
+  createdAt: unknown;
+  read: boolean;
 }
 
 export type Plan = 'free' | 'pro' | 'business';

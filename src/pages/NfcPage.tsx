@@ -79,7 +79,7 @@ export default function NfcPage() {
       if (mode === 'url') {
         records.push({ recordType: 'url', data: cardUrl });
       } else {
-        const vcard = generateVCard(card);
+        const vcard = generateVCard(card, cardUrl);
         records.push({
           recordType: 'mime',
           mediaType: 'text/vcard',
@@ -87,7 +87,6 @@ export default function NfcPage() {
         });
       }
 
-      console.log('[NFC] Writing records:', records);
       await ndef.write({ records });
       toast.success('NFC tag written successfully!');
     } catch (err: unknown) {
@@ -215,7 +214,7 @@ export default function NfcPage() {
           {showPreview && (
             <div className="mt-3 bg-space border border-line rounded-xl p-3 text-left">
               <div className="text-[11px] text-ink-faint uppercase font-bold tracking-wider mb-1">{mode === 'url' ? 'URL' : 'vCard Data'}</div>
-              <pre className="text-[11px] text-ink-muted font-mono whitespace-pre-wrap break-all">{mode === 'url' ? cardUrl : generateVCard(card || {})}</pre>
+              <pre className="text-[11px] text-ink-muted font-mono whitespace-pre-wrap break-all">{mode === 'url' ? cardUrl : generateVCard(card || {}, cardUrl)}</pre>
             </div>
           )}
         </div>

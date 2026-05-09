@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nowncard-v1';
+const CACHE_NAME = 'nowncard-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -30,7 +30,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: network-first for navigation, cache-first for static assets
+// Fetch: network-first for navigation, skip JS/CSS (content-hashed, browser cached)
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -40,6 +40,9 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.startsWith('/__/')) return;
   if (url.hostname.includes('googleapis.com')) return;
   if (url.hostname.includes('firebase')) return;
+
+  // Skip JS/CSS — Vite content-hashes them, let browser cache handle it
+  if (url.pathname.match(/\.(js|css)(\?.*)?$/)) return;
 
   // HTML navigation: network-first with offline fallback
   if (request.mode === 'navigate' || request.destination === 'document') {
@@ -60,7 +63,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets: stale-while-revalidate
+  // Other static assets: stale-while-revalidate
   event.respondWith(
     caches.match(request).then((cached) => {
       const fetchPromise = fetch(request).then((response) => {
