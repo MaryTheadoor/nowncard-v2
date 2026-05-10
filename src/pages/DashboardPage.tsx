@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Users, ClipboardCheck, Star, Search, X, MessageCircle, Mail, Check, Bell } from 'lucide-react';
-import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { useOneSignal } from '@/hooks/useOneSignal';
@@ -16,39 +16,25 @@ import Footer from '@/components/Footer';
 
 export default function DashboardPage() {
   const { user, userData, loading: authLoading, logOut } = useAuth();
-  const { subscribed: pushSubscribed, enableNotifications } = useOneSignal(user?.uid);
+  const { subscribed: pushSubscribed, ready: pushReady, enableNotifications } = useOneSignal(user?.uid);
   const navigate = useNavigate();
   const [personalCards, setPersonalCards] = useState<Card[]>([]);
   const [teamCards, setTeamCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
   const [plan, setPlan] = useState<string>('free');
   const [search, setSearch] = useState('');
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages] = useState<Message[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(true);
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate('/'); return; }
 
-    // Subscribe to incoming messages (no composite index needed — sort client-side)
-    const messagesQuery = query(
-      collection(db, 'messages'),
-      where('recipientUid', '==', user.uid)
-    );
-    const unsub = onSnapshot(messagesQuery, (snap) => {
-      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Message));
-      list.sort((a, b) => {
-        const ta = a.createdAt && typeof a.createdAt === 'object' && 'toMillis' in a.createdAt ? (a.createdAt as unknown as { toMillis: () => number }).toMillis() : 0;
-        const tb = b.createdAt && typeof b.createdAt === 'object' && 'toMillis' in b.createdAt ? (b.createdAt as unknown as { toMillis: () => number }).toMillis() : 0;
-        return tb - ta;
-      });
-      setMessages(list);
-      setMessagesLoading(false);
-    }, (err) => {
-      console.error('Messages query error:', err);
-      toast.error('Failed to load messages: ' + err.message);
-      setMessagesLoading(false);
-    });
+    // Messaging subscription paused for beta (prevents wasteful Firestore reads)
+    // const messagesQuery = query(collection(db, 'messages'), where('recipientUid', '==', user.uid));
+    // const unsub = onSnapshot(messagesQuery, ...);
+    const unsub = () => {};
+    setMessagesLoading(false);
 
     (async () => {
       try {
@@ -265,7 +251,7 @@ export default function DashboardPage() {
             >
               <ClipboardCheck className="w-3 h-3" /> UID
             </button>
-            {!pushSubscribed && (
+            {pushReady && !pushSubscribed && (
               <button
                 onClick={enableNotifications}
                 className="flex items-center gap-1 text-[10px] text-accent hover:text-accent/80 transition"

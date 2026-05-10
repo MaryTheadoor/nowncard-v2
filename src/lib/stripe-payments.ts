@@ -132,8 +132,7 @@ export async function createPortalSession(uid: string): Promise<string> {
 
 export async function syncStripePlanToUserOnce(uid: string) {
   try {
-    const plan = await syncStripePlanToUser(uid);
-    if (plan) console.log('[Stripe] Synced plan:', plan);
+    await syncStripePlanToUser(uid);
   } catch (e) {
     console.warn('[Stripe] Plan sync failed:', e);
   }

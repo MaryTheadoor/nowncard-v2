@@ -7,16 +7,19 @@ import { toast } from 'sonner';
 export function useOneSignal(userUid: string | undefined) {
   const [subscribed, setSubscribed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (!isOneSignalReady()) {
-        if (!cancelled) setLoading(false);
+      const sdkReady = isOneSignalReady();
+      if (!sdkReady) {
+        if (!cancelled) { setReady(false); setLoading(false); }
         return;
       }
       const perm = await getNotificationPermission();
       if (!cancelled) {
+        setReady(true);
         setSubscribed(perm === 'granted');
         setLoading(false);
       }
@@ -52,5 +55,5 @@ export function useOneSignal(userUid: string | undefined) {
     }
   }, [userUid]);
 
-  return { subscribed, loading, enableNotifications };
+  return { subscribed, loading, ready, enableNotifications };
 }
