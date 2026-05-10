@@ -53,7 +53,10 @@ export interface Card {
   anniversary?: string;
   bio?: string;
   profileImage?: string;
+  profileSize?: 'small' | 'medium' | 'large';
+  profileShape?: 'circle' | 'rounded' | 'square';
   backgroundImage?: string;
+  bgDisplayMode?: 'full' | 'header';
   bgOpacity?: number;
   bgPosition?: string;
   bgSize?: string;

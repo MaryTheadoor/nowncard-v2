@@ -60,6 +60,11 @@ export default function CardPreview({ card, className = '' }: CardPreviewProps) 
     profileFallbackText: isDark ? 'text-[#c9c3ba]' : 'text-[#6b6256]',
   };
 
+  const profileSizePx = card.profileSize === 'small' ? 56 : card.profileSize === 'large' ? 88 : 72;
+  const profileShapeClass = card.profileShape === 'rounded' ? 'rounded-2xl' : card.profileShape === 'square' ? 'rounded-none' : 'rounded-full';
+  const profileFontSize = card.profileSize === 'small' ? 18 : card.profileSize === 'large' ? 26 : 22;
+  const isHeaderBg = card.bgDisplayMode === 'header';
+
   return (
     <div className={`w-full max-w-[380px] mx-auto aspect-[2/3.5] perspective-1200 relative ${className}`}>
       <div className="w-full h-full preserve-3d" style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
@@ -67,19 +72,19 @@ export default function CardPreview({ card, className = '' }: CardPreviewProps) 
         <div className={`card-face flex flex-col ${!customBg && !isDark ? 'bg-card-bg' : ''}`} style={{ backgroundColor: tc.faceBg }}>
           {card.backgroundImage && (
             <>
-              <div className="absolute inset-0" style={{ backgroundImage: `url('${card.backgroundImage}')`, backgroundPosition: card.bgPosition || 'center', backgroundSize: card.bgSize || 'cover', backgroundRepeat: 'no-repeat' }} />
-              <div className="absolute inset-0" style={{ backgroundColor: isDark ? '#12121a' : '#f4f1ec', opacity: bgOpacity }} />
+              <div className={isHeaderBg ? 'absolute top-0 left-0 right-0 h-[45%]' : 'absolute inset-0'} style={{ backgroundImage: `url('${card.backgroundImage}')`, backgroundPosition: card.bgPosition || 'center', backgroundSize: card.bgSize || 'cover', backgroundRepeat: 'no-repeat' }} />
+              <div className={isHeaderBg ? 'absolute top-0 left-0 right-0 h-[45%]' : 'absolute inset-0'} style={{ backgroundColor: isDark ? '#12121a' : '#f4f1ec', opacity: bgOpacity }} />
             </>
           )}
           <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-6 pb-5 text-center overflow-y-auto" style={{ fontFamily }}>
             {/* Profile */}
             <div className="mb-4">
               {card.profileImage ? (
-                <div className="w-[88px] h-[88px] rounded-full overflow-hidden border-[3px] shadow-lg mx-auto" style={{ borderColor: accent }}>
+                <div className={`overflow-hidden border-[3px] shadow-lg mx-auto ${profileShapeClass}`} style={{ width: profileSizePx, height: profileSizePx, borderColor: accent }}>
                   <img src={card.profileImage} alt="" className="w-full h-full object-cover" />
                 </div>
               ) : (
-                <div className={`w-[88px] h-[88px] rounded-full flex items-center justify-center font-extrabold border-[3px] shadow-lg mx-auto ${tc.profileFallbackBg} ${tc.profileFallbackText}`} style={{ ...textColorStyle, borderColor: accent, fontSize: sfs(26) }}>
+                <div className={`flex items-center justify-center font-extrabold border-[3px] shadow-lg mx-auto ${profileShapeClass} ${tc.profileFallbackBg} ${tc.profileFallbackText}`} style={{ width: profileSizePx, height: profileSizePx, ...textColorStyle, borderColor: accent, fontSize: sfs(profileFontSize) }}>
                   {init}
                 </div>
               )}

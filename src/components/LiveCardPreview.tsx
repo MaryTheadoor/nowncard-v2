@@ -63,6 +63,11 @@ export default function LiveCardPreview({ card, className = '' }: LiveCardPrevie
     profileFallbackText: isDark ? 'text-[#c9c3ba]' : 'text-[#6b6256]',
   };
 
+  const profileSizePx = card.profileSize === 'small' ? 56 : card.profileSize === 'large' ? 88 : 72;
+  const profileShapeClass = card.profileShape === 'rounded' ? 'rounded-2xl' : card.profileShape === 'square' ? 'rounded-none' : 'rounded-full';
+  const profileFontSize = card.profileSize === 'small' ? 18 : card.profileSize === 'large' ? 26 : 22;
+  const isHeaderBg = card.bgDisplayMode === 'header';
+
   const handleFlip = () => setFlipped((f) => !f);
 
   return (
@@ -73,18 +78,18 @@ export default function LiveCardPreview({ card, className = '' }: LiveCardPrevie
           <div className={`card-face flex flex-col ${!customBg && !isDark ? 'bg-card-bg' : ''}`} style={{ backgroundColor: tc.faceBg }}>
             {card.backgroundImage && (
               <>
-                <div className="absolute inset-0" style={{ backgroundImage: `url('${card.backgroundImage}')`, backgroundPosition: card.bgPosition || 'center', backgroundSize: card.bgSize || 'cover', backgroundRepeat: 'no-repeat' }} />
-                <div className="absolute inset-0" style={{ backgroundColor: isDark ? '#12121a' : '#f4f1ec', opacity: bgOpacity }} />
+                <div className={isHeaderBg ? 'absolute top-0 left-0 right-0 h-[45%]' : 'absolute inset-0'} style={{ backgroundImage: `url('${card.backgroundImage}')`, backgroundPosition: card.bgPosition || 'center', backgroundSize: card.bgSize || 'cover', backgroundRepeat: 'no-repeat' }} />
+                <div className={isHeaderBg ? 'absolute top-0 left-0 right-0 h-[45%]' : 'absolute inset-0'} style={{ backgroundColor: isDark ? '#12121a' : '#f4f1ec', opacity: bgOpacity }} />
               </>
             )}
             <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-6 pb-5 text-center overflow-y-auto" style={{ fontFamily }}>
               <div className="mb-4">
                 {card.profileImage ? (
-                  <div className="w-[72px] h-[72px] rounded-full overflow-hidden border-[3px] shadow-lg mx-auto" style={{ borderColor: accent }}>
+                  <div className={`overflow-hidden border-[3px] shadow-lg mx-auto ${profileShapeClass}`} style={{ width: profileSizePx, height: profileSizePx, borderColor: accent }}>
                     <img src={card.profileImage} alt="" className="w-full h-full object-cover" />
                   </div>
                 ) : (
-                  <div className={`w-[72px] h-[72px] rounded-full flex items-center justify-center font-extrabold border-[3px] shadow-lg mx-auto ${tc.profileFallbackBg} ${tc.profileFallbackText}`} style={{ ...textColorStyle, borderColor: accent, fontSize: sfs(22) }}>
+                  <div className={`flex items-center justify-center font-extrabold border-[3px] shadow-lg mx-auto ${profileShapeClass} ${tc.profileFallbackBg} ${tc.profileFallbackText}`} style={{ width: profileSizePx, height: profileSizePx, ...textColorStyle, borderColor: accent, fontSize: sfs(profileFontSize) }}>
                     {init}
                   </div>
                 )}
@@ -166,7 +171,7 @@ export default function LiveCardPreview({ card, className = '' }: LiveCardPrevie
                 <QRCodeSVG value={card.qrMode === 'vcard' ? generateVCard(card, cardUrl) : cardUrl} size={150} level="M" includeMargin={false} />
               </div>
               <div className="flex flex-wrap gap-2 justify-center">
-                <button onClick={(e) => { e.stopPropagation(); downloadVCard(card, undefined, cardUrl); }} className="px-4 py-2 rounded-full text-sm font-bold bg-card-bg hover:brightness-105 transition" style={textColorStyle}>
+                <button onClick={(e) => { e.stopPropagation(); downloadVCard(card, undefined, cardUrl); }} className="px-4 py-2 rounded-full text-sm font-bold bg-accent text-space border-none hover:brightness-110 transition cursor-pointer">
                   Save Contact
                 </button>
                 <button onClick={(e) => { e.stopPropagation(); const promise = shareNative({ title: name, url: cardUrl }); if (promise) promise.catch(() => {}); }} className={`px-4 py-2 rounded-full text-sm font-bold bg-transparent border border-line hover:bg-tile-soft transition ${tc.textPrimary}`} style={{ color: primaryTextColor }}>

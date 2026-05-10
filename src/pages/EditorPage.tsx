@@ -842,6 +842,30 @@ export default function EditorPage() {
                     <button type="button" onClick={() => updateField('profileImage', undefined)} className="text-xs text-danger font-bold border border-line rounded-lg px-2 py-1 hover:border-danger transition">Remove</button>
                   </div>
                 )}
+                <div className="flex items-center gap-3 mt-1">
+                  <span className="text-xs text-ink-muted w-16">Size</span>
+                  <select
+                    value={card.profileSize || 'medium'}
+                    onChange={(e) => updateField('profileSize', e.target.value as 'small' | 'medium' | 'large')}
+                    className="flex-1 px-2.5 py-2 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent"
+                  >
+                    <option value="small">Small</option>
+                    <option value="medium">Medium</option>
+                    <option value="large">Large</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-ink-muted w-16">Shape</span>
+                  <select
+                    value={card.profileShape || 'circle'}
+                    onChange={(e) => updateField('profileShape', e.target.value as 'circle' | 'rounded' | 'square')}
+                    className="flex-1 px-2.5 py-2 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent"
+                  >
+                    <option value="circle">Circle</option>
+                    <option value="rounded">Rounded</option>
+                    <option value="square">Square</option>
+                  </select>
+                </div>
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-sm text-ink-muted">Background Photo</label>
@@ -857,6 +881,17 @@ export default function EditorPage() {
                   {!card.backgroundImage && (
                     <p className="text-[11px] text-ink-faint">Upload a background photo to enable these controls</p>
                   )}
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-ink-muted w-16">Display</span>
+                    <select
+                      value={card.bgDisplayMode || 'full'}
+                      onChange={(e) => updateField('bgDisplayMode', e.target.value as 'full' | 'header')}
+                      className="flex-1 px-2.5 py-2 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent"
+                    >
+                      <option value="full">Full card</option>
+                      <option value="header">Header only</option>
+                    </select>
+                  </div>
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs text-ink-muted">Overlay opacity</span>
