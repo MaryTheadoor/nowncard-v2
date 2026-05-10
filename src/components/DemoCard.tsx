@@ -104,11 +104,11 @@ export default function DemoCard() {
   return (
     <div className="w-full max-w-[380px] mx-auto">
       {/* Card stage */}
-      <div className="w-full aspect-[2/3.5] perspective-1200 relative cursor-pointer" onClick={handleFlip} role="button" aria-label="Flip demo card">
+      <div className="w-full aspect-[2/3.5] perspective-1200 relative cursor-pointer" onClick={handleFlip} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFlip(); } }} role="button" aria-label="Flip demo card" tabIndex={0}>
         <div className={`w-full h-full preserve-3d transition-transform duration-[800ms] ${flipped ? 'rotate-y-180' : ''}`} style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
           {/* Front */}
           <div className={`card-face flex flex-col ${!customBg && !isDark ? 'bg-card-bg' : ''}`} style={{ backgroundColor: tc.faceBg, boxShadow: tc.faceShadow }}>
-            <div className="relative z-10 flex-1 flex flex-col items-center p-6 pb-5 text-center" style={{ fontFamily: 'Manrope' }}>
+            <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-6 pb-5 text-center overflow-y-auto" style={{ fontFamily: 'Manrope' }}>
               {/* Profile */}
               <div className="mb-4">
                 <div className={`w-[72px] h-[72px] rounded-full flex items-center justify-center font-extrabold border-[3px] shadow-lg mx-auto ${tc.profileFallbackBg} ${tc.profileFallbackText}`} style={{ ...textColorStyle, borderColor: accent, fontSize: 22 }}>
@@ -154,7 +154,7 @@ export default function DemoCard() {
 
               {/* Social wordmark buttons */}
               {socials.length > 0 && (
-                <div className="flex flex-wrap gap-2 justify-center mt-auto pt-5">
+                <div className="flex flex-wrap gap-2 justify-center pt-5">
                   {socials.map((s, i) => (
                     <span
                       key={`s-${i}`}

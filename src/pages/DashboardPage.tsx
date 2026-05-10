@@ -390,8 +390,8 @@ export default function DashboardPage() {
             )}
           </>
         )}
-        {/* Inquiries */}
-        <div className="mt-10">
+        {/* Inquiries — hidden for beta (preserve backend for later) */}
+        {false && <div className="mt-10">
           <div className="flex items-center gap-3 mb-4">
             <h2 className="text-xl font-extrabold">Inquiries</h2>
             {messages.filter((m) => !m.read).length > 0 && (
@@ -482,7 +482,7 @@ export default function DashboardPage() {
               ))}
             </div>
           )}
-        </div>
+        </div>}
       </main>
 
       <Footer />

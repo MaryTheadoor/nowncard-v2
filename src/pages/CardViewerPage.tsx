@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { collection, query, where, limit, getDocs, doc, updateDoc, increment, setDoc, serverTimestamp, addDoc } from 'firebase/firestore';
+import { collection, query, where, limit, getDocs, doc, updateDoc, increment, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { downloadVCard, generateVCard } from '@/lib/vcard';
 import { escHtml, initials, fullName, orgLine, formatAddress, shareNative, isLightBg, detectDevice } from '@/lib/utils';
@@ -10,8 +10,8 @@ import Footer from '@/components/Footer';
 import AuthModal from '@/components/AuthModal';
 import ShareModal from '@/components/ShareModal';
 import { QRCodeSVG } from 'qrcode.react';
-import { toast } from 'sonner';
-import type { Card, Message } from '@/types';
+// import { toast } from 'sonner'; // re-enable with messaging
+import type { Card } from '@/types';
 
 const PLAT: Record<string, string> = {
   linkedin: 'LinkedIn', twitter: 'X/Twitter', x: 'X/Twitter',
@@ -33,9 +33,10 @@ export default function CardViewerPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
-  const [messageText, setMessageText] = useState('');
-  const [sendingMessage, setSendingMessage] = useState(false);
-  const [messageSent, setMessageSent] = useState(false);
+  // Messaging state — preserved for future re-enable
+  // const [messageText, setMessageText] = useState('');
+  // const [sendingMessage, setSendingMessage] = useState(false);
+  // const [messageSent, setMessageSent] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [flipped, setFlipped] = useState(false);
   const trackedMeta = useRef(false);
@@ -233,7 +234,7 @@ export default function CardViewerPage() {
       {/* Card stage */}
       <div className={`flex-1 flex flex-col items-center px-5 pb-8 ${card.hideNavbar ? 'pt-8' : 'pt-2'}`}>
         <div className="w-full max-w-[380px] aspect-[2/3.5] perspective-1200 relative">
-          <div className={`w-full h-full preserve-3d transition-transform duration-[800ms] ${flipped ? 'rotate-y-180' : ''}`} style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }} onClick={handleFlip} role="button" aria-label="Flip card">
+          <div className={`w-full h-full preserve-3d transition-transform duration-[800ms] ${flipped ? 'rotate-y-180' : ''}`} style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }} onClick={handleFlip} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFlip(); } }} role="button" aria-label="Flip card" tabIndex={0}>
             {/* Front */}
             <div className={`card-face flex flex-col ${!customBg && !isDark ? 'bg-card-bg' : ''}`} style={{ backgroundColor: tc.faceBg, boxShadow: tc.faceShadow }}>
               {card.backgroundImage && (
@@ -242,7 +243,7 @@ export default function CardViewerPage() {
                   <div className="absolute inset-0" style={{ backgroundColor: tc.overlayBg, opacity: bgOpacity }} />
                 </>
               )}
-              <div className="relative z-10 flex-1 flex flex-col items-center p-6 pb-5 text-center" style={{ fontFamily }}>
+              <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-6 pb-5 text-center overflow-y-auto" style={{ fontFamily }}>
                 {/* Profile */}
                 <div className="mb-4">
                   {card.profileImage ? (
@@ -303,7 +304,7 @@ export default function CardViewerPage() {
 
                 {/* Social wordmark buttons */}
                 {socials.length > 0 && (
-                  <div className="flex flex-wrap gap-2 justify-center mt-auto pt-5">
+                  <div className="flex flex-wrap gap-2 justify-center pt-5">
                     {socials.map((s, i) => (
                       <a
                         key={`s-${i}`}
@@ -366,79 +367,7 @@ export default function CardViewerPage() {
         </div>
       </div>
 
-        {/* Send Message */}
-        {user?.uid !== (card.ownerUid || (card as unknown as Record<string, unknown>).ownerId) && (
-          <div className="w-full max-w-[380px] mt-6 mx-auto">
-            <div className="bg-tile border border-line rounded-2xl p-5">
-              <h3 className="text-sm font-bold mb-1">Send a message</h3>
-              <p className="text-xs text-ink-muted mb-3">
-                Reach out directly — {card.firstName || 'the card owner'} will see this in their dashboard.
-              </p>
-              {user ? (
-                messageSent ? (
-                  <div className="text-sm text-emerald-400 font-semibold">Message sent! ✓</div>
-                ) : (
-                  <>
-                    <textarea
-                      value={messageText}
-                      onChange={(e) => setMessageText(e.target.value.slice(0, 500))}
-                      placeholder="Write your message…"
-                      rows={3}
-                      className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent resize-none"
-                    />
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-[11px] text-ink-faint">{messageText.length}/500</span>
-                      <button
-                        onClick={async () => {
-                          if (!messageText.trim() || !user) return;
-                          const recipientUid = card.ownerUid || (card as unknown as Record<string, unknown>).ownerId as string | undefined;
-                          if (!recipientUid) {
-                            toast.error('Cannot send message — card owner not found');
-                            return;
-                          }
-                          setSendingMessage(true);
-                          try {
-                            await addDoc(collection(db, 'messages'), {
-                              senderUid: user.uid,
-                              senderName: user.displayName || user.email?.split('@')[0] || 'Anonymous',
-                              senderEmail: user.email || '',
-                              recipientUid,
-                              cardId: card.id,
-                              cardSlug: card.slug,
-                              content: messageText.trim(),
-                              createdAt: serverTimestamp(),
-                              read: false,
-                            } as Omit<Message, 'id'>);
-                            setMessageSent(true);
-                            setMessageText('');
-                            toast.success('Message sent');
-                          } catch (err) {
-                            const msg = err instanceof Error ? err.message : String(err);
-                            console.error('Send message error:', err);
-                            toast.error(`Failed to send message: ${msg}`);
-                          } finally {
-                            setSendingMessage(false);
-                          }
-                        }}
-                        disabled={sendingMessage || !messageText.trim()}
-                        className="px-4 py-2 bg-accent text-space text-sm font-bold rounded-lg hover:brightness-110 transition disabled:opacity-50 cursor-pointer"
-                      >
-                        {sendingMessage ? 'Sending…' : 'Send'}
-                      </button>
-                    </div>
-                  </>
-                )
-              ) : (
-                <button
-                  onClick={() => setAuthOpen(true)}
-                  className="px-4 py-2 bg-tile-soft border border-line text-ink text-sm font-bold rounded-lg hover:border-accent transition cursor-pointer"
-                >
-                  Sign in to send a message
-                </button>
-              )}
-            </div>
-          </div>
-        )}
+        {/* Messaging — hidden for beta (preserve backend for later) */}
 
       <Footer compact />
 

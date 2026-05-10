@@ -71,7 +71,7 @@ export default function CardPreview({ card, className = '' }: CardPreviewProps) 
               <div className="absolute inset-0" style={{ backgroundColor: isDark ? '#12121a' : '#f4f1ec', opacity: bgOpacity }} />
             </>
           )}
-          <div className="relative z-10 flex-1 flex flex-col items-center p-6 pb-5 text-center" style={{ fontFamily }}>
+          <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-6 pb-5 text-center overflow-y-auto" style={{ fontFamily }}>
             {/* Profile */}
             <div className="mb-4">
               {card.profileImage ? (
@@ -132,7 +132,7 @@ export default function CardPreview({ card, className = '' }: CardPreviewProps) 
 
             {/* Social wordmark buttons */}
             {socials.length > 0 && (
-              <div className="flex flex-wrap gap-2 justify-center mt-auto pt-5">
+              <div className="flex flex-wrap gap-2 justify-center pt-5">
                 {socials.map((s, i) => (
                   <span
                     key={`s-${i}`}

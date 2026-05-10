@@ -67,7 +67,7 @@ export default function LiveCardPreview({ card, className = '' }: LiveCardPrevie
 
   return (
     <div className={`w-full max-w-[380px] mx-auto ${className}`}>
-      <div className="w-full aspect-[2/3.5] perspective-1200 relative cursor-pointer" onClick={handleFlip} role="button" aria-label="Flip card preview">
+      <div className="w-full aspect-[2/3.5] perspective-1200 relative cursor-pointer" onClick={handleFlip} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFlip(); } }} role="button" aria-label="Flip card preview" tabIndex={0}>
         <div className={`w-full h-full preserve-3d transition-transform duration-[800ms] ${flipped ? 'rotate-y-180' : ''}`} style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
           {/* Front */}
           <div className={`card-face flex flex-col ${!customBg && !isDark ? 'bg-card-bg' : ''}`} style={{ backgroundColor: tc.faceBg }}>
@@ -77,7 +77,7 @@ export default function LiveCardPreview({ card, className = '' }: LiveCardPrevie
                 <div className="absolute inset-0" style={{ backgroundColor: isDark ? '#12121a' : '#f4f1ec', opacity: bgOpacity }} />
               </>
             )}
-            <div className="relative z-10 flex-1 flex flex-col items-center p-6 pb-5 text-center" style={{ fontFamily }}>
+            <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-6 pb-5 text-center overflow-y-auto" style={{ fontFamily }}>
               <div className="mb-4">
                 {card.profileImage ? (
                   <div className="w-[72px] h-[72px] rounded-full overflow-hidden border-[3px] shadow-lg mx-auto" style={{ borderColor: accent }}>
@@ -134,7 +134,7 @@ export default function LiveCardPreview({ card, className = '' }: LiveCardPrevie
               </div>
 
               {socials.length > 0 && (
-                <div className="flex flex-wrap gap-2 justify-center mt-auto pt-5">
+                <div className="flex flex-wrap gap-2 justify-center pt-5">
                   {socials.map((s, i) => (
                     <span
                       key={`s-${i}`}
