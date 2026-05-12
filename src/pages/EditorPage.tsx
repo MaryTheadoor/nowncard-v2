@@ -1,20 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
-import { ExternalLink, Eye, EyeOff, Smartphone, Upload, User, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
+import { ExternalLink, Eye, EyeOff, Smartphone, Upload, User, Calendar, ChevronDown, ChevronUp, Copy } from 'lucide-react';
 import LiveCardPreview from '@/components/LiveCardPreview';
+import Navbar from '@/components/Navbar';
+import ShareModal from '@/components/ShareModal';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { downloadVCard } from '@/lib/vcard';
 import { parseVCard } from '@/lib/vcard-parser';
-import { slugify, getCardLimit, GOOGLE_FONTS, compressImage } from '@/lib/utils';
+import { slugify, getCardLimit, GOOGLE_FONTS, compressImage, SOCIAL_PLATFORMS } from '@/lib/utils';
 import type { Card, SocialLink } from '@/types';
 import { toast } from 'sonner';
 
 const defaultCard: Omit<Card, 'id' | 'ownerUid' | 'createdAt' | 'updatedAt'> = {
   slug: '', firstName: '', lastName: '', jobTitle: '', company: '',
-  phones: [], emails: [], websites: [], addresses: [], socialLinks: [],
+  phones: [], emails: [], websites: [], addresses: [], socialLinks: [], industry: '',
   accentColor: '#e8a628', cardTheme: 'light', isPublic: true,
   viewCount: 0, saveCount: 0, bio: '', nameLayout: 'personal',
 };
@@ -23,13 +25,14 @@ export default function EditorPage() {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, userData, loading: authLoading } = useAuth();
+  const { user, userData, loading: authLoading, logOut } = useAuth();
   const [card, setCard] = useState<Partial<Card>>(defaultCard);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
   const [showDates, setShowDates] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const slugManuallySet = useRef(false);
   const slugDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isNewTeamCard = !id && (location.state as { isTeamCard?: boolean } | null)?.isTeamCard === true;
@@ -404,7 +407,14 @@ export default function EditorPage() {
 
   return (
     <div className="min-h-screen bg-space overflow-x-hidden">
-      <header className="sticky top-0 z-40 bg-space/80 backdrop-blur-xl border-b border-line-soft">
+      <Navbar
+        onAuthClick={() => navigate('/')}
+        onSignOut={() => { logOut(); navigate('/'); }}
+        userEmail={user?.email}
+        isAdmin={userData?.isAdmin}
+        defaultCardSlug={userData?.defaultCardSlug}
+      />
+      <header className="sticky top-14 z-30 bg-space/80 backdrop-blur-xl border-b border-line-soft">
         <div className="max-w-4xl mx-auto px-4 sm:px-5 flex items-center justify-between h-14 gap-3">
           <Link to="/" className="flex items-center gap-2.5 text-ink font-bold text-[15px] shrink-0">
             <img src="/nowncard-logo.png" alt="" className="h-[28px] w-auto object-contain rounded-lg" />
@@ -465,7 +475,8 @@ export default function EditorPage() {
               <input value={card.nickname || ''} onChange={(e) => updateField('nickname', e.target.value)} placeholder="Nickname" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
               <input value={card.jobTitle || ''} onChange={(e) => updateField('jobTitle', e.target.value)} placeholder="Job Title" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
               <input value={card.department || ''} onChange={(e) => updateField('department', e.target.value)} placeholder="Department" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-              <input value={card.company || ''} onChange={(e) => updateField('company', e.target.value)} placeholder="Company" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent sm:col-span-2" />
+              <input value={card.company || ''} onChange={(e) => updateField('company', e.target.value)} placeholder="Company" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+              <input value={card.industry || ''} onChange={(e) => updateField('industry', e.target.value)} placeholder="Industry" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
               <div className="sm:col-span-2 flex gap-2">
                 <div className="flex-1 relative">
                   <input
@@ -820,7 +831,23 @@ export default function EditorPage() {
             <div className="space-y-3">
               {Array.isArray(card.socialLinks) && card.socialLinks.map((s: SocialLink, i: number) => (
                 <div key={i} className="flex flex-wrap gap-2">
-                  <input value={s.platform} onChange={(e) => updateField('socialLinks', (card.socialLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, platform: e.target.value } : sl))} placeholder="Platform (e.g. LinkedIn)" className="w-full sm:w-[140px] px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                  <select
+                    value={SOCIAL_PLATFORMS.some(p => p.value === s.platform.toLowerCase()) ? s.platform.toLowerCase() : 'other'}
+                    onChange={(e) => updateField('socialLinks', (card.socialLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, platform: e.target.value } : sl))}
+                    className="w-full sm:w-[150px] px-3 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent"
+                  >
+                    {SOCIAL_PLATFORMS.map((p) => (
+                      <option key={p.value} value={p.value}>{p.name}</option>
+                    ))}
+                  </select>
+                  {(!s.platform || s.platform.toLowerCase() === 'other') && (
+                    <input
+                      value={s.platform === 'other' ? '' : s.platform}
+                      onChange={(e) => updateField('socialLinks', (card.socialLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, platform: e.target.value || 'Other' } : sl))}
+                      placeholder="Custom platform"
+                      className="w-full sm:w-[140px] px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent"
+                    />
+                  )}
                   <input value={s.url} onChange={(e) => updateField('socialLinks', (card.socialLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, url: e.target.value } : sl))} placeholder="URL" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
                   <button onClick={() => updateField('socialLinks', (card.socialLinks as SocialLink[]).filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">×</button>
                 </div>
@@ -952,10 +979,39 @@ export default function EditorPage() {
         </aside>
       </div>
 
+      {/* Mobile bottom action bar */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-space/95 backdrop-blur-xl border-t border-line-soft px-4 py-3 flex items-center justify-between gap-2">
+        <button onClick={() => navigate('/dashboard')} className="px-3 py-2 border border-line text-ink text-xs font-bold rounded-full hover:bg-tile-soft transition">
+          Cancel
+        </button>
+        <div className="flex items-center gap-2">
+          {card.slug?.trim() && (
+            <>
+              <button onClick={() => setShareOpen(true)} className="flex items-center gap-1 px-3 py-2 border border-line text-ink text-xs font-bold rounded-full hover:bg-tile-soft transition">
+                <Copy className="w-3.5 h-3.5" /> Copy Link
+              </button>
+              <a href={`/card/${slugify(card.slug)}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 px-3 py-2 border border-line text-ink text-xs font-bold rounded-full hover:bg-tile-soft transition">
+                <ExternalLink className="w-3.5 h-3.5" /> View
+              </a>
+            </>
+          )}
+          <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-accent text-space text-xs font-bold rounded-full hover:brightness-110 transition disabled:opacity-50">
+            {saving ? 'Saving…' : 'Save'}
+          </button>
+        </div>
+      </div>
+
+      <ShareModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        url={`${typeof window !== 'undefined' ? window.location.origin : 'https://nowncard.com'}/card/${slugify(card.slug || '')}`}
+        title={`${card.firstName || ''} ${card.lastName || ''}`.trim() || 'My NownCard'}
+      />
+
       {/* Mobile preview toggle */}
       <button
         onClick={() => setPreviewOpen((o) => !o)}
-        className="lg:hidden fixed bottom-4 right-4 z-50 w-12 h-12 rounded-full bg-accent text-space flex items-center justify-center shadow-lg hover:brightness-110 transition"
+        className="lg:hidden fixed bottom-20 right-4 z-50 w-12 h-12 rounded-full bg-accent text-space flex items-center justify-center shadow-lg hover:brightness-110 transition"
         aria-label="Toggle preview"
       >
         {previewOpen ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}

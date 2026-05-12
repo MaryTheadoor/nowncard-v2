@@ -73,6 +73,23 @@ export function isLightBg(hex: string): boolean {
   return getLuminance(hex) > 0.5;
 }
 
+export const SOCIAL_PLATFORMS = [
+  { name: 'LinkedIn', value: 'linkedin' },
+  { name: 'X / Twitter', value: 'twitter' },
+  { name: 'GitHub', value: 'github' },
+  { name: 'Instagram', value: 'instagram' },
+  { name: 'YouTube', value: 'youtube' },
+  { name: 'Facebook', value: 'facebook' },
+  { name: 'TikTok', value: 'tiktok' },
+  { name: 'Threads', value: 'threads' },
+  { name: 'Bluesky', value: 'bluesky' },
+  { name: 'Snapchat', value: 'snapchat' },
+  { name: 'Pinterest', value: 'pinterest' },
+  { name: 'Discord', value: 'discord' },
+  { name: 'Website', value: 'website' },
+  { name: 'Other', value: 'other' },
+];
+
 export const GOOGLE_FONTS = [
   { name: 'Manrope', value: 'Manrope' },
   { name: 'Inter', value: 'Inter' },

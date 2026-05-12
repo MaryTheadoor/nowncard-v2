@@ -1,17 +1,17 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Users, ClipboardCheck, Star, Search, X, MessageCircle, Mail, Check, Bell } from 'lucide-react';
+import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Users, ClipboardCheck, Star, Search, X, Bell } from 'lucide-react';
 import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { useOneSignal } from '@/hooks/useOneSignal';
 import { downloadVCard } from '@/lib/vcard';
 import Navbar from '@/components/Navbar';
-import type { Card, Message } from '@/types';
+import type { Card } from '@/types';
 import { toast } from 'sonner';
 
 import { createDemoCard } from '@/lib/demo';
-import { initials, getCardLimit, timeAgo } from '@/lib/utils';
+import { initials, getCardLimit } from '@/lib/utils';
 import Footer from '@/components/Footer';
 
 export default function DashboardPage() {
@@ -23,8 +23,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [plan, setPlan] = useState<string>('free');
   const [search, setSearch] = useState('');
-  const [messages] = useState<Message[]>([]);
-  const [messagesLoading, setMessagesLoading] = useState(true);
+
 
   useEffect(() => {
     if (authLoading) return;
@@ -34,7 +33,6 @@ export default function DashboardPage() {
     // const messagesQuery = query(collection(db, 'messages'), where('recipientUid', '==', user.uid));
     // const unsub = onSnapshot(messagesQuery, ...);
     const unsub = () => {};
-    setMessagesLoading(false);
 
     (async () => {
       try {
@@ -376,8 +374,8 @@ export default function DashboardPage() {
             )}
           </>
         )}
-        {/* Inquiries — hidden for beta (preserve backend for later) */}
-        {false && <div className="mt-10">
+        {/* Inquiries — hidden for beta (preserve backend for later)
+        <div className="mt-10">
           <div className="flex items-center gap-3 mb-4">
             <h2 className="text-xl font-extrabold">Inquiries</h2>
             {messages.filter((m) => !m.read).length > 0 && (
@@ -468,7 +466,7 @@ export default function DashboardPage() {
               ))}
             </div>
           )}
-        </div>}
+        </div> */}
       </main>
 
       <Footer />
