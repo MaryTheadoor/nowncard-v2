@@ -33,6 +33,10 @@ export default function EditorPage() {
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
   const [showDates, setShowDates] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [accentHex, setAccentHex] = useState(card.accentColor || '#e8a628');
+  const [cardBgHex, setCardBgHex] = useState(card.cardBgColor || '#f4f1ec');
+  const [pageBgHex, setPageBgHex] = useState(card.pageBgColor || '#0a0e1a');
+  const [textHex, setTextHex] = useState(card.textColor || '#1a1612');
   const slugManuallySet = useRef(false);
   const slugDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isNewTeamCard = !id && (location.state as { isTeamCard?: boolean } | null)?.isTeamCard === true;
@@ -441,7 +445,7 @@ export default function EditorPage() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-5 flex flex-col lg:flex-row gap-6 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-5 flex flex-col lg:flex-row lg:items-start gap-6 py-8">
         <main className="flex-1 min-w-0 max-w-2xl">
 
           {/* Auto-populate */}
@@ -567,11 +571,12 @@ export default function EditorPage() {
               {/* Accent */}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-ink-muted">Accent</span>
-                <input type="color" value={card.accentColor || '#e8a628'} onChange={(e) => updateField('accentColor', e.target.value)} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
+                <input type="color" value={card.accentColor || '#e8a628'} onChange={(e) => { updateField('accentColor', e.target.value); setAccentHex(e.target.value); }} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
                 <input
                   type="text"
-                  value={card.accentColor || '#e8a628'}
+                  value={accentHex}
                   onChange={(e) => {
+                    setAccentHex(e.target.value);
                     const v = e.target.value.trim();
                     if (/^#[0-9A-Fa-f]{6}$/.test(v)) updateField('accentColor', v);
                   }}
@@ -581,11 +586,12 @@ export default function EditorPage() {
               {/* Card BG */}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-ink-muted">Card BG</span>
-                <input type="color" value={card.cardBgColor || '#f4f1ec'} onChange={(e) => updateField('cardBgColor', e.target.value)} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
+                <input type="color" value={card.cardBgColor || '#f4f1ec'} onChange={(e) => { updateField('cardBgColor', e.target.value); setCardBgHex(e.target.value); }} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
                 <input
                   type="text"
-                  value={card.cardBgColor || '#f4f1ec'}
+                  value={cardBgHex}
                   onChange={(e) => {
+                    setCardBgHex(e.target.value);
                     const v = e.target.value.trim();
                     if (/^#[0-9A-Fa-f]{6}$/.test(v)) updateField('cardBgColor', v);
                   }}
@@ -598,11 +604,12 @@ export default function EditorPage() {
               {/* Page BG */}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-ink-muted">Page BG</span>
-                <input type="color" value={card.pageBgColor || '#0a0e1a'} onChange={(e) => updateField('pageBgColor', e.target.value)} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
+                <input type="color" value={card.pageBgColor || '#0a0e1a'} onChange={(e) => { updateField('pageBgColor', e.target.value); setPageBgHex(e.target.value); }} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
                 <input
                   type="text"
-                  value={card.pageBgColor || '#0a0e1a'}
+                  value={pageBgHex}
                   onChange={(e) => {
+                    setPageBgHex(e.target.value);
                     const v = e.target.value.trim();
                     if (/^#[0-9A-Fa-f]{6}$/.test(v)) updateField('pageBgColor', v);
                   }}
@@ -621,11 +628,12 @@ export default function EditorPage() {
                 <button onClick={() => updateField('textColor', '#7a7166')} className={`w-7 h-7 rounded-full border-2 ${card.textColor === '#7a7166' ? 'border-accent' : 'border-line'}`} style={{ background: '#7a7166' }} title="Gray" />
                 {(userData?.plan === 'pro' || userData?.plan === 'business') ? (
                   <>
-                    <input type="color" value={card.textColor || '#1a1612'} onChange={(e) => updateField('textColor', e.target.value)} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
+                    <input type="color" value={card.textColor || '#1a1612'} onChange={(e) => { updateField('textColor', e.target.value); setTextHex(e.target.value); }} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
                     <input
                       type="text"
-                      value={card.textColor || '#1a1612'}
+                      value={textHex}
                       onChange={(e) => {
+                        setTextHex(e.target.value);
                         const v = e.target.value.trim();
                         if (/^#[0-9A-Fa-f]{6}$/.test(v)) updateField('textColor', v);
                       }}
@@ -811,7 +819,7 @@ export default function EditorPage() {
               {card.addresses?.length ? card.addresses.map((a, i) => (
                 <div key={i} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <select value={a.type} onChange={(e) => updateField('addresses', card.addresses!.map((ad, idx) => idx === i ? { ...ad, type: e.target.value } : ad))} className="px-2.5 py-2.5 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent">
-                    <option>Work</option><option>Home</option>
+                    <option>Work</option><option>Home</option><option>Mailing</option>
                   </select>
                   <input value={a.street || ''} onChange={(e) => updateField('addresses', card.addresses!.map((ad, idx) => idx === i ? { ...ad, street: e.target.value } : ad))} placeholder="Street" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
                   <input value={a.city || ''} onChange={(e) => updateField('addresses', card.addresses!.map((ad, idx) => idx === i ? { ...ad, city: e.target.value } : ad))} placeholder="City" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
@@ -971,7 +979,7 @@ export default function EditorPage() {
         </main>
 
         {/* Desktop sticky preview */}
-        <aside className="hidden lg:block lg:w-[40%] lg:max-w-[420px] lg:sticky lg:top-20 lg:self-start">
+        <aside className="hidden lg:block lg:w-[40%] lg:max-w-[420px] lg:sticky lg:top-20">
           <div className="bg-tile border border-line rounded-2xl p-4">
             <div className="text-[10px] text-ink-faint uppercase tracking-wider font-semibold mb-3">Live Preview</div>
             <LiveCardPreview card={card} />
