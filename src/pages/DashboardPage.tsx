@@ -231,7 +231,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="min-h-screen bg-space overflow-x-hidden">
+    <div className="min-h-screen bg-space">
       <Navbar onAuthClick={() => navigate('/')} onSignOut={() => { logOut(); navigate('/'); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} />
 
       <main className="max-w-4xl mx-auto px-5 py-8">

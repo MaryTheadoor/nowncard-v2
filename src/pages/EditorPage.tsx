@@ -410,7 +410,7 @@ export default function EditorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-space overflow-x-hidden">
+    <div className="min-h-screen bg-space">
       <Navbar
         onAuthClick={() => navigate('/')}
         onSignOut={() => { logOut(); navigate('/'); }}
@@ -955,8 +955,7 @@ export default function EditorPage() {
         <aside className="hidden lg:block lg:sticky lg:top-14 self-start">
           <div className="bg-tile border border-line rounded-2xl p-4">
             <div className="text-[10px] text-ink-faint uppercase tracking-wider font-semibold mb-3">Live Preview</div>
-            <LiveCardPreview card={card} />
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mb-4 flex flex-wrap gap-2">
               <button onClick={handleSave} disabled={saving} className="flex-1 px-4 py-2 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition disabled:opacity-50">
                 {saving ? 'Saving…' : 'Save'}
               </button>
@@ -982,6 +981,7 @@ export default function EditorPage() {
                 Cancel
               </button>
             </div>
+            <LiveCardPreview card={card} />
           </div>
         </aside>
       </div>

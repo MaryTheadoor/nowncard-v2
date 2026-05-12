@@ -21,7 +21,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-space overflow-x-hidden">
+    <div className="min-h-screen bg-space">
       <Navbar
         onAuthClick={() => setAuthOpen(true)}
         onSignOut={() => { logOut(); }}

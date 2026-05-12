@@ -86,7 +86,7 @@ export default function AnalyticsPage() {
     .sort((a, b) => b[1] - a[1]);
 
   return (
-    <div className="min-h-screen bg-space overflow-x-hidden">
+    <div className="min-h-screen bg-space">
       <Navbar onAuthClick={() => navigate('/')} onSignOut={() => { logOut(); navigate('/'); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} />
 
       <main className="max-w-3xl mx-auto px-5 py-8">

@@ -138,7 +138,7 @@ export default function RolodexPage() {
   const hasActiveFilters = activeIndustry !== 'All' || search.trim().length > 0 || sortMode !== 'az';
 
   return (
-    <div className="min-h-screen bg-space overflow-x-hidden">
+    <div className="min-h-screen bg-space">
       <Navbar
         onAuthClick={() => setAuthOpen(true)}
         onSignOut={() => { logOut(); navigate('/'); }}
