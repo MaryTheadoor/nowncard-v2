@@ -521,10 +521,16 @@ export default function EditorPage() {
                 </label>
               )}
               {(userData?.plan === 'pro' || userData?.plan === 'business') ? (
-                <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
-                  <input type="checkbox" checked={card.hideNavbar ?? false} onChange={(e) => updateField('hideNavbar', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
-                  Hide branding nav on card page
-                </label>
+                <>
+                  <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
+                    <input type="checkbox" checked={card.hideNavbar ?? false} onChange={(e) => updateField('hideNavbar', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
+                    Hide branding nav on card page
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
+                    <input type="checkbox" checked={card.hideLogo ?? false} onChange={(e) => updateField('hideLogo', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
+                    Hide logo on back of card
+                  </label>
+                </>
               ) : (
                 <div className="flex items-center gap-2 text-sm text-ink-faint">
                   <input type="checkbox" disabled className="w-4 h-4 accent-accent rounded opacity-50" />
@@ -715,6 +721,24 @@ export default function EditorPage() {
                             {pt}
                           </button>
                         ))}
+                        {isBusiness && (
+                          <div className="flex items-center gap-1.5 ml-1">
+                            <input
+                              type="number"
+                              min={8}
+                              max={72}
+                              value={Math.round((card.fontSizeScale || 0.97) * 16.5)}
+                              onChange={(e) => {
+                                const pt = parseInt(e.target.value, 10);
+                                if (!isNaN(pt)) {
+                                  setCard((prev) => ({ ...prev, fontSizeScale: Math.max(0.3, Math.min(3, pt / 16.5)) }));
+                                }
+                              }}
+                              className="w-14 px-1.5 py-1 bg-space border border-line rounded-lg text-ink text-xs font-bold text-center focus:outline-none focus:border-accent"
+                            />
+                            <span className="text-xs text-ink-muted">pt</span>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
@@ -951,6 +975,19 @@ export default function EditorPage() {
                       <option value="contain">Contain</option>
                       <option value="auto">Auto</option>
                     </select>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-ink-muted w-16">Rotation</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={360}
+                      step={15}
+                      value={card.bgRotation || 0}
+                      onChange={(e) => updateField('bgRotation', parseInt(e.target.value, 10) || 0)}
+                      className="w-16 px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-xs font-bold text-center focus:outline-none focus:border-accent"
+                    />
+                    <span className="text-xs text-ink-muted">°</span>
                   </div>
                 </div>
               </div>

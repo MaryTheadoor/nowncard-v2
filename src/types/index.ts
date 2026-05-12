@@ -60,6 +60,7 @@ export interface Card {
   bgOpacity?: number;
   bgPosition?: string;
   bgSize?: string;
+  bgRotation?: number;
   accentColor?: string;
   cardTheme?: 'light' | 'dark';
   cardBgColor?: string;
@@ -77,6 +78,7 @@ export interface Card {
   updatedAt?: unknown;
   industry?: string;
   hideNavbar?: boolean;
+  hideLogo?: boolean;
   textColor?: string;
   qrMode?: 'url' | 'vcard';
 }
