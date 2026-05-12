@@ -696,23 +696,29 @@ export default function EditorPage() {
                   )}
 
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <span className="text-sm text-ink-muted w-28 shrink-0">Size scale</span>
+                    <span className="text-sm text-ink-muted w-28 shrink-0">Font size</span>
                     {isPro ? (
-                      <div className="flex items-center gap-3 flex-1">
-                        <input
-                          type="range"
-                          min={0.9}
-                          max={1.15}
-                          step={0.01}
-                          value={card.fontSizeScale || 1}
-                          onChange={(e) => setCard((prev) => ({ ...prev, fontSizeScale: parseFloat(e.target.value) }))}
-                          className="flex-1 accent-accent"
-                        />
-                        <span className="text-sm font-bold w-12 text-right">{((card.fontSizeScale || 1) * 100).toFixed(0)}%</span>
+                      <div className="flex items-center gap-2 flex-1 flex-wrap">
+                        {[
+                          { pt: '12pt', scale: 0.73 },
+                          { pt: '14pt', scale: 0.85 },
+                          { pt: '16pt', scale: 0.97 },
+                          { pt: '18pt', scale: 1.09 },
+                        ].map(({ pt, scale }) => (
+                          <button
+                            key={pt}
+                            onClick={() => setCard((prev) => ({ ...prev, fontSizeScale: scale }))}
+                            className={`px-2.5 py-1 text-xs font-bold rounded-full transition ${
+                              Math.abs((card.fontSizeScale || 1) - scale) < 0.06 ? 'bg-accent text-space' : 'border border-line text-ink-muted hover:bg-tile-soft'
+                            }`}
+                          >
+                            {pt}
+                          </button>
+                        ))}
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-ink">100%</span>
+                        <span className="text-sm text-ink">16pt</span>
                         <span className="text-xs text-ink-faint">— Pro feature</span>
                       </div>
                     )}
@@ -957,7 +963,7 @@ export default function EditorPage() {
           <div className="bg-tile border border-line rounded-2xl p-4">
             <div className="text-[10px] text-ink-faint uppercase tracking-wider font-semibold mb-2">Live Preview</div>
             <div className="flex items-center gap-2 mb-3">
-              {[0.8, 1, 1.15].map((s) => (
+              {[0.75, 0.9, 1].map((s) => (
                 <button
                   key={s}
                   onClick={() => setPreviewScale(s)}
@@ -965,7 +971,7 @@ export default function EditorPage() {
                     previewScale === s ? 'bg-accent text-space' : 'border border-line text-ink-muted hover:bg-tile-soft'
                   }`}
                 >
-                  {s === 0.8 ? 'S' : s === 1 ? 'M' : 'L'}
+                  {s === 0.75 ? 'XS' : s === 0.9 ? 'S' : 'M'}
                 </button>
               ))}
             </div>
