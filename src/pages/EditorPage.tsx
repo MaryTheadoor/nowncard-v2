@@ -419,33 +419,15 @@ export default function EditorPage() {
         defaultCardSlug={userData?.defaultCardSlug}
       />
       <header className="sticky top-14 z-30 bg-space/80 backdrop-blur-xl border-b border-line-soft">
-        <div className="max-w-4xl mx-auto px-4 sm:px-5 flex items-center justify-between h-14 gap-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-5 flex items-center h-14 gap-3">
           <Link to="/" className="flex items-center gap-2.5 text-ink font-bold text-[15px] shrink-0">
             <img src="/nowncard-logo.png" alt="" className="h-[28px] w-auto object-contain rounded-lg" />
             <span className="hidden sm:inline">{id ? 'Edit Card' : 'New Card'}</span>
           </Link>
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-            <button
-              onClick={() => { if (id) downloadVCard(card as Card, undefined, `${typeof window !== 'undefined' ? window.location.origin : 'https://nowncard.com'}/card/${card.slug}`); }}
-              className="px-3 sm:px-4 py-2 border border-line text-ink text-sm font-bold rounded-full hover:bg-tile-soft transition cursor-pointer disabled:cursor-not-allowed"
-              disabled={!id}
-              title={id ? 'Download vCard' : 'Save your card first to download'}
-            >
-              vCard
-            </button>
-            {card.slug?.trim() && (
-              <a href={`/card/${slugify(card.slug)}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 sm:px-4 py-2 border border-line text-ink text-sm font-bold rounded-full hover:bg-tile-soft transition cursor-pointer">
-                <ExternalLink className="w-3.5 h-3.5" /> View
-              </a>
-            )}
-            <button onClick={handleSave} disabled={saving} className="px-4 sm:px-5 py-2 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition disabled:opacity-50">
-              {saving ? 'Saving…' : 'Save'}
-            </button>
-          </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-5 flex flex-col lg:flex-row lg:items-start gap-6 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-5 lg:grid lg:grid-cols-[1fr_420px] gap-6 py-8">
         <main className="flex-1 min-w-0 max-w-2xl">
 
           {/* Auto-populate */}
@@ -979,10 +961,36 @@ export default function EditorPage() {
         </main>
 
         {/* Desktop sticky preview */}
-        <aside className="hidden lg:block lg:w-[40%] lg:max-w-[420px] lg:sticky lg:top-20">
+        <aside className="hidden lg:block lg:sticky lg:top-20 self-start">
           <div className="bg-tile border border-line rounded-2xl p-4">
             <div className="text-[10px] text-ink-faint uppercase tracking-wider font-semibold mb-3">Live Preview</div>
             <LiveCardPreview card={card} />
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button onClick={handleSave} disabled={saving} className="flex-1 px-4 py-2 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition disabled:opacity-50">
+                {saving ? 'Saving…' : 'Save'}
+              </button>
+              {card.slug?.trim() && (
+                <>
+                  <button onClick={() => setShareOpen(true)} className="px-3 py-2 border border-line text-ink text-sm font-bold rounded-full hover:bg-tile-soft transition">
+                    Copy Link
+                  </button>
+                  <a href={`/card/${slugify(card.slug)}`} target="_blank" rel="noopener noreferrer" className="px-3 py-2 border border-line text-ink text-sm font-bold rounded-full hover:bg-tile-soft transition no-underline">
+                    View
+                  </a>
+                </>
+              )}
+              <button
+                onClick={() => { if (id) downloadVCard(card as Card, undefined, `${typeof window !== 'undefined' ? window.location.origin : 'https://nowncard.com'}/card/${card.slug}`); }}
+                className="px-3 py-2 border border-line text-ink text-sm font-bold rounded-full hover:bg-tile-soft transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={!id}
+                title={id ? 'Download vCard' : 'Save your card first to download'}
+              >
+                vCard
+              </button>
+              <button onClick={() => navigate('/dashboard')} className="px-3 py-2 border border-line text-ink text-sm font-bold rounded-full hover:bg-tile-soft transition">
+                Cancel
+              </button>
+            </div>
           </div>
         </aside>
       </div>
