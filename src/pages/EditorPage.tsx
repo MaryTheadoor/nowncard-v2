@@ -30,6 +30,7 @@ export default function EditorPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewScale, setPreviewScale] = useState(1);
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
   const [showDates, setShowDates] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
@@ -418,7 +419,7 @@ export default function EditorPage() {
         isAdmin={userData?.isAdmin}
         defaultCardSlug={userData?.defaultCardSlug}
       />
-      <div className="max-w-7xl mx-auto px-4 sm:px-5 lg:grid lg:grid-cols-[1fr_420px] gap-6 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-5 lg:grid lg:grid-cols-[1fr_420px] gap-6 pt-8 pb-24">
         <main className="flex-1 min-w-0 max-w-2xl">
 
           {/* Auto-populate */}
@@ -954,55 +955,52 @@ export default function EditorPage() {
         {/* Desktop sticky preview */}
         <aside className="hidden lg:block lg:sticky lg:top-14 self-start">
           <div className="bg-tile border border-line rounded-2xl p-4">
-            <div className="text-[10px] text-ink-faint uppercase tracking-wider font-semibold mb-3">Live Preview</div>
-            <div className="mb-4 flex flex-wrap gap-2">
-              <button onClick={handleSave} disabled={saving} className="flex-1 px-4 py-2 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition disabled:opacity-50">
-                {saving ? 'Saving…' : 'Save'}
-              </button>
-              {card.slug?.trim() && (
-                <>
-                  <button onClick={() => setShareOpen(true)} className="px-3 py-2 border border-line text-ink text-sm font-bold rounded-full hover:bg-tile-soft transition">
-                    Copy Link
-                  </button>
-                  <a href={`/card/${slugify(card.slug)}`} target="_blank" rel="noopener noreferrer" className="px-3 py-2 border border-line text-ink text-sm font-bold rounded-full hover:bg-tile-soft transition no-underline">
-                    View
-                  </a>
-                </>
-              )}
-              <button
-                onClick={() => { if (id) downloadVCard(card as Card, undefined, `${typeof window !== 'undefined' ? window.location.origin : 'https://nowncard.com'}/card/${card.slug}`); }}
-                className="px-3 py-2 border border-line text-ink text-sm font-bold rounded-full hover:bg-tile-soft transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={!id}
-                title={id ? 'Download vCard' : 'Save your card first to download'}
-              >
-                vCard
-              </button>
-              <button onClick={() => navigate('/dashboard')} className="px-3 py-2 border border-line text-ink text-sm font-bold rounded-full hover:bg-tile-soft transition">
-                Cancel
-              </button>
+            <div className="text-[10px] text-ink-faint uppercase tracking-wider font-semibold mb-2">Live Preview</div>
+            <div className="flex items-center gap-2 mb-3">
+              {[0.8, 1, 1.15].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setPreviewScale(s)}
+                  className={`px-2.5 py-1 text-[11px] font-bold rounded-full transition ${
+                    previewScale === s ? 'bg-accent text-space' : 'border border-line text-ink-muted hover:bg-tile-soft'
+                  }`}
+                >
+                  {s === 0.8 ? 'S' : s === 1 ? 'M' : 'L'}
+                </button>
+              ))}
             </div>
-            <LiveCardPreview card={card} />
+            <div style={{ transform: `scale(${previewScale})`, transformOrigin: 'top center', marginBottom: `${-665 * (1 - previewScale)}px` }}>
+              <LiveCardPreview card={card} />
+            </div>
           </div>
         </aside>
       </div>
 
-      {/* Mobile bottom action bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-space/95 backdrop-blur-xl border-t border-line-soft px-4 py-3 flex items-center justify-between gap-2">
-        <button onClick={() => navigate('/dashboard')} className="px-3 py-2 border border-line text-ink text-xs font-bold rounded-full hover:bg-tile-soft transition">
+      {/* Persistent bottom action bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-space/95 backdrop-blur-xl border-t border-line-soft px-4 md:px-6 py-3 flex items-center justify-between gap-2">
+        <button onClick={() => navigate('/dashboard')} className="px-3 md:px-4 py-2 border border-line text-ink text-xs md:text-sm font-bold rounded-full hover:bg-tile-soft transition">
           Cancel
         </button>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => { if (id) downloadVCard(card as Card, undefined, `${typeof window !== 'undefined' ? window.location.origin : 'https://nowncard.com'}/card/${card.slug}`); }}
+            className="px-3 md:px-4 py-2 border border-line text-ink text-xs md:text-sm font-bold rounded-full hover:bg-tile-soft transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={!id}
+            title={id ? 'Download vCard' : 'Save your card first to download'}
+          >
+            vCard
+          </button>
           {card.slug?.trim() && (
             <>
-              <button onClick={() => setShareOpen(true)} className="flex items-center gap-1 px-3 py-2 border border-line text-ink text-xs font-bold rounded-full hover:bg-tile-soft transition">
+              <button onClick={() => setShareOpen(true)} className="flex items-center gap-1 px-3 md:px-4 py-2 border border-line text-ink text-xs md:text-sm font-bold rounded-full hover:bg-tile-soft transition">
                 <Copy className="w-3.5 h-3.5" /> Copy Link
               </button>
-              <a href={`/card/${slugify(card.slug)}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 px-3 py-2 border border-line text-ink text-xs font-bold rounded-full hover:bg-tile-soft transition">
+              <a href={`/card/${slugify(card.slug)}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 px-3 md:px-4 py-2 border border-line text-ink text-xs md:text-sm font-bold rounded-full hover:bg-tile-soft transition">
                 <ExternalLink className="w-3.5 h-3.5" /> View
               </a>
             </>
           )}
-          <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-accent text-space text-xs font-bold rounded-full hover:brightness-110 transition disabled:opacity-50">
+          <button onClick={handleSave} disabled={saving} className="px-4 md:px-5 py-2 bg-accent text-space text-xs md:text-sm font-bold rounded-full hover:brightness-110 transition disabled:opacity-50">
             {saving ? 'Saving…' : 'Save'}
           </button>
         </div>
