@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ExternalLink, Eye, EyeOff, Smartphone, Upload, User, Calendar, ChevronDown, ChevronUp, Copy } from 'lucide-react';
 import LiveCardPreview from '@/components/LiveCardPreview';
 import Navbar from '@/components/Navbar';
@@ -418,15 +418,6 @@ export default function EditorPage() {
         isAdmin={userData?.isAdmin}
         defaultCardSlug={userData?.defaultCardSlug}
       />
-      <header className="sticky top-14 z-30 bg-space/80 backdrop-blur-xl border-b border-line-soft">
-        <div className="max-w-7xl mx-auto px-4 sm:px-5 flex items-center h-14 gap-3">
-          <Link to="/" className="flex items-center gap-2.5 text-ink font-bold text-[15px] shrink-0">
-            <img src="/nowncard-logo.png" alt="" className="h-[28px] w-auto object-contain rounded-lg" />
-            <span className="hidden sm:inline">{id ? 'Edit Card' : 'New Card'}</span>
-          </Link>
-        </div>
-      </header>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-5 lg:grid lg:grid-cols-[1fr_420px] gap-6 py-8">
         <main className="flex-1 min-w-0 max-w-2xl">
 
@@ -961,7 +952,7 @@ export default function EditorPage() {
         </main>
 
         {/* Desktop sticky preview */}
-        <aside className="hidden lg:block lg:sticky lg:top-20 self-start">
+        <aside className="hidden lg:block lg:sticky lg:top-14 self-start">
           <div className="bg-tile border border-line rounded-2xl p-4">
             <div className="text-[10px] text-ink-faint uppercase tracking-wider font-semibold mb-3">Live Preview</div>
             <LiveCardPreview card={card} />
