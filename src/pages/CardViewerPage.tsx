@@ -4,6 +4,7 @@ import { collection, query, where, limit, getDocs, doc, updateDoc, increment, se
 import { db } from '@/lib/firebase';
 import { downloadVCard, generateVCard } from '@/lib/vcard';
 import { escHtml, initials, fullName, orgLine, formatAddress, shareNative, detectDevice, PLAT, PAYMENT_PLAT } from '@/lib/utils';
+import { captureElementAsPNG } from '@/lib/image-export';
 import { useAuth } from '@/hooks/useAuth';
 import { useCardTheme } from '@/hooks/useCardTheme';
 import Navbar from '@/components/Navbar';
@@ -17,6 +18,7 @@ import type { Card } from '@/types';
 import { IconPhone, IconMail, IconGlobe, IconPin } from '@/components/CardIcons';
 const IconDownload = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-[18px] h-[18px]"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10 12 15 17 10"/><path d="M12 15V3"/></svg>;
 const IconSend = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-10z"/></svg>;
+const IconCamera = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-[18px] h-[18px]"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/></svg>;
 
 export default function CardViewerPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -31,6 +33,7 @@ export default function CardViewerPage() {
   const [messageSent, setMessageSent] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [flipped, setFlipped] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
   const trackedMeta = useRef(false);
   const startTime = useRef(0);
   useEffect(() => { startTime.current = Date.now(); }, []);
@@ -150,6 +153,13 @@ export default function CardViewerPage() {
     track('flip');
   };
 
+  const handleSaveImage = async () => {
+    if (!cardRef.current || !card) return;
+    const safe = (name || card.slug || 'card').replace(/[^a-z0-9_-]/gi, '_');
+    await captureElementAsPNG(cardRef.current, `${safe}-nowncard.png`);
+    track('image');
+  };
+
   const handleSendMessage = async () => {
     if (!card || !messageText.trim()) return;
     if (!user) { setAuthOpen(true); return; }
@@ -234,7 +244,7 @@ export default function CardViewerPage() {
       )}
 
       {/* Card stage */}
-      <div className={`flex-1 flex flex-col items-center px-5 pb-8 ${card.hideNavbar ? 'pt-8' : 'pt-2'}`}>
+      <div className={`flex-1 flex flex-col items-center px-5 pb-8 ${card.hideNavbar ? 'pt-8' : 'pt-2'}`} ref={cardRef}>
         <div className="w-full max-w-[380px] aspect-[2/3.5] perspective-1200 relative">
           <div className={`w-full h-full preserve-3d transition-transform duration-[800ms] ${flipped ? 'rotate-y-180' : ''}`} style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }} onClick={handleFlip} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFlip(); } }} role="button" aria-label="Flip card" tabIndex={0}>
             {/* Front */}
@@ -390,6 +400,9 @@ export default function CardViewerPage() {
           </button>
           <button onClick={() => { const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); return; } promise.then(() => track('share')).catch(() => setShareOpen(true)); }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-tile text-ink border border-line cursor-pointer hover:bg-tile-soft transition">
             Share
+          </button>
+          <button onClick={handleSaveImage} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-tile text-ink border border-line cursor-pointer hover:bg-tile-soft transition">
+            <IconCamera /> Save Image
           </button>
         </div>
 
