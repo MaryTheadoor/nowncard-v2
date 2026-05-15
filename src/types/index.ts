@@ -30,6 +30,7 @@ export interface SocialLink {
 export interface Card {
   id: string;
   ownerUid: string;
+  ownerId?: string;
   slug: string;
   prefix?: string;
   firstName?: string;
@@ -49,6 +50,7 @@ export interface Card {
   website?: string;
   websites?: Website[];
   socialLinks?: SocialLink[] | Record<string, string>;
+  paymentLinks?: SocialLink[];
   birthday?: string;
   anniversary?: string;
   bio?: string;
@@ -60,6 +62,7 @@ export interface Card {
   bgOpacity?: number;
   bgPosition?: string;
   bgSize?: string;
+  bgZoom?: number;
   bgRotation?: number;
   accentColor?: string;
   cardTheme?: 'light' | 'dark';
@@ -71,6 +74,7 @@ export interface Card {
   nameLayout?: 'personal' | 'business';
   isTeamCard?: boolean;
   teamOwnerUid?: string;
+  teamOwnerId?: string;
   isPublic: boolean;
   viewCount?: number;
   saveCount?: number;
@@ -104,5 +108,10 @@ export interface UserData {
   displayName?: string | null;
   plan?: Plan;
   cardCount?: number;
+  isAdmin?: boolean;
+  defaultCardSlug?: string;
+  fcmToken?: string;
   createdAt?: unknown;
+  lastLogin?: unknown;
+  planUpdatedAt?: unknown;
 }

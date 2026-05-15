@@ -1,5 +1,6 @@
-import { initials, fullName, orgLine, formatAddress, isLightBg } from '@/lib/utils';
+import { initials, fullName, orgLine, formatAddress } from '@/lib/utils';
 import type { Card } from '@/types';
+import { useCardTheme } from '@/hooks/useCardTheme';
 
 const PLAT: Record<string, string> = {
   linkedin: 'LinkedIn', twitter: 'X/Twitter', x: 'X/Twitter',
@@ -21,7 +22,6 @@ export default function CardPreview({ card, className = '' }: CardPreviewProps) 
   const name = fullName(card);
   const init = initials(card.firstName, card.lastName);
   const org = orgLine(card);
-  const accent = card.accentColor || '#c9a278';
 
   const phones = (card.phones?.length ? card.phones : (card.phone ? [{ type: 'cell', number: card.phone }] : [])).filter((p) => p.number?.trim());
   const emails = (card.emails?.length ? card.emails : (card.email ? [{ type: 'work', address: card.email }] : [])).filter((e) => e.address?.trim());
@@ -33,43 +33,17 @@ export default function CardPreview({ card, className = '' }: CardPreviewProps) 
   else if (typeof card.socialLinks === 'object' && card.socialLinks !== null)
     socials = Object.entries(card.socialLinks).filter(([, v]) => v).map(([k, v]) => ({ platform: k, url: v as string }));
 
-  const hasCustomBg = !!card.cardBgColor;
-  const isDark = hasCustomBg ? !isLightBg(card.cardBgColor!) : card.cardTheme === 'dark';
-  const customBg = card.cardBgColor || undefined;
-  const bgOpacity = card.bgOpacity ?? 0.6;
-
   const fontFamily = card.customFontUrl ? "'EditorCustomFont', sans-serif" : (card.fontFamily || 'Manrope');
   const fontScale = card.fontSizeScale || 1;
   const sfs = (px: number) => `${Math.round(px * fontScale)}px`;
 
-  const primaryTextColor = card.textColor || (isDark ? '#f4f1ec' : '#1a1612');
-  const textColorStyle = card.textColor ? { color: card.textColor } : undefined;
-  const tc = {
-    faceBg: customBg || (isDark ? '#12121a' : undefined),
-    textPrimary: isDark ? 'text-[#f4f1ec]' : 'text-[#1a1612]',
-    textSecondary: isDark ? 'text-[#9a9186]' : 'text-[#6b6256]',
-    textMuted: isDark ? 'text-[#7a7166]' : 'text-[#7a7166]',
-    linkText: isDark ? 'text-[#c9c3ba]' : 'text-[#4a4238]',
-    linkHover: isDark ? 'hover:text-[#f4f1ec]' : 'hover:text-[#2a2520]',
-    divider: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(42,37,32,0.12)',
-    socialBorder: isDark ? 'border-white/10' : 'border-[rgba(42,37,32,0.12)]',
-    socialText: isDark ? 'text-[#9a9186]' : 'text-[#5a5046]',
-    socialHoverBg: isDark ? 'hover:bg-white/5' : 'hover:bg-[rgba(42,37,32,0.06)]',
-    socialHoverText: isDark ? 'hover:text-[#e8e4de]' : 'hover:text-[#2a2520]',
-    profileFallbackBg: isDark ? 'bg-gradient-to-br from-[#2a2a3a] to-[#1a1a2e]' : 'bg-gradient-to-br from-[#d4cfc8] to-[#e8e4de]',
-    profileFallbackText: isDark ? 'text-[#c9c3ba]' : 'text-[#6b6256]',
-  };
-
-  const profileSizePx = card.profileSize === 'small' ? 56 : card.profileSize === 'large' ? 88 : 72;
-  const profileShapeClass = card.profileShape === 'rounded' ? 'rounded-2xl' : card.profileShape === 'square' ? 'rounded-none' : 'rounded-full';
-  const profileFontSize = card.profileSize === 'small' ? 18 : card.profileSize === 'large' ? 26 : 22;
-  const isHeaderBg = card.bgDisplayMode === 'header';
+  const { isDark, accent, primaryTextColor, textColorStyle, profileSizePx, profileShapeClass, profileFontSize, isHeaderBg, bgOpacity, tc } = useCardTheme({ card });
 
   return (
     <div className={`w-full max-w-[380px] mx-auto aspect-[2/3.5] perspective-1200 relative ${className}`}>
       <div className="w-full h-full preserve-3d" style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
         {/* Front */}
-        <div className={`card-face flex flex-col ${!customBg && !isDark ? 'bg-card-bg' : ''}`} style={{ backgroundColor: tc.faceBg }}>
+        <div className={`card-face flex flex-col ${!card.cardBgColor && !isDark ? 'bg-card-bg' : ''}`} style={{ backgroundColor: tc.faceBg }}>
           {card.backgroundImage && (
             <>
               <div className={isHeaderBg ? 'absolute top-0 left-0 right-0 h-[40%]' : 'absolute inset-0'} style={{ backgroundImage: `url('${card.backgroundImage}')`, backgroundPosition: card.bgPosition || 'center', backgroundSize: card.bgSize || 'cover', backgroundRepeat: 'no-repeat' }} />

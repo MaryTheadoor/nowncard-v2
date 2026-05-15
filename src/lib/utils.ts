@@ -90,6 +90,29 @@ export const SOCIAL_PLATFORMS = [
   { name: 'Other', value: 'other' },
 ];
 
+export const PLAT: Record<string, string> = {
+  linkedin: 'LinkedIn', twitter: 'X/Twitter', x: 'X/Twitter',
+  github: 'GitHub', instagram: 'Instagram', youtube: 'YouTube',
+  facebook: 'Facebook', tiktok: 'TikTok', website: 'Website',
+};
+
+export const PAYMENT_PLAT: Record<string, string> = {
+  cashapp: 'Cash App', venmo: 'Venmo', paypal: 'PayPal',
+  zelle: 'Zelle', applepay: 'Apple Pay', googlepay: 'Google Pay',
+  stripe: 'Stripe',
+};
+
+export const PAYMENT_PLATFORMS = [
+  { name: 'Cash App', value: 'cashapp' },
+  { name: 'Venmo', value: 'venmo' },
+  { name: 'PayPal', value: 'paypal' },
+  { name: 'Zelle', value: 'zelle' },
+  { name: 'Apple Pay', value: 'applepay' },
+  { name: 'Google Pay', value: 'googlepay' },
+  { name: 'Stripe', value: 'stripe' },
+  { name: 'Other', value: 'other' },
+];
+
 export const GOOGLE_FONTS = [
   { name: 'Manrope', value: 'Manrope' },
   { name: 'Inter', value: 'Inter' },

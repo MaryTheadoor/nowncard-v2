@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0a0e1a">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,30 +10,49 @@
   <link rel="icon" type="image/png" href="/nowncard-logo.png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/manifest.json">
-  <title>NownCard — Digital Business Cards</title>
-  <meta name="description" content="Create beautiful digital business cards. Share via NFC, QR code, link, or vCard. No app required for recipients.">
+  <title>NownCard — Digital Business Cards | Share via Link, QR, NFC & vCard</title>
+  <meta name="description" content="Create beautiful, eco-friendly digital business cards in seconds. Share via link, QR code, or NFC tap. Download as vCard. Custom themes, fonts, and layouts. No app required — works on any device.">
   <meta property="og:title" content="NownCard — Digital Business Cards">
-  <meta property="og:description" content="Create beautiful digital business cards. Share via NFC, QR code, link, or vCard. No app required for recipients.">
+  <meta property="og:description" content="Create beautiful, eco-friendly digital business cards in seconds. Share via link, QR code, NFC, or vCard. Custom themes, fonts, and layouts.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://nowncard.com">
   <meta property="og:site_name" content="NownCard">
-  <meta property="og:image" content="https://nowncard-v2.web.app/nowncard-logo.png">
+  <meta property="og:image" content="https://nowncard.com/nowncard-logo.png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta property="og:locale" content="en_US">
   <link rel="canonical" href="https://nowncard.com">
-  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-  <script>
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    OneSignalDeferred.push(async function(OneSignal) {
-      await OneSignal.init({
-        appId: "ONESIGNAL_APP_ID_PLACEHOLDER",
-        notifyButton: { enable: false },
-        allowLocalhostAsSecureOrigin: true,
-      });
-    });
-  </script>
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="NownCard — Digital Business Cards">
-  <meta name="twitter:description" content="Create beautiful digital business cards. Share via NFC, QR code, link, or vCard.">
+  <meta name="twitter:description" content="Create beautiful, eco-friendly digital business cards. Share via link, QR, NFC, or vCard. No app required.">
   <meta name="twitter:image" content="https://nowncard.com/nowncard-logo.png">
+  <meta name="robots" content="index, follow">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "NownCard",
+    "url": "https://nowncard.com",
+    "description": "Create beautiful, eco-friendly digital business cards. Share via link, QR code, NFC, or vCard. No app required.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://nowncard.com/rolodex?search={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "NownCard",
+    "url": "https://nowncard.com",
+    "logo": "https://nowncard.com/nowncard-logo.png",
+    "sameAs": [
+      "https://www.nowndigital.com"
+    ]
+  }
+  </script>
 </head>
 <body>
   <div id="root"></div>

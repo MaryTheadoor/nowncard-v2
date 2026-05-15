@@ -13,12 +13,19 @@ const firebaseConfig = {
   measurementId: 'G-J5CTHK4GT9',
 };
 
-const app = initializeApp(firebaseConfig);
+let app;
+try {
+  app = initializeApp(firebaseConfig);
+} catch (err) {
+  console.error('[Firebase] Init failed:', err);
+  throw new Error('Failed to initialize Firebase. Check your configuration.', { cause: err });
+}
+
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 // Debug tokens for local dev
 if (location.hostname === 'localhost') {
-  (self as unknown as Record<string, unknown>).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+  (self as unknown as Record<string, unknown>).FIREBASE_APPCHECK_DEBUG_TOKEN = import.meta.env.VITE_APPCHECK_DEBUG_TOKEN || 'appcheck-debug-token';
 }

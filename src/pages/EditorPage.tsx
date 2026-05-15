@@ -10,16 +10,24 @@ import { db, storage } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { downloadVCard } from '@/lib/vcard';
 import { parseVCard } from '@/lib/vcard-parser';
-import { slugify, getCardLimit, GOOGLE_FONTS, compressImage, SOCIAL_PLATFORMS } from '@/lib/utils';
+import { slugify, getCardLimit, GOOGLE_FONTS, compressImage, SOCIAL_PLATFORMS, PAYMENT_PLATFORMS } from '@/lib/utils';
 import type { Card, SocialLink } from '@/types';
 import { toast } from 'sonner';
 
 const defaultCard: Omit<Card, 'id' | 'ownerUid' | 'createdAt' | 'updatedAt'> = {
   slug: '', firstName: '', lastName: '', jobTitle: '', company: '',
-  phones: [], emails: [], websites: [], addresses: [], socialLinks: [], industry: '',
-  accentColor: '#e8a628', cardTheme: 'light', isPublic: true,
+  phones: [], emails: [], websites: [], addresses: [], socialLinks: [], paymentLinks: [], industry: '',
+  accentColor: '#d4a34a', cardTheme: 'light', isPublic: true,
   viewCount: 0, saveCount: 0, bio: '', nameLayout: 'personal',
 };
+
+function ptFromScale(scale: number | undefined): number {
+  return Math.round((scale ?? 0.97) * 16.5);
+}
+
+function scaleFromPt(pt: number): number {
+  return Math.max(0.3, Math.min(3, pt / 16.5));
+}
 
 export default function EditorPage() {
   const { id } = useParams<{ id?: string }>();
@@ -30,11 +38,10 @@ export default function EditorPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewScale, setPreviewScale] = useState(1);
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
   const [showDates, setShowDates] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const [accentHex, setAccentHex] = useState(card.accentColor || '#e8a628');
+  const [accentHex, setAccentHex] = useState(card.accentColor || '#d4a34a');
   const [cardBgHex, setCardBgHex] = useState(card.cardBgColor || '#f4f1ec');
   const [pageBgHex, setPageBgHex] = useState(card.pageBgColor || '#0a0e1a');
   const [textHex, setTextHex] = useState(card.textColor || '#1a1612');
@@ -42,6 +49,18 @@ export default function EditorPage() {
   const slugDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isNewTeamCard = !id && (location.state as { isTeamCard?: boolean } | null)?.isTeamCard === true;
   const hasContactPicker = typeof navigator !== 'undefined' && 'contacts' in navigator;
+
+  const [fontSizePt, setFontSizePt] = useState(() => ptFromScale(card.fontSizeScale));
+  const [bgRotationVal, setBgRotationVal] = useState(card.bgRotation ?? 0);
+  const fontSizeEditing = useRef(false);
+  const bgRotationEditing = useRef(false);
+
+  useEffect(() => {
+    if (!fontSizeEditing.current) setFontSizePt(ptFromScale(card.fontSizeScale));
+  }, [card.fontSizeScale]);
+  useEffect(() => {
+    if (!bgRotationEditing.current) setBgRotationVal(card.bgRotation ?? 0);
+  }, [card.bgRotation]);
 
   // Load selected Google Font for live preview
   useEffect(() => {
@@ -56,8 +75,9 @@ export default function EditorPage() {
   // Load custom font for live preview
   useEffect(() => {
     if (!card.customFontUrl) return;
+    const safeUrl = card.customFontUrl.replace(/'/g, '');
     const style = document.createElement('style');
-    style.textContent = `@font-face { font-family: 'EditorCustomFont'; src: url('${card.customFontUrl}'); font-weight: 400 800; font-display: swap; }`;
+    style.textContent = `@font-face { font-family: 'EditorCustomFont'; src: url('${safeUrl}'); font-weight: 400 800; font-display: swap; }`;
     document.head.appendChild(style);
     return () => { document.head.removeChild(style); };
   }, [card.customFontUrl]);
@@ -150,6 +170,7 @@ export default function EditorPage() {
         return ad.street?.trim() || ad.city?.trim() || ad.state?.trim() || ad.zip?.trim() || ad.country?.trim();
       });
       if (Array.isArray(rest.socialLinks)) rest.socialLinks = rest.socialLinks.filter((s: unknown) => (s as { url?: string }).url?.trim());
+      if (Array.isArray(rest.paymentLinks)) rest.paymentLinks = rest.paymentLinks.filter((s: unknown) => (s as { url?: string }).url?.trim());
 
       const stripUndefined = (obj: Record<string, unknown>): Record<string, unknown> => {
         const result: Record<string, unknown> = {};
@@ -551,7 +572,7 @@ export default function EditorPage() {
               {/* Accent */}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-ink-muted">Accent</span>
-                <input type="color" value={card.accentColor || '#e8a628'} onChange={(e) => { updateField('accentColor', e.target.value); setAccentHex(e.target.value); }} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
+                <input type="color" value={card.accentColor || '#d4a34a'} onChange={(e) => { updateField('accentColor', e.target.value); setAccentHex(e.target.value); }} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
                 <input
                   type="text"
                   value={accentHex}
@@ -727,11 +748,15 @@ export default function EditorPage() {
                               type="number"
                               min={8}
                               max={72}
-                              value={Math.round((card.fontSizeScale || 0.97) * 16.5)}
+                              value={fontSizePt}
+                              onFocus={() => { fontSizeEditing.current = true; }}
+                              onBlur={() => { fontSizeEditing.current = false; }}
                               onChange={(e) => {
-                                const pt = parseInt(e.target.value, 10);
-                                if (!isNaN(pt)) {
-                                  setCard((prev) => ({ ...prev, fontSizeScale: Math.max(0.3, Math.min(3, pt / 16.5)) }));
+                                const raw = e.target.value;
+                                setFontSizePt(raw === '' ? 0 : parseInt(raw, 10) || 0);
+                                const pt = parseInt(raw, 10);
+                                if (!isNaN(pt) && raw.trim() !== '') {
+                                  setCard((prev) => ({ ...prev, fontSizeScale: scaleFromPt(pt) }));
                                 }
                               }}
                               className="w-14 px-1.5 py-1 bg-space border border-line rounded-lg text-ink text-xs font-bold text-center focus:outline-none focus:border-accent"
@@ -852,7 +877,7 @@ export default function EditorPage() {
                       <option key={p.value} value={p.value}>{p.name}</option>
                     ))}
                   </select>
-                  {(!s.platform || s.platform.toLowerCase() === 'other') && (
+                  {(!s.platform || s.platform.toLowerCase() === 'other' || !SOCIAL_PLATFORMS.some(p => p.value === s.platform.toLowerCase())) && (
                     <input
                       value={s.platform === 'other' ? '' : s.platform}
                       onChange={(e) => updateField('socialLinks', (card.socialLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, platform: e.target.value || 'Other' } : sl))}
@@ -865,6 +890,37 @@ export default function EditorPage() {
                 </div>
               ))}
               <button onClick={() => updateField('socialLinks', [...(Array.isArray(card.socialLinks) ? card.socialLinks : []), { platform: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Social</button>
+            </div>
+          </div>
+
+          {/* Payment Links */}
+          <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
+            <h2 className="text-lg font-bold mb-4">Payment Links</h2>
+            <div className="space-y-3">
+              {Array.isArray(card.paymentLinks) && card.paymentLinks.map((s: SocialLink, i: number) => (
+                <div key={i} className="flex flex-wrap gap-2">
+                  <select
+                    value={PAYMENT_PLATFORMS.some(p => p.value === s.platform.toLowerCase()) ? s.platform.toLowerCase() : 'other'}
+                    onChange={(e) => updateField('paymentLinks', (card.paymentLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, platform: e.target.value } : sl))}
+                    className="w-full sm:w-[150px] px-3 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent"
+                  >
+                    {PAYMENT_PLATFORMS.map((p) => (
+                      <option key={p.value} value={p.value}>{p.name}</option>
+                    ))}
+                  </select>
+                  {(!s.platform || s.platform.toLowerCase() === 'other' || !PAYMENT_PLATFORMS.some(p => p.value === s.platform.toLowerCase())) && (
+                    <input
+                      value={s.platform === 'other' ? '' : s.platform}
+                      onChange={(e) => updateField('paymentLinks', (card.paymentLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, platform: e.target.value || 'Other' } : sl))}
+                      placeholder="Custom platform"
+                      className="w-full sm:w-[140px] px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent"
+                    />
+                  )}
+                  <input value={s.url} onChange={(e) => updateField('paymentLinks', (card.paymentLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, url: e.target.value } : sl))} placeholder="URL" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                  <button onClick={() => updateField('paymentLinks', (card.paymentLinks as SocialLink[]).filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">×</button>
+                </div>
+              ))}
+              <button onClick={() => updateField('paymentLinks', [...(Array.isArray(card.paymentLinks) ? card.paymentLinks : []), { platform: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Payment Link</button>
             </div>
           </div>
 
@@ -976,6 +1032,40 @@ export default function EditorPage() {
                       <option value="auto">Auto</option>
                     </select>
                   </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-ink-muted">Zoom</span>
+                      <span className="text-xs font-bold text-ink">{card.bgZoom ?? 100}%</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="range"
+                        min={50}
+                        max={200}
+                        step={5}
+                        value={card.bgZoom ?? 100}
+                        onChange={(e) => {
+                          const v = parseInt(e.target.value, 10);
+                          updateField('bgZoom', v === 100 ? undefined : v);
+                        }}
+                        className="flex-1 accent-accent"
+                      />
+                      <input
+                        type="number"
+                        min={50}
+                        max={200}
+                        step={5}
+                        value={card.bgZoom ?? 100}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          const v = parseInt(raw, 10);
+                          if (!isNaN(v) && raw.trim() !== '') updateField('bgZoom', v === 100 ? undefined : v);
+                        }}
+                        className="w-14 px-1.5 py-1 bg-space border border-line rounded-lg text-ink text-xs font-bold text-center focus:outline-none focus:border-accent"
+                      />
+                      <span className="text-xs text-ink-muted">%</span>
+                    </div>
+                  </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-ink-muted w-16">Rotation</span>
                     <input
@@ -983,8 +1073,15 @@ export default function EditorPage() {
                       min={0}
                       max={360}
                       step={15}
-                      value={card.bgRotation || 0}
-                      onChange={(e) => updateField('bgRotation', parseInt(e.target.value, 10) || 0)}
+                      value={bgRotationVal}
+                      onFocus={() => { bgRotationEditing.current = true; }}
+                      onBlur={() => { bgRotationEditing.current = false; }}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        setBgRotationVal(raw === '' ? 0 : parseInt(raw, 10) || 0);
+                        const deg = parseInt(raw, 10);
+                        if (!isNaN(deg)) updateField('bgRotation', deg);
+                      }}
                       className="w-16 px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-xs font-bold text-center focus:outline-none focus:border-accent"
                     />
                     <span className="text-xs text-ink-muted">°</span>
@@ -998,21 +1095,8 @@ export default function EditorPage() {
         {/* Desktop sticky preview */}
         <aside className="hidden lg:block lg:sticky lg:top-14 self-start">
           <div className="bg-tile border border-line rounded-2xl p-4">
-            <div className="text-[10px] text-ink-faint uppercase tracking-wider font-semibold mb-2">Live Preview</div>
-            <div className="flex items-center gap-2 mb-3">
-              {[0.75, 0.9, 1].map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setPreviewScale(s)}
-                  className={`px-2.5 py-1 text-[11px] font-bold rounded-full transition ${
-                    previewScale === s ? 'bg-accent text-space' : 'border border-line text-ink-muted hover:bg-tile-soft'
-                  }`}
-                >
-                  {s === 0.75 ? 'XS' : s === 0.9 ? 'S' : 'M'}
-                </button>
-              ))}
-            </div>
-            <div style={{ transform: `scale(${previewScale})`, transformOrigin: 'top center', marginBottom: `${-665 * (1 - previewScale)}px` }}>
+            <div className="text-[10px] text-ink-faint uppercase tracking-wider font-semibold mb-3">Live Preview</div>
+            <div style={{ transform: 'scale(0.9)', transformOrigin: 'top center', marginBottom: `${-665 * 0.1}px` }}>
               <LiveCardPreview card={card} />
             </div>
           </div>

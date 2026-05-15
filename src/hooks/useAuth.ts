@@ -15,10 +15,10 @@ export function useAuth() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
-      setLoading(false);
       setError(null);
       if (!u) {
         setUserData(null);
+        setLoading(false);
         return;
       }
       const userRef = doc(db, 'users', u.uid);
@@ -34,7 +34,11 @@ export function useAuth() {
           setUserData({ plan: data.plan || 'free', cardCount: data.cardCount || 0, isAdmin, defaultCardSlug: data.defaultCardSlug || undefined });
           setDoc(userRef, { lastLogin: serverTimestamp(), email: u.email || null }, { merge: true }).catch(() => {});
         }
-      }).catch(() => {});
+      }).catch(() => {
+        setUserData({ plan: 'free', cardCount: 0, isAdmin: ADMIN_UIDS.has(u.uid), defaultCardSlug: undefined });
+      }).finally(() => {
+        setLoading(false);
+      });
     });
     return unsub;
   }, []);

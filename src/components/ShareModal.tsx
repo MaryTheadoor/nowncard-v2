@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
 interface ShareModalProps {
@@ -30,15 +30,23 @@ function encodeShare(text: string) {
 
 export default function ShareModal({ open, onClose, url, title }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
+  const copyTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const displayUrl = url.replace(/^https?:\/\//, '');
   const shareText = title ? `${title} — ${url}` : url;
+
+  const handleClose = useCallback(() => {
+    if (copyTimer.current) clearTimeout(copyTimer.current);
+    setCopied(false);
+    onClose();
+  }, [onClose]);
 
   const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
       toast.success('Link copied to clipboard');
-      setTimeout(() => setCopied(false), 2000);
+      if (copyTimer.current) clearTimeout(copyTimer.current);
+      copyTimer.current = setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error('Could not copy link');
     }
@@ -88,7 +96,7 @@ export default function ShareModal({ open, onClose, url, title }: ShareModalProp
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={handleClose}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
         className="relative w-full sm:w-[420px] bg-tile border border-line rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl"
@@ -96,7 +104,7 @@ export default function ShareModal({ open, onClose, url, title }: ShareModalProp
       >
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-lg font-bold text-ink">Share this card</h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-tile-soft text-ink-muted hover:text-ink transition cursor-pointer">
+          <button onClick={handleClose} className="p-1.5 rounded-lg hover:bg-tile-soft text-ink-muted hover:text-ink transition cursor-pointer">
             <IconX />
           </button>
         </div>

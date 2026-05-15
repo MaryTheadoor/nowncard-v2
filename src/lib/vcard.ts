@@ -1,28 +1,32 @@
 import type { Card } from '@/types';
 
+function escVCard(val: string): string {
+  return val.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,');
+}
+
 export function generateVCard(card: Card | Partial<Card>, cardPageUrl?: string): string {
   const parts: string[] = ['BEGIN:VCARD', 'VERSION:3.0'];
 
   const name = [];
-  if (card.lastName) name.push(card.lastName); else name.push('');
-  if (card.firstName) name.push(card.firstName); else name.push('');
-  if (card.middleName) name.push(card.middleName); else name.push('');
-  if (card.prefix) name.push(card.prefix); else name.push('');
-  if (card.suffix) name.push(card.suffix); else name.push('');
+  if (card.lastName) name.push(escVCard(card.lastName)); else name.push('');
+  if (card.firstName) name.push(escVCard(card.firstName)); else name.push('');
+  if (card.middleName) name.push(escVCard(card.middleName)); else name.push('');
+  if (card.prefix) name.push(escVCard(card.prefix)); else name.push('');
+  if (card.suffix) name.push(escVCard(card.suffix)); else name.push('');
   parts.push(`N:${name.join(';')}`);
 
   const fn = [];
-  if (card.prefix) fn.push(card.prefix);
-  if (card.firstName) fn.push(card.firstName);
-  if (card.middleName) fn.push(card.middleName);
-  if (card.lastName) fn.push(card.lastName);
-  if (card.suffix) fn.push(card.suffix);
+  if (card.prefix) fn.push(escVCard(card.prefix));
+  if (card.firstName) fn.push(escVCard(card.firstName));
+  if (card.middleName) fn.push(escVCard(card.middleName));
+  if (card.lastName) fn.push(escVCard(card.lastName));
+  if (card.suffix) fn.push(escVCard(card.suffix));
   parts.push(`FN:${fn.join(' ')}`);
 
-  if (card.nickname) parts.push(`NICKNAME:${card.nickname}`);
-  if (card.jobTitle) parts.push(`TITLE:${card.jobTitle}`);
-  if (card.company) parts.push(`ORG:${card.company}${card.department ? `;${card.department}` : ''}`);
-  if (card.bio) parts.push(`NOTE:${card.bio.replace(/\n/g, '\\n')}`);
+  if (card.nickname) parts.push(`NICKNAME:${escVCard(card.nickname)}`);
+  if (card.jobTitle) parts.push(`TITLE:${escVCard(card.jobTitle)}`);
+  if (card.company) parts.push(`ORG:${escVCard(card.company)}${card.department ? `;${escVCard(card.department)}` : ''}`);
+  if (card.bio) parts.push(`NOTE:${escVCard(card.bio).replace(/\n/g, '\\n')}`);
 
   if (card.phones?.length) {
     card.phones.forEach((p) => {
@@ -53,7 +57,7 @@ export function generateVCard(card: Card | Partial<Card>, cardPageUrl?: string):
 
   if (card.addresses?.length) {
     card.addresses.forEach((a) => {
-      parts.push(`ADR;TYPE=${(a.type || 'WORK').toUpperCase()}:;;${a.street || ''};${a.city || ''};${a.state || ''};${a.zip || ''};${a.country || ''}`);
+      parts.push(`ADR;TYPE=${(a.type || 'WORK').toUpperCase()}:;;${escVCard(a.street || '')};${escVCard(a.city || '')};${escVCard(a.state || '')};${escVCard(a.zip || '')};${escVCard(a.country || '')}`);
     });
   }
 

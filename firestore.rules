@@ -36,22 +36,29 @@ service cloud.firestore {
       allow delete: if request.auth != null && (isOwner(resource.data) || isTeamOwner(resource.data) || isAdmin());
     }
 
-    // Card analytics: writable by anyone (for tap tracking), readable by owner or admin
+    // Card analytics: writable by anyone (for tap tracking from public cards)
+    // Field validation prevents spam documents with arbitrary data
     match /cards/{cardId}/analytics/{eventId} {
       allow read: if request.auth != null && (isOwner(get(/databases/$(database)/documents/cards/$(cardId)).data) || isAdmin());
-      allow write: if true;
+      allow create, update: if request.resource.data.type is string
+        && request.resource.data.type.size() <= 50
+        && request.resource.data.keys().hasAny(['type', 'timestamp', 'taps', 'viewCount', 'saveCount', 'timeOnPage', 'device', 'referrer']);
+      allow delete: if false;
     }
 
-    // Public cards: readable by anyone, writable only by admin/cloud functions
+    // Public cards: readable by anyone, writable by authenticated users or admin
     match /publicCards/{slug} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if request.auth != null || isAdmin();
     }
 
-    // Analytics (legacy): writable by anyone (for tap tracking), readable by auth users or admin
+    // Analytics (legacy): writable by anyone with field validation
     match /analytics/{docId} {
       allow read: if request.auth != null || isAdmin();
-      allow write: if true;
+      allow create, update: if request.resource.data.type is string
+        && request.resource.data.type.size() <= 50
+        && request.resource.data.keys().hasAny(['type', 'timestamp', 'taps', 'viewCount', 'saveCount', 'timeOnPage', 'device', 'referrer']);
+      allow delete: if false;
     }
 
     // Pending upgrades: owner CRUD; admin read all
@@ -62,10 +69,17 @@ service cloud.firestore {
       allow delete: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
     }
 
-    // Upgrades: readable by admin only
+    // Config: readable by anyone (pricing), writable by admin
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Upgrades: readable by admin; winnable by owner (via success page) or admin
     match /upgrades/{docId} {
       allow read: if isAdmin();
-      allow write: if false;
+      allow create: if request.auth != null && (request.resource.data.uid == request.auth.uid || isAdmin());
+      allow update, delete: if isAdmin();
     }
 
     // Stripe subscriptions (managed by Firebase Extension)

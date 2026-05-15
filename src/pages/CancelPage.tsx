@@ -1,19 +1,17 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { auth } from '@/lib/firebase';
 import Footer from '@/components/Footer';
 import { cancelPendingUpgrades } from '@/lib/payments';
-import { onAuthStateChanged } from 'firebase/auth';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function CancelPage() {
+  const { user } = useAuth();
+
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        try { await cancelPendingUpgrades(user.uid); } catch { /* no-op */ }
-      }
-    });
-    return unsub;
-  }, []);
+    if (user) {
+      cancelPendingUpgrades(user.uid).catch(() => {});
+    }
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-space flex flex-col">

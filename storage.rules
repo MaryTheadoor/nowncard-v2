@@ -1,9 +1,16 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Users can read/write their own files only
+    // Card images: publicly readable (displayed on card pages)
+    match /users/{uid}/cards/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == uid
+        && request.resource.size < 6 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+    // Fonts and other user content: owner-only read/write
     match /users/{uid}/{allPaths=**} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null && request.auth.uid == uid;
       allow write: if request.auth != null && request.auth.uid == uid
         && request.resource.size < 6 * 1024 * 1024
         && (request.resource.contentType.matches('image/.*')

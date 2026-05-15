@@ -1,31 +1,28 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { auth } from '@/lib/firebase';
 import Footer from '@/components/Footer';
 import { applyPendingUpgrades } from '@/lib/payments';
-import { onAuthStateChanged } from 'firebase/auth';
+import { useAuth } from '@/hooks/useAuth';
 
 type Status = 'checking' | 'applying' | 'done' | 'no-pending' | 'error' | 'signin-required';
 
 export default function SuccessPage() {
-  const [status, setStatus] = useState<Status>('checking');
+  const { user, loading: authLoading } = useAuth();
+  const [upgradeResult, setUpgradeResult] = useState<{ applied: number } | 'error' | null>(null);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        setStatus('signin-required');
-        return;
-      }
-      setStatus('applying');
-      try {
-        const result = await applyPendingUpgrades(user.uid);
-        setStatus(result.applied > 0 ? 'done' : 'no-pending');
-      } catch {
-        setStatus('error');
-      }
-    });
-    return unsub;
-  }, []);
+    if (authLoading || !user) return;
+    applyPendingUpgrades(user.uid)
+      .then((r) => setUpgradeResult(r))
+      .catch(() => setUpgradeResult('error'));
+  }, [user, authLoading]);
+
+  let status: Status;
+  if (authLoading) status = 'checking';
+  else if (!user) status = 'signin-required';
+  else if (!upgradeResult) status = 'applying';
+  else if (upgradeResult === 'error') status = 'error';
+  else status = upgradeResult.applied > 0 ? 'done' : 'no-pending';
 
   const states: Record<Status, { icon: string; title: string; desc: string }> = {
     checking: { icon: '⏳', title: 'Checking...', desc: 'Verifying your payment status.' },

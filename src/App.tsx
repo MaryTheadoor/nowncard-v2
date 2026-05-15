@@ -19,6 +19,7 @@ const RolodexPage = lazy(() => import('@/pages/RolodexPage'));
 const TermsPage = lazy(() => import('@/pages/TermsPage'));
 const PrivacyPage = lazy(() => import('@/pages/PrivacyPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
+const QrPosterPage = lazy(() => import('@/pages/QrPosterPage'));
 const ContactPage = lazy(() => import('@/pages/ContactPage'));
 
 function PageLoader() {
@@ -46,6 +47,7 @@ function App() {
             <Route path="/cancel" element={<CancelPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/card/:slug" element={<CardViewerPage />} />
+            <Route path="/poster/:slug" element={<QrPosterPage />} />
             <Route path="/nfc/:slug" element={<NfcPage />} />
             <Route path="/analytics/:id" element={<AnalyticsPage />} />
             <Route path="/rolodex" element={<RolodexPage />} />

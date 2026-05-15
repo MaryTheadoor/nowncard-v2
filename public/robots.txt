@@ -12,5 +12,7 @@ Disallow: /nfc
 Disallow: /nfc/
 Disallow: /success
 Disallow: /cancel
+Disallow: /firebase-messaging-sw.js
+Crawl-delay: 5
 
 Sitemap: https://nowncard.com/sitemap.xml

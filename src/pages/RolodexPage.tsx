@@ -286,7 +286,7 @@ export default function RolodexPage() {
                   ) : (
                     <div
                       className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-extrabold text-white flex-shrink-0"
-                      style={{ backgroundColor: c.accentColor || '#c9a278' }}
+                      style={{ backgroundColor: c.accentColor || '#d4a34a' }}
                     >
                       {initials(c.firstName, c.lastName)}
                     </div>

@@ -1,38 +1,53 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Users, ClipboardCheck, Star, Search, X, Bell } from 'lucide-react';
-import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
+import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Users, ClipboardCheck, Star, Search, X, Bell, MessageCircle, Mail, Check } from 'lucide-react';
+import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc, setDoc, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
-import { useOneSignal } from '@/hooks/useOneSignal';
+import { useFCM } from '@/hooks/useFCM';
 import { downloadVCard } from '@/lib/vcard';
 import Navbar from '@/components/Navbar';
-import type { Card } from '@/types';
+import type { Card, Message } from '@/types';
 import { toast } from 'sonner';
 
 import { createDemoCard } from '@/lib/demo';
-import { initials, getCardLimit } from '@/lib/utils';
+import { initials, getCardLimit, timeAgo } from '@/lib/utils';
 import Footer from '@/components/Footer';
 
 export default function DashboardPage() {
   const { user, userData, loading: authLoading, logOut } = useAuth();
-  const { subscribed: pushSubscribed, ready: pushReady, enableNotifications } = useOneSignal(user?.uid);
+  const { subscribed: pushSubscribed, ready: pushReady, enableNotifications } = useFCM(user?.uid);
   const navigate = useNavigate();
   const [personalCards, setPersonalCards] = useState<Card[]>([]);
   const [teamCards, setTeamCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
   const [plan, setPlan] = useState<string>('free');
   const [search, setSearch] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(true);
 
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate('/'); return; }
 
-    // Messaging subscription paused for beta (prevents wasteful Firestore reads)
-    // const messagesQuery = query(collection(db, 'messages'), where('recipientUid', '==', user.uid));
-    // const unsub = onSnapshot(messagesQuery, ...);
-    const unsub = () => {};
+    const messagesQuery = query(
+      collection(db, 'messages'),
+      where('recipientUid', '==', user.uid),
+      orderBy('createdAt', 'desc'),
+    );
+    const unsub = onSnapshot(messagesQuery, (snap) => {
+      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Message));
+      list.sort((a, b) => {
+        const aTime = a.createdAt && typeof a.createdAt === 'object' && 'toMillis' in (a.createdAt as unknown as Record<string, unknown>) ? (a.createdAt as unknown as { toMillis: () => number }).toMillis() : 0;
+        const bTime = b.createdAt && typeof b.createdAt === 'object' && 'toMillis' in (b.createdAt as unknown as Record<string, unknown>) ? (b.createdAt as unknown as { toMillis: () => number }).toMillis() : 0;
+        return bTime - aTime;
+      });
+      setMessages(list);
+      setMessagesLoading(false);
+    }, () => {
+      setMessagesLoading(false);
+    });
 
     (async () => {
       try {
@@ -374,7 +389,7 @@ export default function DashboardPage() {
             )}
           </>
         )}
-        {/* Inquiries — hidden for beta (preserve backend for later)
+        {/* Inquiries */}
         <div className="mt-10">
           <div className="flex items-center gap-3 mb-4">
             <h2 className="text-xl font-extrabold">Inquiries</h2>
@@ -438,6 +453,7 @@ export default function DashboardPage() {
                         onClick={async () => {
                           try {
                             await updateDoc(doc(db, 'messages', m.id), { read: true });
+                            toast.success('Marked as read');
                           } catch {
                             toast.error('Failed to mark as read');
                           }
@@ -466,7 +482,7 @@ export default function DashboardPage() {
               ))}
             </div>
           )}
-        </div> */}
+        </div>
       </main>
 
       <Footer />
