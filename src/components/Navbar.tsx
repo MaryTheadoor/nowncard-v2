@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, X, Shield, Sun, Moon, Heart } from 'lucide-react';
+import { Menu, X, Shield, Sun, Moon, Heart, Bell } from 'lucide-react';
 import { useTheme } from '@/hooks/useThemeContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -10,9 +10,10 @@ interface NavbarProps {
   userEmail?: string | null;
   isAdmin?: boolean;
   defaultCardSlug?: string;
+  messageCount?: number;
 }
 
-export default function Navbar({ onAuthClick, onSignOut, userEmail, isAdmin, defaultCardSlug }: NavbarProps) {
+export default function Navbar({ onAuthClick, onSignOut, userEmail, isAdmin, defaultCardSlug, messageCount = 0 }: NavbarProps) {
   const [open, setOpen] = useState(false);
   const { setTheme, resolved } = useTheme();
   const navigate = useNavigate();
@@ -55,6 +56,17 @@ export default function Navbar({ onAuthClick, onSignOut, userEmail, isAdmin, def
             {isAdmin && (
               <Link to="/admin" className="p-2 text-ink-muted hover:text-accent transition" title="Admin">
                 <Shield className="w-4 h-4" />
+              </Link>
+            )}
+
+            {userEmail && (
+              <Link to="/dashboard" className="relative p-2 text-ink-muted hover:text-accent transition" title={`${messageCount} unread message${messageCount !== 1 ? 's' : ''}`}>
+                <Bell className="w-4 h-4" />
+                {messageCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-accent text-space text-[10px] font-bold flex items-center justify-center leading-none">
+                    {messageCount > 9 ? '9+' : messageCount}
+                  </span>
+                )}
               </Link>
             )}
 
@@ -106,7 +118,14 @@ export default function Navbar({ onAuthClick, onSignOut, userEmail, isAdmin, def
               {userEmail ? (
                 <>
                   <div className="text-sm text-ink-muted truncate">{userEmail}</div>
-                  <Link to="/dashboard" onClick={() => setOpen(false)} className="px-4 py-2.5 bg-accent text-space text-sm font-bold rounded-full text-center">My Cards</Link>
+                  <Link to="/dashboard" onClick={() => setOpen(false)} className="relative px-4 py-2.5 bg-accent text-space text-sm font-bold rounded-full text-center flex items-center justify-center gap-2">
+                    My Cards
+                    {messageCount > 0 && (
+                      <span className="w-5 h-5 rounded-full bg-space/20 text-space text-[10px] font-bold flex items-center justify-center leading-none">
+                        {messageCount > 9 ? '9+' : messageCount}
+                      </span>
+                    )}
+                  </Link>
                   <Link to="/rolodex" onClick={() => setOpen(false)} className="px-4 py-2.5 border border-line text-ink text-sm font-bold rounded-full text-center">Directory</Link>
                   <button onClick={() => { setOpen(false); onSignOut?.(); }} className="px-4 py-2.5 border border-line text-ink text-sm font-bold rounded-full">Sign Out</button>
                 </>

@@ -128,10 +128,19 @@
     transition: all 0.15s ease;
     white-space: nowrap;
     text-decoration: none;
+    outline: none;
+  }
+  .btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
   .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    pointer-events: none;
+  }
+  .btn:active:not(:disabled) {
+    transform: scale(0.97);
   }
 
   /* Variants */
@@ -160,6 +169,7 @@
   }
   .btn-danger:hover:not(:disabled) {
     border-color: var(--danger);
+    background: rgba(239, 68, 68, 0.05);
   }
 
   .btn-ghost {
@@ -167,6 +177,17 @@
     color: var(--ink-muted);
   }
   .btn-ghost:hover:not(:disabled) { color: var(--ink); }
+
+  /* Selected/active state (for toggle buttons in groups) */
+  .btn-selected {
+    background: var(--accent);
+    color: var(--space);
+  }
+  .btn-selected.btn-secondary {
+    background: var(--accent);
+    color: var(--space);
+    border-color: var(--accent);
+  }
 
   /* Sizes */
   .btn-xs { padding: 0.25rem 0.75rem; font-size: 0.75rem; }

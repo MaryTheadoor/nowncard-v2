@@ -1127,8 +1127,10 @@ export default function EditorPage() {
               </a>
             </>
           )}
-          <button onClick={handleSave} disabled={saving} className="px-4 md:px-5 py-2 bg-accent text-space text-xs md:text-sm font-bold rounded-full hover:brightness-110 transition disabled:opacity-50">
-            {saving ? 'Saving…' : 'Save'}
+          <button onClick={handleSave} disabled={saving} className={`px-4 md:px-5 py-2 text-xs md:text-sm font-bold rounded-full transition disabled:opacity-50 flex items-center gap-1.5 ${id ? 'bg-tile-soft border border-accent text-accent hover:bg-accent hover:text-space' : 'bg-accent text-space hover:brightness-110'}`}>
+            {saving ? (
+              <>Saving…<span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" /></>
+            ) : id ? 'Save Changes' : 'Save Card'}
           </button>
         </div>
       </div>

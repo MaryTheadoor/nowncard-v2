@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Users, ClipboardCheck, Star, Search, X, Bell, MessageCircle, Mail, Check } from 'lucide-react';
+import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Printer, Users, ClipboardCheck, Star, Search, X, Bell, MessageCircle, Mail, Check } from 'lucide-react';
 import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc, setDoc, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
@@ -232,6 +232,9 @@ export default function DashboardPage() {
         <Link to={`/nfc/${c.slug}`} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
           <Nfc className="w-3 h-3" /> NFC
         </Link>
+        <Link to={`/poster/${c.slug}`} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
+          <Printer className="w-3 h-3" /> Poster
+        </Link>
         <Link to={`/analytics/${c.id}`} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
           <BarChart3 className="w-3 h-3" /> Analytics
         </Link>
@@ -247,7 +250,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-space">
-      <Navbar onAuthClick={() => navigate('/')} onSignOut={() => { logOut(); navigate('/'); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} />
+      <Navbar onAuthClick={() => navigate('/')} onSignOut={() => { logOut(); navigate('/'); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} messageCount={messages.filter((m) => !m.read).length} />
 
       <main className="max-w-4xl mx-auto px-5 py-8">
         {/* Header */}
