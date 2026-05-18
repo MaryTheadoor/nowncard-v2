@@ -51,9 +51,9 @@ export default function LandingPage() {
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           {user ? (
-            <Link to="/editor" className="btn-metallic px-7 py-3 text-space font-bold rounded-full inline-block no-underline">Create Your Card</Link>
+            <Link to="/editor" className="btn-primary px-7 py-3 text-space font-bold rounded-full inline-block no-underline">Create Your Card</Link>
           ) : (
-            <button onClick={() => setAuthOpen(true)} className="btn-metallic px-7 py-3 font-bold rounded-full cursor-pointer">Create Your Card</button>
+            <button onClick={() => setAuthOpen(true)} className="btn-primary px-7 py-3 font-bold rounded-full cursor-pointer">Create Your Card</button>
           )}
           <Link to="/rolodex" className="px-7 py-3 border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition inline-block no-underline">Card Directory</Link>
           <a href="#pricing" className="px-7 py-3 border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition">View Plans</a>
@@ -184,7 +184,7 @@ export default function LandingPage() {
                 if (!user) { setAuthOpen(true); return; }
                 if (userData?.plan === 'pro' || userData?.plan === 'business') { toast.error('You already have Pro or Business'); return; }
                 try { const origin = window.location.origin; const result = await createSquareCheckout('pro', pricing.proPrice, `${origin}/success`, `${origin}/cancel`); window.location.href = result.url; } catch (e) { console.error(e); toast.error('Payment setup failed. Please try again.'); }
-              }} className="btn-press btn-metallic block w-full py-2.5 text-center font-bold rounded-full text-sm cursor-pointer">Upgrade</button>
+              }} className="btn btn-primary btn-lg block w-full text-center text-sm cursor-pointer">Upgrade</button>
             </div>
 
             <div className="bg-tile border border-line rounded-2xl p-7 hover:-translate-y-1 hover:shadow-surface transition">
@@ -204,7 +204,7 @@ export default function LandingPage() {
                 if (!user) { setAuthOpen(true); return; }
                 if (userData?.plan === 'business') { toast.error('You already have Business'); return; }
                 try { const origin = window.location.origin; const result = await createSquareCheckout('business', pricing.businessPrice, `${origin}/success`, `${origin}/cancel`); window.location.href = result.url; } catch (e) { console.error(e); toast.error('Payment setup failed. Please try again.'); }
-              }} className="btn-press block w-full py-2.5 text-center border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition text-sm cursor-pointer">Upgrade</button>
+              }} className="btn btn-secondary btn-lg block w-full text-center text-sm cursor-pointer">Upgrade</button>
             </div>
           </div>
         </div>
