@@ -1090,6 +1090,16 @@ export default function EditorPage() {
               </div>
             </div>
           </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm text-ink-muted">Back Background Photo</label>
+            <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && handleUpload('backBackgroundImage', e.target.files[0])} className="text-sm text-ink-muted file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border file:border-line file:bg-tile file:text-ink file:text-sm file:font-semibold" />
+            {card.backBackgroundImage && (
+              <div className="flex items-center gap-2">
+                <img src={card.backBackgroundImage} alt="" className="w-24 h-16 rounded-lg object-cover border border-line" />
+                <button type="button" onClick={() => updateField('backBackgroundImage', undefined)} className="text-xs text-danger font-bold border border-line rounded-lg px-2 py-1 hover:border-danger transition">Remove</button>
+              </div>
+            )}
+          </div>
         </main>
 
         {/* Desktop sticky preview */}
