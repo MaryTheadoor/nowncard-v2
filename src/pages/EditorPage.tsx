@@ -244,7 +244,7 @@ export default function EditorPage() {
     }
   };
 
-  const handleUpload = async (field: 'profileImage' | 'backgroundImage', file: File) => {
+  const handleUpload = async (field: 'profileImage' | 'backgroundImage' | 'backBackgroundImage', file: File) => {
     if (!user) return;
     if (file.size > 5 * 1024 * 1024) { toast.error('Image must be under 5MB'); return; }
     try {
