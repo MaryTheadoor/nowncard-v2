@@ -58,6 +58,7 @@ export interface Card {
   profileSize?: 'small' | 'medium' | 'large';
   profileShape?: 'circle' | 'rounded' | 'square';
   backgroundImage?: string;
+  backBackgroundImage?: string;
   bgDisplayMode?: 'full' | 'header';
   bgOpacity?: number;
   bgPosition?: string;

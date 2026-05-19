@@ -51,7 +51,7 @@ export default function DemoCard({ forceLight }: DemoCardProps) {
   const addrs = (card.addresses || []).filter((a) => a.street?.trim() || a.city?.trim() || a.state?.trim() || a.zip?.trim() || a.country?.trim());
   const socials = (Array.isArray(card.socialLinks) ? card.socialLinks : []).filter((s) => s?.url);
 
-  const { isDark, accent, primaryTextColor, textColorStyle, profileSizePx, profileShapeClass, profileFontSize, isHeaderBg, bgSizeStyle, tc } = useCardTheme({ card, forceLight });
+  const { isDark, accent, primaryTextColor, textColorStyle, profileSizePx, profileShapeClass, profileFontSize, isHeaderBg, bgOpacity, bgSizeStyle, tc } = useCardTheme({ card, forceLight });
 
   const handleFlip = () => setFlipped((f) => !f);
 
@@ -83,8 +83,8 @@ export default function DemoCard({ forceLight }: DemoCardProps) {
           <div className={`card-face flex flex-col ${!card.cardBgColor && !isDark ? 'bg-card-bg' : ''}`} style={{ backgroundColor: tc.faceBg, boxShadow: tc.faceShadow }}>
             {card.backgroundImage && (
               <>
-                <div className={isHeaderBg ? 'absolute top-0 left-0 right-0 h-[40%]' : 'absolute inset-0'} style={{ backgroundImage: `url('${card.backgroundImage}')`, backgroundPosition: card.bgPosition || 'center', backgroundSize: bgSizeStyle, backgroundRepeat: 'no-repeat' }} />
-                <div className={isHeaderBg ? 'absolute top-0 left-0 right-0 h-[40%]' : 'absolute inset-0'} style={{ backgroundColor: tc.overlayBg, opacity: card.bgOpacity ?? 0.6 }} />
+                <div className={isHeaderBg ? 'absolute top-0 left-0 right-0 h-[40%]' : 'absolute inset-0'} style={{ backgroundImage: `url('${card.backgroundImage}')`, backgroundPosition: card.bgPosition || 'center', backgroundSize: bgSizeStyle, backgroundRepeat: 'no-repeat', transform: `rotate(${card.bgRotation || 0}deg)` }} />
+                <div className={isHeaderBg ? 'absolute top-0 left-0 right-0 h-[40%]' : 'absolute inset-0'} style={{ backgroundColor: tc.overlayBg, opacity: bgOpacity }} />
               </>
             )}
             <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-6 pb-5 text-center overflow-y-auto" style={{ fontFamily: 'Manrope' }}>
@@ -159,6 +159,12 @@ export default function DemoCard({ forceLight }: DemoCardProps) {
 
           {/* Back */}
           <div className={`card-face flex flex-col ${!card.cardBgColor && !isDark ? 'bg-card-bg' : ''}`} style={{ transform: 'rotateY(180deg) translateZ(3px)', backgroundColor: tc.faceBg, boxShadow: tc.faceShadow }}>
+            {(card.backBackgroundImage || card.backgroundImage) && (
+              <>
+                <div className="absolute inset-0" style={{ backgroundImage: `url('${card.backBackgroundImage || card.backgroundImage}')`, backgroundPosition: card.bgPosition || 'center', backgroundSize: bgSizeStyle, backgroundRepeat: 'no-repeat', transform: `rotate(${card.bgRotation || 0}deg)` }} />
+                <div className="absolute inset-0" style={{ backgroundColor: tc.overlayBg, opacity: bgOpacity }} />
+              </>
+            )}
             <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-7 text-center" style={{ fontFamily: 'Manrope' }}>
               <div className={`font-extrabold mb-1 ${tc.textPrimary}`} style={{ color: primaryTextColor, fontFamily: 'Manrope', fontSize: 18 }}>{name}</div>
               <div className={`mb-5 ${tc.qrSub}`} style={{ ...textColorStyle, fontFamily: 'Manrope', fontSize: 12 }}>Scan to save</div>

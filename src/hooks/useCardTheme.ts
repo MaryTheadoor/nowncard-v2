@@ -50,8 +50,8 @@ export function useCardTheme({ card, forceDark, forceLight }: CardThemeParams): 
     const customBg = card.cardBgColor || undefined;
     const primaryTextColor = card.textColor || (isDark ? '#f4f1ec' : '#1a1612');
     const textColorStyle = card.textColor ? { color: card.textColor } : undefined;
-    const bgOpacity = card.bgOpacity ?? (isDark ? 0.6 : 0.3);
-    const bgSizeStyle = card.bgZoom ? `${card.bgZoom}%` : (card.bgSize || 'cover');
+    const bgOpacity = card.bgOpacity ?? 0.6;
+    const bgSizeStyle = card.bgZoom ? `${card.bgZoom}% auto` : (card.bgSize || 'cover');
 
     const profileSizePx = card.profileSize === 'small' ? 56 : card.profileSize === 'large' ? 88 : 72;
     const profileShapeClass = card.profileShape === 'rounded' ? 'rounded-2xl' : card.profileShape === 'square' ? 'rounded-none' : 'rounded-full';
