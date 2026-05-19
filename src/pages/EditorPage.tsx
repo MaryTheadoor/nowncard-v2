@@ -8,7 +8,7 @@ import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, whe
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
-import { downloadVCard } from '@/lib/vcard';
+import BackgroundPositioner from '@/components/BackgroundPositioner';
 import { parseVCard } from '@/lib/vcard-parser';
 import { slugify, getCardLimit, GOOGLE_FONTS, compressImage, SOCIAL_PLATFORMS, PAYMENT_PLATFORMS } from '@/lib/utils';
 import type { Card, SocialLink } from '@/types';
@@ -51,16 +51,11 @@ export default function EditorPage() {
   const hasContactPicker = typeof navigator !== 'undefined' && 'contacts' in navigator;
 
   const [fontSizePt, setFontSizePt] = useState(() => ptFromScale(card.fontSizeScale));
-  const [bgRotationVal, setBgRotationVal] = useState(card.bgRotation ?? 0);
   const fontSizeEditing = useRef(false);
-  const bgRotationEditing = useRef(false);
 
   useEffect(() => {
     if (!fontSizeEditing.current) setFontSizePt(ptFromScale(card.fontSizeScale));
   }, [card.fontSizeScale]);
-  useEffect(() => {
-    if (!bgRotationEditing.current) setBgRotationVal(card.bgRotation ?? 0);
-  }, [card.bgRotation]);
 
   // Load selected Google Font for live preview
   useEffect(() => {
@@ -244,7 +239,7 @@ export default function EditorPage() {
     }
   };
 
-  const handleUpload = async (field: 'profileImage' | 'backgroundImage', file: File) => {
+  const handleUpload = async (field: 'profileImage' | 'backgroundImage' | 'backBackgroundImage', file: File) => {
     if (!user) return;
     if (file.size > 5 * 1024 * 1024) { toast.error('Image must be under 5MB'); return; }
     try {
@@ -259,7 +254,7 @@ export default function EditorPage() {
       toast.success('Image uploaded');
     } catch (err) {
       console.error('[Upload] Failed:', err);
-      toast.error('Upload failed — please try again');
+      toast.error('Upload failed Ã¢â‚¬â€ please try again');
     }
   };
 
@@ -307,7 +302,7 @@ export default function EditorPage() {
       const contact = (contacts as Record<string, unknown>[])[0];
       const updates: Partial<Card> = {};
 
-      // Name: handle "Dr. Jane Doe" → prefix=Dr., firstName=Jane, lastName=Doe
+      // Name: handle prefix, firstName, lastName
       if ((contact.name as unknown[] | undefined)?.length && typeof (contact.name as string[])[0] === 'string') {
         const raw = (contact.name as string[])[0].trim();
         const prefixes = ['dr', 'mr', 'mrs', 'ms', 'prof'];
@@ -402,7 +397,7 @@ export default function EditorPage() {
     reader.onload = () => {
       try {
         const text = reader.result as string;
-        // Basic validation — must contain vCard markers
+        // Basic validation Ã¢â‚¬â€ must contain vCard markers
         if (!text.includes('BEGIN:VCARD') || !text.includes('END:VCARD')) {
           toast.error('File does not appear to be a valid vCard');
           return;
@@ -426,7 +421,7 @@ export default function EditorPage() {
     return (
       <div className="min-h-screen bg-space flex flex-col items-center justify-center text-ink-muted">
         <div className="w-6 h-6 border-2 border-line border-t-accent rounded-full animate-spin mb-4" />
-        <p>Loading editor…</p>
+        <p>Loading editorÃ¢â‚¬Â¦</p>
       </div>
     );
   }
@@ -538,7 +533,7 @@ export default function EditorPage() {
                 <label className={`flex items-center gap-2 text-sm ${isNewTeamCard ? 'text-accent' : 'text-ink-muted'} cursor-pointer`}>
                   <input type="checkbox" checked={card.isTeamCard ?? false} onChange={(e) => updateField('isTeamCard', e.target.checked)} disabled={isNewTeamCard} className="w-4 h-4 accent-accent rounded" />
                   Team card (doesn't count against member's plan limit)
-                  {isNewTeamCard && <span className="text-[10px] font-bold uppercase tracking-wider">— Pre-set</span>}
+                  {isNewTeamCard && <span className="text-[10px] font-bold uppercase tracking-wider">Ã¢â‚¬â€ Pre-set</span>}
                 </label>
               )}
               {(userData?.plan === 'pro' || userData?.plan === 'business') ? (
@@ -556,7 +551,7 @@ export default function EditorPage() {
                 <div className="flex items-center gap-2 text-sm text-ink-faint">
                   <input type="checkbox" disabled className="w-4 h-4 accent-accent rounded opacity-50" />
                   <span>Hide branding nav on card page</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-accent">— Pro</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-accent">Ã¢â‚¬â€ Pro</span>
                 </div>
               )}
             </div>
@@ -642,7 +637,7 @@ export default function EditorPage() {
                     />
                   </>
                 ) : (
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-accent">— Pro</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-accent">Ã¢â‚¬â€ Pro</span>
                 )}
                 {card.textColor && (
                   <button onClick={() => updateField('textColor', undefined)} className="text-xs text-ink-muted hover:text-ink underline">Reset</button>
@@ -699,7 +694,7 @@ export default function EditorPage() {
                     ) : (
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-ink">Manrope (default)</span>
-                        <span className="text-xs text-ink-faint">— Pro feature</span>
+                        <span className="text-xs text-ink-faint">Ã¢â‚¬â€ Pro feature</span>
                       </div>
                     )}
                   </div>
@@ -768,7 +763,7 @@ export default function EditorPage() {
                     ) : (
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-ink">16pt</span>
-                        <span className="text-xs text-ink-faint">— Pro feature</span>
+                        <span className="text-xs text-ink-faint">Ã¢â‚¬â€ Pro feature</span>
                       </div>
                     )}
                   </div>
@@ -793,7 +788,7 @@ export default function EditorPage() {
                         }}
                         className="text-ink-muted mt-1"
                       >
-                        {card.jobTitle || 'Product Designer'} · {card.company || 'Acme Inc'}
+                        {card.jobTitle || 'Product Designer'} Ã‚Â· {card.company || 'Acme Inc'}
                       </div>
                     </div>
                   )}
@@ -812,7 +807,7 @@ export default function EditorPage() {
                     <option>Cell</option><option>Work</option><option>Home</option><option>Fax</option>
                   </select>
                   <input value={p.number} onChange={(e) => updateField('phones', card.phones!.map((ph, idx) => idx === i ? { ...ph, number: e.target.value } : ph))} placeholder="Phone number" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-                  <button onClick={() => updateField('phones', card.phones!.filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">×</button>
+                  <button onClick={() => updateField('phones', card.phones!.filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">Ãƒâ€”</button>
                 </div>
               )) : null}
               <button onClick={() => updateField('phones', [...(card.phones || []), { type: 'Cell', number: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Phone</button>
@@ -823,7 +818,7 @@ export default function EditorPage() {
                     <option>Work</option><option>Personal</option>
                   </select>
                   <input value={e.address} onChange={(ev) => updateField('emails', card.emails!.map((em, idx) => idx === i ? { ...em, address: ev.target.value } : em))} placeholder="Email address" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-                  <button onClick={() => updateField('emails', card.emails!.filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">×</button>
+                  <button onClick={() => updateField('emails', card.emails!.filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">Ãƒâ€”</button>
                 </div>
               )) : null}
               <button onClick={() => updateField('emails', [...(card.emails || []), { type: 'Work', address: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Email</button>
@@ -834,7 +829,7 @@ export default function EditorPage() {
                     <option>Work</option><option>Personal</option><option>Portfolio</option><option>Blog</option>
                   </select>
                   <input value={w.url} onChange={(e) => updateField('websites', card.websites!.map((wb, idx) => idx === i ? { ...wb, url: e.target.value } : wb))} placeholder="https://example.com" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-                  <button onClick={() => updateField('websites', card.websites!.filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">×</button>
+                  <button onClick={() => updateField('websites', card.websites!.filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">Ãƒâ€”</button>
                 </div>
               )) : null}
               <button onClick={() => updateField('websites', [...(card.websites || []), { type: 'Work', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Website</button>
@@ -886,7 +881,7 @@ export default function EditorPage() {
                     />
                   )}
                   <input value={s.url} onChange={(e) => updateField('socialLinks', (card.socialLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, url: e.target.value } : sl))} placeholder="URL" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-                  <button onClick={() => updateField('socialLinks', (card.socialLinks as SocialLink[]).filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">×</button>
+                  <button onClick={() => updateField('socialLinks', (card.socialLinks as SocialLink[]).filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">Ãƒâ€”</button>
                 </div>
               ))}
               <button onClick={() => updateField('socialLinks', [...(Array.isArray(card.socialLinks) ? card.socialLinks : []), { platform: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Social</button>
@@ -917,7 +912,7 @@ export default function EditorPage() {
                     />
                   )}
                   <input value={s.url} onChange={(e) => updateField('paymentLinks', (card.paymentLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, url: e.target.value } : sl))} placeholder="URL" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-                  <button onClick={() => updateField('paymentLinks', (card.paymentLinks as SocialLink[]).filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">×</button>
+                  <button onClick={() => updateField('paymentLinks', (card.paymentLinks as SocialLink[]).filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">Ãƒâ€”</button>
                 </div>
               ))}
               <button onClick={() => updateField('paymentLinks', [...(Array.isArray(card.paymentLinks) ? card.paymentLinks : []), { platform: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Payment Link</button>
@@ -971,7 +966,7 @@ export default function EditorPage() {
                     <button type="button" onClick={() => updateField('backgroundImage', undefined)} className="text-xs text-danger font-bold border border-line rounded-lg px-2 py-1 hover:border-danger transition">Remove</button>
                   </div>
                 )}
-                {/* Background tuning controls — always visible */}
+                {/* Background tuning controls Ã¢â‚¬â€ always visible */}
                 <div className={`mt-2 space-y-3 border-t border-line pt-3 ${!card.backgroundImage ? 'opacity-50 pointer-events-none' : ''}`}>
                   {!card.backgroundImage && (
                     <p className="text-[11px] text-ink-faint">Upload a background photo to enable these controls</p>
@@ -1007,88 +1002,39 @@ export default function EditorPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-ink-muted w-16">Position</span>
-                    <select
-                      value={card.bgPosition || 'center'}
-                      onChange={(e) => updateField('bgPosition', e.target.value)}
-                      className="flex-1 px-2.5 py-2 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent"
-                    >
-                      <option value="center">Center</option>
-                      <option value="top">Top</option>
-                      <option value="bottom">Bottom</option>
-                      <option value="left">Left</option>
-                      <option value="right">Right</option>
-                    </select>
-                  </div>
-                  <div className="flex items-center gap-3">
                     <span className="text-xs text-ink-muted w-16">Size</span>
-                    <select
-                      value={card.bgSize || 'cover'}
-                      onChange={(e) => updateField('bgSize', e.target.value)}
-                      className="flex-1 px-2.5 py-2 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent"
-                    >
+                    <select value={card.bgSize || 'cover'} onChange={(e) => updateField('bgSize', e.target.value)} className="flex-1 px-2.5 py-2 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent">
                       <option value="cover">Cover</option>
                       <option value="contain">Contain</option>
                       <option value="auto">Auto</option>
                     </select>
                   </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-ink-muted">Zoom</span>
-                      <span className="text-xs font-bold text-ink">{card.bgZoom ?? 100}%</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="range"
-                        min={50}
-                        max={200}
-                        step={5}
-                        value={card.bgZoom ?? 100}
-                        onChange={(e) => {
-                          const v = parseInt(e.target.value, 10);
-                          updateField('bgZoom', v === 100 ? undefined : v);
-                        }}
-                        className="flex-1 accent-accent"
-                      />
-                      <input
-                        type="number"
-                        min={50}
-                        max={200}
-                        step={5}
-                        value={card.bgZoom ?? 100}
-                        onChange={(e) => {
-                          const raw = e.target.value;
-                          const v = parseInt(raw, 10);
-                          if (!isNaN(v) && raw.trim() !== '') updateField('bgZoom', v === 100 ? undefined : v);
-                        }}
-                        className="w-14 px-1.5 py-1 bg-space border border-line rounded-lg text-ink text-xs font-bold text-center focus:outline-none focus:border-accent"
-                      />
-                      <span className="text-xs text-ink-muted">%</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-ink-muted w-16">Rotation</span>
-                    <input
-                      type="number"
-                      min={0}
-                      max={360}
-                      step={15}
-                      value={bgRotationVal}
-                      onFocus={() => { bgRotationEditing.current = true; }}
-                      onBlur={() => { bgRotationEditing.current = false; }}
-                      onChange={(e) => {
-                        const raw = e.target.value;
-                        setBgRotationVal(raw === '' ? 0 : parseInt(raw, 10) || 0);
-                        const deg = parseInt(raw, 10);
-                        if (!isNaN(deg)) updateField('bgRotation', deg);
-                      }}
-                      className="w-16 px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-xs font-bold text-center focus:outline-none focus:border-accent"
+                  {card.backgroundImage && (
+                    <BackgroundPositioner
+                      imageUrl={card.backgroundImage}
+                      opacity={card.bgOpacity ?? 0.6}
+                      position={card.bgPosition || 'center'}
+                      zoom={(card.bgZoom ?? 100) / 100}
+                      rotation={card.bgRotation ?? 0}
+                      onPositionChange={(pos) => updateField('bgPosition', pos)}
+                      onZoomChange={(z) => updateField('bgZoom', z === 100 ? undefined : z)}
+                      onRotationChange={(r) => updateField('bgRotation', r)}
+                      accentColor={card.accentColor || '#d4a34a'}
                     />
-                    <span className="text-xs text-ink-muted">°</span>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm text-ink-muted">Back Background Photo</label>
+            <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && handleUpload('backBackgroundImage', e.target.files[0])} className="text-sm text-ink-muted file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border file:border-line file:bg-tile file:text-ink file:text-sm file:font-semibold" />
+            {card.backBackgroundImage && (
+              <div className="flex items-center gap-2">
+                <img src={card.backBackgroundImage} alt="" className="w-24 h-16 rounded-lg object-cover border border-line" />
+                <button type="button" onClick={() => updateField('backBackgroundImage', undefined)} className="text-xs text-danger font-bold border border-line rounded-lg px-2 py-1 hover:border-danger transition">Remove</button>
+              </div>
+            )}
           </div>
         </main>
 
@@ -1104,37 +1050,20 @@ export default function EditorPage() {
       </div>
 
       {/* Persistent bottom action bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-space/95 backdrop-blur-xl border-t border-line-soft px-4 md:px-6 py-3 flex items-center justify-between gap-2">
-        <button onClick={() => navigate('/dashboard')} className="px-3 md:px-4 py-2 border border-line text-ink text-xs md:text-sm font-bold rounded-full hover:bg-tile-soft transition">
-          Cancel
-        </button>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => { if (id) downloadVCard(card as Card, undefined, `${typeof window !== 'undefined' ? window.location.origin : 'https://nowncard.com'}/card/${card.slug}`); }}
-            className="px-3 md:px-4 py-2 border border-line text-ink text-xs md:text-sm font-bold rounded-full hover:bg-tile-soft transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={!id}
-            title={id ? 'Download vCard' : 'Save your card first to download'}
-          >
-            vCard
-          </button>
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-space/95 backdrop-blur-xl border-t border-line-soft px-3 md:px-6 py-2.5 flex items-center justify-between gap-1.5">
+        <button onClick={() => navigate('/dashboard')} className="btn btn-secondary btn-sm">Cancel</button>
+        <div className="flex items-center gap-1.5">
           {card.slug?.trim() && (
             <>
-              <button onClick={() => setShareOpen(true)} className="flex items-center gap-1 px-3 md:px-4 py-2 border border-line text-ink text-xs md:text-sm font-bold rounded-full hover:bg-tile-soft transition">
-                <Copy className="w-3.5 h-3.5" /> Copy Link
-              </button>
-              <a href={`/card/${slugify(card.slug)}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 px-3 md:px-4 py-2 border border-line text-ink text-xs md:text-sm font-bold rounded-full hover:bg-tile-soft transition">
-                <ExternalLink className="w-3.5 h-3.5" /> View
-              </a>
+              <button onClick={() => setShareOpen(true)} className="btn btn-secondary btn-sm"><Copy className="w-3.5 h-3.5" /> Copy Link</button>
+              <a href={`/card/${slugify(card.slug)}`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm"><ExternalLink className="w-3.5 h-3.5" /> View</a>
             </>
           )}
-          <button onClick={handleSave} disabled={saving} className={`px-4 md:px-5 py-2 text-xs md:text-sm font-bold rounded-full transition disabled:opacity-50 flex items-center gap-1.5 ${id ? 'bg-tile-soft border border-accent text-accent hover:bg-accent hover:text-space' : 'bg-accent text-space hover:brightness-110'}`}>
-            {saving ? (
-              <>Saving…<span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" /></>
-            ) : id ? 'Save Changes' : 'Save Card'}
+          <button onClick={handleSave} disabled={saving} className={`btn btn-md text-xs md:text-sm rounded-full gap-1.5 ${id ? 'btn-secondary border-accent text-accent hover:bg-accent hover:text-space' : 'btn-primary'}`}>
+            {saving ? (<>Savingâ€¦<span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" /></>) : 'Save'}
           </button>
         </div>
       </div>
-
       <ShareModal
         open={shareOpen}
         onClose={() => setShareOpen(false)}
