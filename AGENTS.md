@@ -390,3 +390,26 @@ In `index.html`:
 - **GitHub:** https://github.com/MaryTheadoor/nowncard-v2
 - **Firebase Console:** https://console.firebase.google.com/project/vcard-studio-314
 - **Custom Domain:** `nowncard.com` → `nowncard-v2.web.app`
+
+---
+
+## 13. Critical Implementation Notes (from session retro)
+
+### Edit Safety
+- **Lint after every single edit.** Never batch changes without verifying.
+- **Commit after every successful edit.** One broken edit can destroy hundreds of lines with no checkpoint.
+- **Use `git checkout <commit> -- <file>`** to restore individual files from known-good commits.
+- **EditorPage.tsx section order:** Auto-Fill → Basic Info → Settings → Typography → Contact → Addresses → Social Links → Payment Links → Images. Settings and Typography are BETWEEN Info sections — not grouped together.
+
+### Shared State
+- **useCardTheme hook** (`src/hooks/useCardTheme.ts`) is the SINGLE source for card theme computation (`tc` object, bgOpacity, bgSizeStyle, profile sizing). All 4 card renderers (DemoCard, LiveCardPreview, CardPreview, CardViewerPage) MUST use it. Never inline `tc` or derived variables.
+- **DemoCard `forceLight` prop** bypasses cardTheme but bgOpacity must be destructured from useCardTheme, not read inline.
+- **Card action pills in DashboardPage** (`px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs`) are intentionally NOT migrated to `.btn-*` classes — they're a compact pattern.
+
+### Background Image System
+- **BackgroundPositioner API:** `react-easy-crop` `onCropComplete(croppedArea, croppedAreaPixels)`. First arg has 0-100 percentages. Second arg is pixels. Use `croppedArea.x/y` for CSS `background-position`.
+- **bgZoom mapping:** Stored as percentage (100=normal). CSS needs `${bgZoom}% auto`. Never use `${bgZoom}%` alone.
+- **backBackgroundImage field exists** on Card type. EditorPage handleUpload accepts `'backBackgroundImage'`. Back faces use `card.backBackgroundImage || card.backgroundImage`.
+
+### Firebase
+- **Firebase Secrets + .env conflict:** When using `defineSecret('SQUARE_ACCESS_TOKEN')`, remove that variable from `functions/.env` or deploy fails with "overlaps non secret environment variable".
