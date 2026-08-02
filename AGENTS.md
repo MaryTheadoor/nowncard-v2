@@ -1,7 +1,9 @@
 # AGENTS.md — NownCard v2
 
 > **Purpose:** Give any new agent instant, complete context on this project — stack, architecture, live state, known issues, and how to work safely.
-> **Last updated:** 2026-05-06
+> **Last updated:** 2026-07-27
+>
+> ⚠️ **REBUILD IN PROGRESS.** The June 2026 rebuild (`dev` branch) was discarded as unstable. The canonical codebase is now `master` (last stable deploy, 2026-05-19). See **`MASTER_SPEC.md`** for the authoritative reference and implementation plan.
 
 ---
 
@@ -29,8 +31,9 @@
 | Database | Firestore | Native mode |
 | Storage | Firebase Storage | Images only |
 | Hosting | Firebase Hosting | Custom domain `nowncard.com` |
-| Cloud Functions | Firebase Functions v2 | Node.js 20 runtime |
-| Payments | Square | Checkout links (Pro $19/yr, Business $39/yr) |
+| Cloud Functions | Firebase Functions v2 | Node.js 22 runtime |
+| Payments | Square | Dynamic checkout via `createCheckout` Cloud Function |
+| Push Notifications | FCM | Replaced OneSignal (2026-05-15) |
 | QR Codes | `qrcode.react` | SVG |
 | Icons | `lucide-react` | — |
 | Toast | `sonner` | — |
@@ -88,8 +91,8 @@ owncard-v2/
 │   │   ├── ContactPage.tsx    # Contact form
 │   │   └── NotFoundPage.tsx   # 404
 │   ├── hooks/
-│   │   ├── useAuth.ts         # Auth state + userData from Firestore
-│   │   └── useOneSignal.ts    # Push notification subscription
+│   │   ├── useFCM.ts         # Push notification subscription (FCM)
+│   │   ├── useCardTheme.ts   # Computes card face styles from card config
 │   └── types/
 │       └── index.ts           # TypeScript interfaces (Card, Message, UserData, etc.)
 ├── functions/
@@ -308,11 +311,11 @@ cd functions && npm install && npm run build && cd ..
 
 ## 8. Known Issues & Active Decisions
 
-### Current Bugs
+### Known Issues & Active Decisions
 | Issue | Status | Details |
 |-------|--------|---------|
-| OneSignal placeholder app ID | 🔴 Active | `index.html` and Cloud Function config use placeholder. Push notifications won't send until real OneSignal credentials are added. |
-| Node.js 20 runtime deprecation | 🟡 Non-blocking | Firebase Functions Node.js 20 runtime deprecated 2026-10-30. Should migrate to Node.js 22 before then. |
+| Auth hook duplicates listeners | 🟡 Planned fix | `useAuth.ts` subscribes per-call; Phase 1 of MASTER_SPEC migrates to context-based AuthProvider |
+| No automated tests | 🟢 Low | vitest.config.ts exists, no test script in package.json; Phase 5 |
 
 ### Recently Fixed (deployed)
 | Issue | Fix |
@@ -342,24 +345,11 @@ Firebase config is in `src/lib/firebase.ts` (hardcoded — not using `.env` for 
 ### Cloud Function Secrets (set via Firebase CLI)
 ```bash
 firebase functions:secrets:set SQUARE_ACCESS_TOKEN
-firebase functions:secrets:set ONESIGNAL_APP_ID
-firebase functions:secrets:set ONESIGNAL_REST_KEY
+firebase functions:secrets:set SQUARE_WEBHOOK_SIGNATURE_KEY
 ```
 
-### OneSignal Client Config
-In `index.html`:
-```html
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(function(OneSignal) {
-    OneSignal.init({
-      appId: "YOUR_ONESIGNAL_APP_ID",  // ← REPLACE THIS
-      // ...
-    });
-  });
-</script>
-```
+### FCM Client Config
+Handled automatically via Firebase Messaging (project-scoped). VAPID key is hardcoded in `src/lib/messaging.ts`. Service worker is `public/firebase-messaging-sw.js`.
 
 ---
 
@@ -377,7 +367,7 @@ In `index.html`:
 ## 11. How to Onboard as a New Agent
 
 1. **Read this file** (AGENTS.md) — you are here
-2. **Read `MASTER_AUDIT.md`** — complete feature inventory and known bugs
+2. **Read `MASTER_SPEC.md`** — authoritative reference: architecture, page specs, implementation plan
 3. **Check `PRODUCTION_STATUS.md`** — current live state and recent deployments
 4. **Run `npm run build`** — verify the codebase compiles
 5. **Run `npm run dev`** — verify local dev server works
