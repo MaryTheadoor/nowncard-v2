@@ -1,7 +1,8 @@
 # NownCard v2 — Production Status
 
 > Current live state, environment details, and action items.
-> **Last updated:** 2026-05-06
+> **Last updated:** 2026-07-27
+> ⚠️ Source of truth is `MASTER_SPEC.md`. This file documents live state only.
 
 ---
 
@@ -51,7 +52,7 @@
 ### Features Requiring Configuration
 | Feature | Status | Blocker |
 |---------|--------|---------|
-| Push notifications | ⚠️ Non-functional | OneSignal placeholder app ID in `index.html` and Cloud Function config |
+| FCM push notifications | ⚠️ Needs verification | Client + SW configured with real keys; `notifyOnMessage` deployed. End-to-end test pending. |
 
 ### Payment Integration
 | Feature | Status | Provider |
@@ -97,12 +98,15 @@
 
 | Function | Trigger | Purpose | Status |
 |----------|---------|---------|--------|
-| `squareWebhook` | HTTPS onRequest | Square payment webhook — applies plans on payment completion | ✅ Deployed |
-| `createCheckout` | HTTPS onCall | Creates Square checkout link for plan upgrades | ✅ Deployed |
-| `notifyOnMessage` | Firestore onDocumentCreated (`messages/{id}`) | Sends OneSignal push notification to recipient | ⚠️ Deployed but non-functional (placeholder credentials) |
+| `squareWebhook` | HTTPS onRequest | Square payment webhook — applies plans on payment completion | ✅ Deployed (HMAC verified) |
+| `createCheckout` | HTTPS onCall | Creates dynamic Square checkout link | ✅ Deployed |
+| `getPaymentDetails` | HTTPS onCall | Payment/order details lookup | ✅ Deployed |
+| `getPaymentHistory` | HTTPS onCall | User payment history | ✅ Deployed |
+| `notifyOnMessage` | Firestore onDocumentCreated (`messages/{id}`) | Sends FCM push to recipient | ✅ Deployed |
+| `cleanupPendingUpgrades` | Scheduled (6h) | Deletes expired pending upgrades | ✅ Deployed |
 
 ### Runtime
-- Node.js 20 (deprecated 2026-10-30) — migrate to Node.js 22 before deadline
+- Node.js 22 (deployed)
 
 ---
 
@@ -118,33 +122,27 @@
 
 | Date | Commit | Changes |
 |------|--------|---------|
-| 2026-05-06 | Current | Messaging simplified (no index), back face background image, legacy ownerUid fix, anti-spam removed, documentation overhaul |
-| 2026-05-05 | `8040cf1` | Build stabilization, lint fixes, admin fixes, meta tags |
-| Prior | Various | See `DEVELOPMENT_LOG.md` |
+| 2026-07-27 | Rollback | Deployed `master` build (may 18-19 state) after June 12 rebuild discarded |
+| 2026-05-18 | `0a439f4` | Last stable deploy — background image fixes, BackgroundPositioner, bottom bar |
+| Prior | Various | See `MASTER_SPEC.md` and git history |
 
 ---
 
 ## Action Items
 
-### 🔴 Critical (User-facing)
-| # | Item | Owner | Notes |
-|---|------|-------|-------|
-| 1 | **OneSignal credentials** | You | Replace placeholder `YOUR_ONESIGNAL_APP_ID` in `index.html`. Set `ONESIGNAL_APP_ID` and `ONESIGNAL_REST_KEY` as Firebase function secrets. |
-| 2 | **Test messaging end-to-end** | You | Send a message from a public card to your own card. Verify it appears in dashboard. |
+### 🟡 In Progress (rebuild per MASTER_SPEC.md)
+| # | Item | Phase |
+|---|------|-------|
+| 1 | **Auth consolidation** — context-based AuthProvider | Phase 1 |
+| 2 | **CardFace component** — unify card rendering | Phase 2 |
+| 3 | **Page improvements** — editor reorg, dashboard fixes | Phase 3 |
+| 4 | **Visual polish** — button system, animations | Phase 4 |
+| 5 | **Hardening** — CSP headers, ARIA, tests | Phase 5 |
 
-### 🟡 Medium (Technical debt)
+### 🟢 Verify
 | # | Item | Notes |
 |---|------|-------|
-| 3 | **Migrate Cloud Functions to Node.js 22** | Node.js 20 runtime deprecated 2026-10-30. Update `functions/package.json` engine field and redeploy. |
-| 4 | **publicCards sync** | No active mirroring logic. Either implement sync or remove fallback queries. |
-| 5 | **Chunk size** | Main JS bundle ~890KB. Consider code-splitting routes with `React.lazy()`. |
-
-### 🟢 Low (Polish)
-| # | Item | Notes |
-|---|------|-------|
-| 6 | **Content-Security-Policy headers** | Add CSP to `firebase.json` hosting headers. |
-| 7 | **Playwright tests** | PRD mentions e2e tests but none exist. |
-| 8 | **prefers-reduced-motion** | Add `@media (prefers-reduced-motion: reduce)` for flip animation. |
+| 6 | **FCM end-to-end** | Send test message, confirm notification delivery |
 
 ---
 
