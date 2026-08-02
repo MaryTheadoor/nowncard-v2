@@ -1,6 +1,6 @@
 # NownCard v2 — Feature Checklist
 
-**Rule:** Before every deploy, review this list. If anything is missing or broken, fix it BEFORE pushing.
+> ⚠️ **SUPERSEDED.** See **`MASTER_SPEC.md`** for the authoritative feature inventory and implementation plan. This checklist is from 2026-05-05.
 
 ---
 

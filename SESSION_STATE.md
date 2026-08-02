@@ -1,5 +1,7 @@
 # NownCard v2 — Session State
 > Last updated: 2026-05-15 | High-priority fixes applied (not yet deployed)
+>
+> ⚠️ **SUPERSEDED.** This file documents the pre-rebuild session state. The June 2026 rebuild was discarded; the canonical baseline is `master` (2026-05-19). See **`MASTER_SPEC.md`**.
 
 ---
 
