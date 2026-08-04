@@ -178,3 +178,19 @@ export function compressImage(file: File, maxWidth = 800, quality = 0.85): Promi
     img.src = url;
   });
 }
+
+export function normalizeCardContacts(card: Partial<Card>) {
+  const phones = (card.phones?.length ? card.phones : (card.phone ? [{ type: 'cell', number: card.phone }] : [])).filter((p) => p.number?.trim());
+  const emails = (card.emails?.length ? card.emails : (card.email ? [{ type: 'work', address: card.email }] : [])).filter((e) => e.address?.trim());
+  const websites = (card.websites?.length ? card.websites : (card.website ? [{ type: 'Work', url: card.website }] : [])).filter((w) => w.url?.trim());
+  const addresses = (card.addresses?.length ? card.addresses : (card.address ? [{ type: 'work', street: card.address }] : [])).filter((a) => a.street?.trim() || a.city?.trim() || a.state?.trim() || a.zip?.trim() || a.country?.trim());
+
+  let socials: { platform: string; url: string }[] = [];
+  if (Array.isArray(card.socialLinks)) socials = card.socialLinks.filter((s) => s?.url);
+  else if (typeof card.socialLinks === 'object' && card.socialLinks !== null)
+    socials = Object.entries(card.socialLinks).filter(([, v]) => v).map(([k, v]) => ({ platform: k, url: v as string }));
+
+  const paymentLinks = (card.paymentLinks || []).filter((p) => p?.url);
+
+  return { phones, emails, websites, addresses, socials, paymentLinks };
+}
