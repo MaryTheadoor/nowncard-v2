@@ -14,6 +14,10 @@ service cloud.firestore {
       );
     }
 
+    function isReviewOwnerOrAdmin(userId) {
+      return request.auth != null && (request.auth.uid == userId || isAdmin());
+    }
+
     function isTeamOwner(data) {
       return request.auth != null && (
         data.teamOwnerId == request.auth.uid ||
@@ -142,6 +146,29 @@ service cloud.firestore {
         && request.resource.data.status in ['pending', 'confirmed', 'cancelled'];
       allow delete: if request.auth != null
         && (resource.data.ownerUid == request.auth.uid || isAdmin());
+    }
+
+    // Reviews: one per user (doc id = user uid); featured readable by anyone
+    match /reviews/{userId} {
+      allow read: if resource.data.featured == true || isReviewOwnerOrAdmin(userId);
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.userId == userId
+        && request.resource.data.rating is number
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.content.size() > 0
+        && request.resource.data.content.size() <= 1000
+        && request.resource.data.keys().hasAll(['userId', 'rating', 'content', 'featured', 'createdAt'])
+        && request.resource.data.featured == false;
+      allow delete: if request.auth != null
+        && (request.auth.uid == userId || isAdmin());
+    }
+
+    // Admin can feature/unfeature reviews via partial update
+    match /reviews/{userId} {
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['featured']);
     }
   }
 }

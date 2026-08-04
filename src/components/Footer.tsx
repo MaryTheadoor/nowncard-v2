@@ -33,7 +33,7 @@ export default function Footer({ compact = false }: FooterProps) {
       </div>
       <p className="text-sm text-ink-faint">
         © 2026 NownCard — A product of{' '}
-        <a href="https://www.nowndigital.com" target="_blank" rel="noopener noreferrer" className="text-ink-muted hover:text-ink underline underline-offset-2">NOWN Digital</a>
+        <a href="https://nowndigital.app" target="_blank" rel="noopener noreferrer" className="text-ink-muted hover:text-ink underline underline-offset-2">NOWN Digital</a>
       </p>
     </footer>
   );

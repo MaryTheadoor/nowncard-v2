@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Link2, QrCode, Download, Palette, Smartphone, Leaf } from 'lucide-react';
+import { Link2, QrCode, Download, Palette, Smartphone, Leaf, Star } from 'lucide-react';
 import DemoCard from '@/components/DemoCard';
 import Navbar from '@/components/Navbar';
 import AuthModal from '@/components/AuthModal';
@@ -8,6 +8,9 @@ import Footer from '@/components/Footer';
 import { useAuth } from '@/hooks/auth-context';
 import { useTheme } from '@/hooks/useThemeContext';
 import { createSquareCheckout, getPricing, type PricingConfig } from '@/lib/payments';
+import { collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import type { Review } from '@/types';
 import { toast } from 'sonner';
 
 export default function LandingPage() {
@@ -15,9 +18,22 @@ export default function LandingPage() {
   const { resolved: themeResolved } = useTheme();
   const [authOpen, setAuthOpen] = useState(false);
   const [pricing, setPricing] = useState<PricingConfig>({ proPrice: 19, businessPrice: 39 });
+  const [featuredReviews, setFeaturedReviews] = useState<Review[]>([]);
 
   useEffect(() => {
     getPricing().then(setPricing).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const q = query(collection(db, 'reviews'), where('featured', '==', true), limit(6));
+        const snap = await getDocs(q);
+        setFeaturedReviews(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Review));
+      } catch {
+        setFeaturedReviews([]);
+      }
+    })();
   }, []);
 
   useEffect(() => {
@@ -125,6 +141,39 @@ export default function LandingPage() {
           </p>
         </div>
       </section>
+
+      {/* Testimonials — featured reviews from users */}
+      {featuredReviews.length > 0 && (
+        <section id="reviews" className="bg-space-2 py-16 px-6">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-3">Loved by Professionals</h2>
+            <p className="text-ink-muted text-center mb-10">Real feedback from the people using NownCard every day.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {featuredReviews.map((r) => (
+                <div key={r.id} className="bg-tile border border-line rounded-2xl p-6 flex flex-col">
+                  <div className="flex items-center gap-1 mb-3">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <Star key={n} className={`w-4 h-4 ${n <= r.rating ? 'text-amber-400 fill-amber-400' : 'text-ink-faint'}`} />
+                    ))}
+                  </div>
+                  <p className="text-sm text-ink leading-relaxed flex-1">"{r.content}"</p>
+                  <div className="mt-4 pt-4 border-t border-line-soft">
+                    <div className="text-sm font-bold">{r.displayName || 'NownCard User'}</div>
+                    {r.company && <div className="text-xs text-ink-muted">{r.company}</div>}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {!user && (
+              <p className="text-center text-sm text-ink-muted mt-8">
+                Used a digital card that changed how you network?{' '}
+                <button onClick={() => setAuthOpen(true)} className="text-accent font-semibold hover:underline cursor-pointer bg-transparent border-none">Leave a review</button>
+                .
+              </p>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Audience */}
       <section className="py-16 px-6 max-w-3xl mx-auto text-center">

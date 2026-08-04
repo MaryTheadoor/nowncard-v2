@@ -142,3 +142,15 @@ export interface UserData {
   lastLogin?: unknown;
   planUpdatedAt?: unknown;
 }
+
+export interface Review {
+  id: string;
+  userId: string;
+  displayName?: string;
+  company?: string;
+  email?: string;
+  rating: number;
+  content: string;
+  featured: boolean;
+  createdAt: unknown;
+}

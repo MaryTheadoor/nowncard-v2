@@ -1074,9 +1074,9 @@ export default function EditorPage() {
 
         {/* Desktop sticky preview */}
         <aside className="hidden lg:block lg:sticky lg:top-14 self-start">
-          <div className="bg-tile border border-line rounded-2xl p-4">
+          <div className="bg-tile border border-line rounded-2xl p-3">
             <div className="text-[10px] text-ink-faint uppercase tracking-wider font-semibold mb-3">Live Page Preview</div>
-            <LivePagePreview card={card} />
+            <LivePagePreview card={card} layout="row" />
           </div>
         </aside>
       </div>

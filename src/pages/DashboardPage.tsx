@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/auth-context';
 import { useFCM } from '@/hooks/useFCM';
 import { downloadVCard } from '@/lib/vcard';
 import Navbar from '@/components/Navbar';
-import type { Appointment, Card, Message } from '@/types';
+import type { Appointment, Card, Message, Review } from '@/types';
 import { toast } from 'sonner';
 
 import { createDemoCard } from '@/lib/demo';
@@ -27,7 +27,15 @@ export default function DashboardPage() {
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'cards' | 'inquiries' | 'appointments'>('cards');
+  const [activeTab, setActiveTab] = useState<'cards' | 'inquiries' | 'appointments' | 'review'>('cards');
+
+  const [myReview, setMyReview] = useState<Review | null>(null);
+  const [reviewLoading, setReviewLoading] = useState(true);
+  const [rating, setRating] = useState(5);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewText, setReviewText] = useState('');
+  const [reviewCompany, setReviewCompany] = useState('');
+  const [savingReview, setSavingReview] = useState(false);
 
 
   useEffect(() => {
@@ -121,6 +129,55 @@ export default function DashboardPage() {
       unsubAppointments();
     };
   }, [user, authLoading, navigate]);
+
+  const loadMyReview = async () => {
+    if (!user) return;
+    try {
+      const snap = await getDoc(doc(db, 'reviews', user.uid));
+      if (snap.exists()) {
+        const data = snap.data() as Omit<Review, 'id'>;
+        setMyReview({ id: user.uid, ...data });
+        setRating(data.rating ?? 5);
+        setReviewCompany(data.company ?? '');
+        setReviewText(data.content ?? '');
+      } else {
+        setMyReview(null);
+      }
+    } catch {
+      // rules deny read for non-featured reviews the user doesn't own — ignore
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) loadMyReview();
+  }, [user]);
+
+  const handleSaveReview = async () => {
+    if (!user) return;
+    if (!reviewText.trim()) { toast.error('Please write a short review'); return; }
+    setSavingReview(true);
+    try {
+      const payload = {
+        userId: user.uid,
+        displayName: user.displayName || user.email?.split('@')[0] || 'NownCard User',
+        company: reviewCompany.trim(),
+        email: user.email || null,
+        rating,
+        content: reviewText.trim(),
+        featured: false,
+        createdAt: myReview?.createdAt ?? serverTimestamp(),
+      };
+      await setDoc(doc(db, 'reviews', user.uid), payload, { merge: true });
+      setMyReview({ id: user.uid, ...payload } as Review);
+      toast.success('Thanks for your feedback!');
+    } catch {
+      toast.error('Failed to save review — make sure you are signed in');
+    } finally {
+      setSavingReview(false);
+    }
+  };
 
   const handleDelete = async (cardId: string) => {
     if (!confirm('Are you sure you want to delete this card? This cannot be undone.')) return;
@@ -376,6 +433,7 @@ export default function DashboardPage() {
             { key: 'cards', label: 'My Cards', badge: null },
             { key: 'inquiries', label: 'Inquiries', badge: messages.filter((m) => !m.read).length || null },
             { key: 'appointments', label: 'Appointments', badge: appointments.filter((a) => a.status === 'pending').length || null },
+            { key: 'review', label: 'Feedback', badge: null },
           ].map((t) => (
             <button
               key={t.key}
@@ -675,6 +733,76 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'review' && (
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <h2 className="text-xl font-extrabold">Feedback</h2>
+            </div>
+            <p className="text-sm text-ink-muted mb-5 max-w-lg">
+              Tell us what you think about NownCard. Your review helps us improve and may be featured on the homepage.
+            </p>
+
+            {reviewLoading ? (
+              <div className="flex items-center gap-2 text-sm text-ink-muted">
+                <div className="w-4 h-4 border-2 border-line border-t-accent rounded-full animate-spin" />
+                Loading…
+              </div>
+            ) : (
+              <div className="bg-tile border border-line rounded-2xl p-6 max-w-xl">
+                {/* Star rating */}
+                <div className="flex items-center gap-1 mb-5">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setRating(n)}
+                      onMouseEnter={() => setHoverRating(n)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      className="cursor-pointer transition-transform hover:scale-110"
+                      aria-label={`${n} star${n > 1 ? 's' : ''}`}
+                    >
+                      <Star
+                        className={`w-7 h-7 ${n <= (hoverRating || rating) ? 'text-amber-400 fill-amber-400' : 'text-ink-faint'}`}
+                      />
+                    </button>
+                  ))}
+                  <span className="ml-2 text-sm text-ink-muted">
+                    {rating === 5 ? 'Excellent' : rating === 4 ? 'Great' : rating === 3 ? 'Good' : rating === 2 ? 'Fair' : 'Poor'}
+                  </span>
+                </div>
+
+                <input
+                  value={reviewCompany}
+                  onChange={(e) => setReviewCompany(e.target.value)}
+                  placeholder="Your company / business (optional)"
+                  className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent mb-3"
+                />
+
+                <textarea
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  placeholder="What do you like about NownCard? How has it helped your business?"
+                  rows={4}
+                  maxLength={1000}
+                  className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent resize-none mb-2"
+                />
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[10px] text-ink-faint">{reviewText.length}/1000</span>
+                  {myReview && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-emerald-950 text-emerald-400 border border-emerald-800">Submitted</span>}
+                </div>
+
+                <button
+                  onClick={handleSaveReview}
+                  disabled={savingReview || !reviewText.trim()}
+                  className="px-5 py-2.5 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {savingReview ? 'Saving…' : (myReview ? 'Update Review' : 'Submit Review')}
+                </button>
               </div>
             )}
           </div>

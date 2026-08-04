@@ -13,9 +13,10 @@ import Navbar from '@/components/Navbar';
 import {
   Shield, Search, KeyRound, CreditCard, BarChart3,
   Users, FileText, RefreshCw, TrendingUp, DollarSign,
-  Eye, ExternalLink, Trash2, X,
+  Eye, ExternalLink, Trash2, X, Star,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import type { Review } from '@/types';
 
 const BOOTSTRAP_ADMIN_UID = 'EeiBBDTu5jOooHbxyOC98JSlt6r1';
 
@@ -46,6 +47,7 @@ const TABS = [
   { key: 'upgrades', label: 'Upgrades', icon: CreditCard },
   { key: 'users', label: 'Users', icon: Users },
   { key: 'cards', label: 'Cards', icon: FileText },
+  { key: 'reviews', label: 'Reviews', icon: Star },
 ] as const;
 
 type TabKey = typeof TABS[number]['key'];
@@ -98,6 +100,9 @@ export default function AdminPage() {
   const [adminCards, setAdminCards] = useState<AdminCard[]>([]);
   const [cardLastDoc, setCardLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [cardHasMore, setCardHasMore] = useState(false);
+
+  // --- Reviews ---
+  const [reviews, setReviews] = useState<Review[]>([]);
 
   // --- Shared ---
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
@@ -159,6 +164,30 @@ export default function AdminPage() {
       setUpgradesLastDoc(last);
       setUpgradesHasMore(snap.docs.length === 20);
     } catch { toast.error('Failed to load upgrades'); }
+  };
+
+  const loadReviews = async () => {
+    try {
+      const snap = await getDocs(query(collection(db, 'reviews'), orderBy('createdAt', 'desc'), limit(100)));
+      setReviews(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Review));
+    } catch { toast.error('Failed to load reviews'); }
+  };
+
+  const toggleFeaturedReview = async (userId: string, featured: boolean) => {
+    try {
+      await updateDoc(doc(db, 'reviews', userId), { featured: !featured });
+      toast.success('Review updated');
+      loadReviews();
+    } catch { toast.error('Failed to update review'); }
+  };
+
+  const deleteReview = async (userId: string) => {
+    if (!confirm('Delete this review permanently?')) return;
+    try {
+      await deleteDoc(doc(db, 'reviews', userId));
+      toast.success('Review deleted');
+      loadReviews();
+    } catch { toast.error('Failed to delete review'); }
   };
 
   const loadPaymentDetail = async (orderId: string) => {
@@ -373,7 +402,7 @@ export default function AdminPage() {
           {TABS.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
-              onClick={() => { setTab(key); if (key === 'pending') loadPending(); if (key === 'overview') loadStats(); if (key === 'pricing') loadPricing(); }}
+              onClick={() => { setTab(key); if (key === 'pending') loadPending(); if (key === 'overview') loadStats(); if (key === 'pricing') loadPricing(); if (key === 'reviews') loadReviews(); }}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition ${tab === key ? 'bg-accent text-space' : 'text-ink-muted hover:bg-tile-soft hover:text-ink'}`}
             >
               <Icon className="w-4 h-4" /> {label}
@@ -662,6 +691,49 @@ export default function AdminPage() {
               <button onClick={() => searchCards(cardLastDoc || undefined)} className="mt-4 w-full py-2 text-sm font-semibold text-ink-muted hover:text-accent border border-line rounded-xl transition">
                 Load More
               </button>
+            )}
+          </section>
+        )}
+
+        {/* ========================= REVIEWS ========================= */}
+        {tab === 'reviews' && (
+          <section className="bg-tile border border-line rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-extrabold flex items-center gap-2"><Star className="w-5 h-5 text-accent" /> Reviews</h2>
+              <button onClick={loadReviews} className="text-xs text-ink-muted hover:text-accent"><RefreshCw className="w-3.5 h-3.5" /></button>
+            </div>
+            {reviews.length === 0 ? (
+              <p className="text-sm text-ink-muted">No reviews yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {reviews.map((r) => (
+                  <div key={r.id} className="border border-line rounded-xl p-4">
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div>
+                        <div className="text-sm font-bold">{r.displayName || 'NownCard User'}</div>
+                        {r.company && <div className="text-xs text-ink-muted">{r.company}</div>}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <Star key={n} className={`w-3.5 h-3.5 ${n <= r.rating ? 'text-amber-400 fill-amber-400' : 'text-ink-faint'}`} />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-sm text-ink mb-3">"{r.content}"</p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => toggleFeaturedReview(r.id, r.featured)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition ${r.featured ? 'bg-accent text-space border-accent' : 'bg-tile-soft text-ink-muted border-line hover:border-accent hover:text-accent'}`}
+                      >
+                        {r.featured ? 'Featured' : 'Feature'}
+                      </button>
+                      <button onClick={() => deleteReview(r.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-ink-muted hover:text-danger transition" title="Delete">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </section>
         )}
