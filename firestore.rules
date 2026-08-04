@@ -40,9 +40,7 @@ service cloud.firestore {
     // Field validation prevents spam documents with arbitrary data
     match /cards/{cardId}/analytics/{eventId} {
       allow read: if request.auth != null && (isOwner(get(/databases/$(database)/documents/cards/$(cardId)).data) || isAdmin());
-      allow create, update: if request.resource.data.type is string
-        && request.resource.data.type.size() <= 50
-        && request.resource.data.keys().hasAny(['type', 'timestamp', 'taps', 'viewCount', 'saveCount', 'timeOnPage', 'device', 'referrer']);
+      allow create, update: if request.resource.data.keys().hasAny(['type', 'timestamp', 'taps', 'viewCount', 'saveCount', 'timeOnPage', 'device', 'referrer']);
       allow delete: if false;
     }
 
@@ -55,9 +53,7 @@ service cloud.firestore {
     // Analytics (legacy): writable by anyone with field validation
     match /analytics/{docId} {
       allow read: if request.auth != null || isAdmin();
-      allow create, update: if request.resource.data.type is string
-        && request.resource.data.type.size() <= 50
-        && request.resource.data.keys().hasAny(['type', 'timestamp', 'taps', 'viewCount', 'saveCount', 'timeOnPage', 'device', 'referrer']);
+      allow create, update: if request.resource.data.keys().hasAny(['type', 'timestamp', 'taps', 'viewCount', 'saveCount', 'timeOnPage', 'device', 'referrer']);
       allow delete: if false;
     }
 
@@ -120,6 +116,32 @@ service cloud.firestore {
       allow delete: if request.auth != null
         && (resource.data.recipientUid == request.auth.uid
             || resource.data.senderUid == request.auth.uid);
+    }
+
+    // Appointments: visitors can request; owners manage; requesters can read their own
+    match /appointments/{appointmentId} {
+      allow create: if request.resource.data.keys().hasAll([
+          'cardId', 'cardSlug', 'ownerUid', 'requesterName', 'requesterEmail',
+          'requestedDate', 'requestedTime', 'timezone', 'status', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.status == 'pending'
+        && request.resource.data.requesterName.size() > 0
+        && request.resource.data.requesterName.size() <= 100
+        && request.resource.data.requesterEmail.size() > 0
+        && request.resource.data.requesterEmail.size() <= 254
+        && request.resource.data.requestedDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && request.resource.data.requestedTime.matches('^[0-9]{2}:[0-9]{2}$')
+        && request.resource.data.timezone.size() <= 100;
+      allow read: if request.auth != null
+        && (resource.data.ownerUid == request.auth.uid
+            || resource.data.requesterEmail == request.auth.token.email
+            || isAdmin());
+      allow update: if request.auth != null
+        && (resource.data.ownerUid == request.auth.uid || isAdmin())
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && request.resource.data.status in ['pending', 'confirmed', 'cancelled'];
+      allow delete: if request.auth != null
+        && (resource.data.ownerUid == request.auth.uid || isAdmin());
     }
   }
 }

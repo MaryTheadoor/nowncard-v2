@@ -87,7 +87,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-space">
-      <Navbar onAuthClick={() => navigate('/')} onSignOut={() => { logOut(); navigate('/'); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} />
+      <Navbar onAuthClick={() => navigate('/')} onSignOut={() => { logOut(); navigate('/'); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug} />
 
       <main className="max-w-3xl mx-auto px-5 py-8">
         <div className="flex items-center gap-3 mb-6">

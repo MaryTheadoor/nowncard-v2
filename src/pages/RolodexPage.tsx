@@ -144,7 +144,7 @@ export default function RolodexPage() {
         onSignOut={() => { logOut(); navigate('/'); }}
         userEmail={user?.email}
         isAdmin={userData?.isAdmin}
-        defaultCardSlug={userData?.defaultCardSlug}
+        defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug}
       />
 
       <main className="max-w-5xl mx-auto px-5 py-8">

@@ -14,7 +14,7 @@ export default function TermsPage() {
         onSignOut={() => { logOut(); navigate('/'); }}
         userEmail={user?.email}
         isAdmin={userData?.isAdmin}
-        defaultCardSlug={userData?.defaultCardSlug}
+        defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug}
       />
 
       <main className="max-w-3xl mx-auto px-5 py-12">

@@ -33,7 +33,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cleanupPendingUpgrades = exports.notifyOnMessage = exports.getPaymentDetails = exports.getPaymentHistory = exports.createCheckout = exports.squareWebhook = void 0;
+exports.cleanupPendingUpgrades = exports.notifyOnAppointment = exports.notifyOnMessage = exports.getPaymentDetails = exports.getPaymentHistory = exports.createCheckout = exports.squareWebhook = void 0;
 const crypto = __importStar(require("crypto"));
 const firestore_1 = require("firebase-functions/v2/firestore");
 const https_1 = require("firebase-functions/v2/https");
@@ -427,6 +427,56 @@ exports.notifyOnMessage = (0, firestore_1.onDocumentCreated)('messages/{messageI
         }
         else {
             console.error('FCM push error:', err);
+        }
+    }
+});
+// ---------------------------------------------------------------------------
+// FCM Push Notification — triggered on new appointment request
+// ---------------------------------------------------------------------------
+exports.notifyOnAppointment = (0, firestore_1.onDocumentCreated)('appointments/{appointmentId}', async (event) => {
+    const appointment = event.data?.data();
+    if (!appointment) {
+        console.log('No appointment data');
+        return;
+    }
+    const ownerUid = appointment.ownerUid;
+    const requesterName = appointment.requesterName;
+    const requestedDate = appointment.requestedDate;
+    const requestedTime = appointment.requestedTime;
+    try {
+        const userDoc = await db.collection('users').doc(ownerUid).get();
+        const fcmToken = userDoc.data()?.fcmToken;
+        if (!fcmToken) {
+            console.log(`Owner ${ownerUid} has no FCM token`);
+            return;
+        }
+        await admin.messaging().send({
+            token: fcmToken,
+            notification: {
+                title: 'New appointment request on NownCard',
+                body: `${requesterName} requested ${requestedDate} at ${requestedTime}`,
+            },
+            webpush: {
+                fcmOptions: {
+                    link: `https://nowncard.com/dashboard`,
+                },
+            },
+            data: {
+                appointmentId: event.params.appointmentId,
+                cardSlug: appointment.cardSlug || '',
+                requesterName,
+            },
+        });
+        console.log(`✅ Appointment notification sent to ${ownerUid}`);
+    }
+    catch (err) {
+        const code = err?.code;
+        if (code === 'messaging/registration-token-not-registered') {
+            await db.collection('users').doc(ownerUid).update({ fcmToken: admin.firestore.FieldValue.delete() });
+            console.log(`Cleaned stale FCM token for ${ownerUid}`);
+        }
+        else {
+            console.error('Appointment FCM push error:', err);
         }
     }
 });

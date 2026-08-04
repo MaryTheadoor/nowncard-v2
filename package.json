@@ -7,9 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "stripe:setup": "npx tsx scripts/setup-stripe-products.ts",
-    "stripe:list": "npx tsx scripts/list-stripe-products.ts"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.4",
@@ -23,7 +21,6 @@
     "react-easy-crop": "^5.5.7",
     "react-router-dom": "^7.14.2",
     "sonner": "^2.0.7",
-    "square": "^44.0.1",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
@@ -33,13 +30,11 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.5.0",
-    "dotenv": "^17.4.2",
     "eslint": "^10.2.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
     "postcss": "^8.5.13",
-    "stripe": "^22.1.0",
     "tailwindcss": "^4.2.4",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",

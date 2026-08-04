@@ -458,6 +458,60 @@ export const notifyOnMessage = onDocumentCreated('messages/{messageId}', async (
 });
 
 // ---------------------------------------------------------------------------
+// FCM Push Notification — triggered on new appointment request
+// ---------------------------------------------------------------------------
+export const notifyOnAppointment = onDocumentCreated('appointments/{appointmentId}', async (event) => {
+  const appointment = event.data?.data();
+  if (!appointment) {
+    console.log('No appointment data');
+    return;
+  }
+
+  const ownerUid = appointment.ownerUid as string;
+  const requesterName = appointment.requesterName as string;
+  const requestedDate = appointment.requestedDate as string;
+  const requestedTime = appointment.requestedTime as string;
+
+  try {
+    const userDoc = await db.collection('users').doc(ownerUid).get();
+    const fcmToken = userDoc.data()?.fcmToken as string | undefined;
+
+    if (!fcmToken) {
+      console.log(`Owner ${ownerUid} has no FCM token`);
+      return;
+    }
+
+    await admin.messaging().send({
+      token: fcmToken,
+      notification: {
+        title: 'New appointment request on NownCard',
+        body: `${requesterName} requested ${requestedDate} at ${requestedTime}`,
+      },
+      webpush: {
+        fcmOptions: {
+          link: `https://nowncard.com/dashboard`,
+        },
+      },
+      data: {
+        appointmentId: event.params.appointmentId,
+        cardSlug: (appointment.cardSlug as string) || '',
+        requesterName,
+      },
+    });
+
+    console.log(`✅ Appointment notification sent to ${ownerUid}`);
+  } catch (err: unknown) {
+    const code = (err as { code?: string })?.code;
+    if (code === 'messaging/registration-token-not-registered') {
+      await db.collection('users').doc(ownerUid).update({ fcmToken: admin.firestore.FieldValue.delete() });
+      console.log(`Cleaned stale FCM token for ${ownerUid}`);
+    } else {
+      console.error('Appointment FCM push error:', err);
+    }
+  }
+});
+
+// ---------------------------------------------------------------------------
 // Scheduled cleanup — delete expired pendingUpgrades (> 7 days old)
 // Runs every 6 hours
 // ---------------------------------------------------------------------------

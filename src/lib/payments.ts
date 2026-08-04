@@ -35,14 +35,6 @@ export async function updatePricing(pricing: PricingConfig): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// Existing hardcoded Square links (legacy fallback)
-// ---------------------------------------------------------------------------
-export const SQUARE_LINKS: Record<string, string> = {
-  pro: 'https://square.link/u/t3wedRic?src=sheet',
-  business: 'https://square.link/u/PhQ6IzOn?src=sheet',
-};
-
-// ---------------------------------------------------------------------------
 // Dynamic Square Checkout via Cloud Function (primary path)
 // ---------------------------------------------------------------------------
 interface CheckoutResult {
@@ -66,20 +58,6 @@ export async function createSquareCheckout(
 
   const result = await createCheckoutFn({ plan, price, successUrl, cancelUrl });
   return result.data as CheckoutResult;
-}
-
-// ---------------------------------------------------------------------------
-// Legacy pending upgrade (kept for backward compat — Prefer createSquareCheckout)
-// ---------------------------------------------------------------------------
-export async function createPendingUpgrade(uid: string, plan: string, price: number) {
-  const ref = await addDoc(collection(db, 'pendingUpgrades'), {
-    uid,
-    plan,
-    price: price || null,
-    createdAt: serverTimestamp(),
-    used: false,
-  });
-  return ref.id;
 }
 
 // ---------------------------------------------------------------------------

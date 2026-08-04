@@ -8,7 +8,7 @@ const ADMIN_UIDS = new Set(['EeiBBDTu5jOooHbxyOC98JSlt6r1']);
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
-  const [userData, setUserData] = useState<{ plan?: string; cardCount?: number; isAdmin?: boolean; defaultCardSlug?: string } | null>(null);
+  const [userData, setUserData] = useState<{ plan?: string; cardCount?: number; isAdmin?: boolean; defaultCardSlug?: string; secondaryCardSlug?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,16 +26,17 @@ export function useAuth() {
         if (!snap.exists()) {
           const isAdmin = ADMIN_UIDS.has(u.uid);
           const data = { plan: 'free', createdAt: serverTimestamp(), lastLogin: serverTimestamp(), email: u.email || null, isAdmin };
-          setDoc(userRef, data, { merge: true }).catch(() => {});
+          setDoc(userRef, data, { merge: true }).catch((err) => console.error('[useAuth] Failed to create user doc:', err));
           setUserData(data);
         } else {
           const data = snap.data();
           const isAdmin = ADMIN_UIDS.has(u.uid) || data.isAdmin === true;
-          setUserData({ plan: data.plan || 'free', cardCount: data.cardCount || 0, isAdmin, defaultCardSlug: data.defaultCardSlug || undefined });
-          setDoc(userRef, { lastLogin: serverTimestamp(), email: u.email || null }, { merge: true }).catch(() => {});
+          setUserData({ plan: data.plan || 'free', cardCount: data.cardCount || 0, isAdmin, defaultCardSlug: data.defaultCardSlug || undefined, secondaryCardSlug: data.secondaryCardSlug || undefined });
+          setDoc(userRef, { lastLogin: serverTimestamp(), email: u.email || null }, { merge: true }).catch((err) => console.error('[useAuth] Failed to update lastLogin:', err));
         }
-      }).catch(() => {
-        setUserData({ plan: 'free', cardCount: 0, isAdmin: ADMIN_UIDS.has(u.uid), defaultCardSlug: undefined });
+      }).catch((err) => {
+        console.error('[useAuth] Failed to load user doc:', err);
+        setUserData({ plan: 'free', cardCount: 0, isAdmin: ADMIN_UIDS.has(u.uid), defaultCardSlug: undefined, secondaryCardSlug: undefined });
       }).finally(() => {
         setLoading(false);
       });

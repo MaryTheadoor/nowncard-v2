@@ -365,7 +365,7 @@ export default function AdminPage() {
         onSignOut={() => { logOut(); navigate('/'); }}
         userEmail={user?.email}
         isAdmin={true}
-        defaultCardSlug={userData?.defaultCardSlug}
+        defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug}
       />
 
       <main className="max-w-6xl mx-auto px-5 py-8">

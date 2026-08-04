@@ -34,7 +34,7 @@ export default function LandingPage() {
         onSignOut={() => { logOut(); }}
         userEmail={user?.email}
         isAdmin={userData?.isAdmin}
-        defaultCardSlug={userData?.defaultCardSlug}
+        defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug}
       />
 
       <main>
@@ -51,12 +51,12 @@ export default function LandingPage() {
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           {user ? (
-            <Link to="/editor" className="btn-primary px-7 py-3 text-space font-bold rounded-full inline-block no-underline">Create Your Card</Link>
+            <Link to="/editor" className="btn btn-primary btn-xl no-underline">Create Your Card</Link>
           ) : (
-            <button onClick={() => setAuthOpen(true)} className="btn-primary px-7 py-3 font-bold rounded-full cursor-pointer">Create Your Card</button>
+            <button onClick={() => setAuthOpen(true)} className="btn btn-primary btn-xl cursor-pointer">Create Your Card</button>
           )}
-          <Link to="/rolodex" className="px-7 py-3 border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition inline-block no-underline">Card Directory</Link>
-          <a href="#pricing" className="px-7 py-3 border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition">View Plans</a>
+          <Link to="/rolodex" className="btn btn-secondary btn-xl no-underline">Card Directory</Link>
+          <a href="#pricing" className="btn btn-secondary btn-xl">View Plans</a>
         </div>
 
         {/* Interactive demo card */}
@@ -161,9 +161,9 @@ export default function LandingPage() {
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Basic analytics</li>
               </ul>
               {user ? (
-                <Link to="/editor" className="block w-full py-2.5 text-center border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition text-sm no-underline">Get Started</Link>
+                <Link to="/editor" className="btn btn-secondary btn-lg block w-full text-center no-underline">Get Started</Link>
               ) : (
-                <button onClick={() => setAuthOpen(true)} className="block w-full py-2.5 text-center border border-line text-ink font-bold rounded-full hover:bg-tile-soft transition text-sm cursor-pointer">Get Started</button>
+                <button onClick={() => setAuthOpen(true)} className="btn btn-secondary btn-lg block w-full text-center cursor-pointer">Get Started</button>
               )}
             </div>
 
@@ -269,7 +269,7 @@ export default function LandingPage() {
         <p className="text-sm text-ink-muted mb-5">
           We're keeping the platform ad-free. If NownCard helps you land a client or save a contact, a tip goes directly toward server costs.
         </p>
-        <a href="https://square.link/u/ZyAyKBUp?src=sheet" target="_blank" rel="noopener noreferrer" className="px-6 py-2.5 border border-line text-ink text-sm font-bold rounded-full hover:bg-tile-soft transition inline-block no-underline">
+        <a href="https://square.link/u/ZyAyKBUp?src=sheet" target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-md no-underline">
           Leave a Tip
         </a>
       </section>

@@ -68,7 +68,7 @@ export default function QrPosterPage() {
   if (error || !card) {
     return (
       <div className="min-h-screen bg-space flex flex-col">
-        <Navbar onAuthClick={() => {}} onSignOut={() => { logOut(); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} />
+        <Navbar onAuthClick={() => {}} onSignOut={() => { logOut(); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug} />
         <div className="flex-1 flex items-center justify-center px-6">
           <div className="text-center max-w-md">
             <h1 className="text-xl font-bold text-ink mb-2">Card Not Found</h1>
@@ -85,7 +85,7 @@ export default function QrPosterPage() {
     <div className="min-h-screen bg-space text-ink">
       {/* Screen preview */}
       <div className="print:hidden">
-        <Navbar onAuthClick={() => {}} onSignOut={() => { logOut(); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} />
+        <Navbar onAuthClick={() => {}} onSignOut={() => { logOut(); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug} />
         <main className="max-w-2xl mx-auto px-6 py-10 text-center">
           <h1 className="text-2xl font-extrabold mb-2">Printable Poster — {name || slug}</h1>
           <p className="text-ink-muted text-sm mb-8">

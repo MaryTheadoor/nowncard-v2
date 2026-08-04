@@ -433,7 +433,7 @@ export default function EditorPage() {
         onSignOut={() => { logOut(); navigate('/'); }}
         userEmail={user?.email}
         isAdmin={userData?.isAdmin}
-        defaultCardSlug={userData?.defaultCardSlug}
+        defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-5 lg:grid lg:grid-cols-[1fr_420px] gap-6 pt-8 pb-24">
         <main className="flex-1 min-w-0 max-w-2xl">
@@ -554,6 +554,12 @@ export default function EditorPage() {
                   <span className="text-[10px] font-bold uppercase tracking-wider text-accent">Ã¢â‚¬â€ Pro</span>
                 </div>
               )}
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+              <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
+                <input type="checkbox" checked={card.appointmentsEnabled ?? false} onChange={(e) => updateField('appointmentsEnabled', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
+                Allow appointment requests on this card
+              </label>
             </div>
             <div className="flex items-center gap-3 mb-4">
               <span className="text-sm text-ink-muted">Name layout</span>

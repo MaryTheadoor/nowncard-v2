@@ -36,7 +36,7 @@ export default function ContactPage() {
         onSignOut={() => { logOut(); navigate('/'); }}
         userEmail={user?.email}
         isAdmin={userData?.isAdmin}
-        defaultCardSlug={userData?.defaultCardSlug}
+        defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug}
       />
 
       <main className="max-w-2xl mx-auto px-5 py-12">

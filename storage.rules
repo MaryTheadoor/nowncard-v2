@@ -8,7 +8,15 @@ service firebase.storage {
         && request.resource.size < 6 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
     }
-    // Fonts and other user content: owner-only read/write
+    // Custom fonts: publicly readable so they render on shared cards
+    match /users/{uid}/fonts/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == uid
+        && request.resource.size < 6 * 1024 * 1024
+        && (request.resource.contentType.matches('font/.*')
+            || request.resource.contentType.matches('application/font-.*'));
+    }
+    // Other user content: owner-only read/write
     match /users/{uid}/{allPaths=**} {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow write: if request.auth != null && request.auth.uid == uid

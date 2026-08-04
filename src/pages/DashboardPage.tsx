@@ -1,13 +1,13 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Printer, Users, ClipboardCheck, Star, Search, X, Bell, MessageCircle, Mail, Check } from 'lucide-react';
-import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc, setDoc, onSnapshot, orderBy } from 'firebase/firestore';
+import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Printer, Users, ClipboardCheck, Heart, Star, Search, X, Bell, MessageCircle, Mail, Check, Calendar, Clock } from 'lucide-react';
+import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc, setDoc, onSnapshot, orderBy, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { useFCM } from '@/hooks/useFCM';
 import { downloadVCard } from '@/lib/vcard';
 import Navbar from '@/components/Navbar';
-import type { Card, Message } from '@/types';
+import type { Appointment, Card, Message } from '@/types';
 import { toast } from 'sonner';
 
 import { createDemoCard } from '@/lib/demo';
@@ -25,6 +25,9 @@ export default function DashboardPage() {
   const [search, setSearch] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(true);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [appointmentsLoading, setAppointmentsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'cards' | 'inquiries' | 'appointments'>('cards');
 
 
   useEffect(() => {
@@ -36,7 +39,13 @@ export default function DashboardPage() {
       where('recipientUid', '==', user.uid),
       orderBy('createdAt', 'desc'),
     );
-    const unsub = onSnapshot(messagesQuery, (snap) => {
+    const appointmentsQuery = query(
+      collection(db, 'appointments'),
+      where('ownerUid', '==', user.uid),
+      orderBy('requestedDate', 'asc'),
+      orderBy('requestedTime', 'asc'),
+    );
+    const unsubMessages = onSnapshot(messagesQuery, (snap) => {
       const list = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Message));
       list.sort((a, b) => {
         const aTime = a.createdAt && typeof a.createdAt === 'object' && 'toMillis' in (a.createdAt as unknown as Record<string, unknown>) ? (a.createdAt as unknown as { toMillis: () => number }).toMillis() : 0;
@@ -47,6 +56,14 @@ export default function DashboardPage() {
       setMessagesLoading(false);
     }, () => {
       setMessagesLoading(false);
+    });
+
+    const unsubAppointments = onSnapshot(appointmentsQuery, (snap) => {
+      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Appointment));
+      setAppointments(list);
+      setAppointmentsLoading(false);
+    }, () => {
+      setAppointmentsLoading(false);
     });
 
     (async () => {
@@ -92,7 +109,10 @@ export default function DashboardPage() {
       }
     })();
 
-    return () => unsub();
+    return () => {
+      unsubMessages();
+      unsubAppointments();
+    };
   }, [user, authLoading, navigate]);
 
   const handleDelete = async (cardId: string) => {
@@ -102,13 +122,18 @@ export default function DashboardPage() {
       await deleteDoc(doc(db, 'cards', cardId));
       setPersonalCards(personalCards.filter((c) => c.id !== cardId));
       setTeamCards(teamCards.filter((c) => c.id !== cardId));
-      // Clear defaultCardSlug if this was the default card
-      if (deletedCard?.slug && userData?.defaultCardSlug === deletedCard.slug && user) {
-        await setDoc(doc(db, 'users', user.uid), { defaultCardSlug: null }, { merge: true });
-        toast.success('Card deleted — default card cleared');
-      } else {
-        toast.success('Card deleted');
+      // Clear favorite slots if this was a favorite card
+      if (deletedCard?.slug && user) {
+        const updates: Record<string, null> = {};
+        if (userData?.defaultCardSlug === deletedCard.slug) updates.defaultCardSlug = null;
+        if (userData?.secondaryCardSlug === deletedCard.slug) updates.secondaryCardSlug = null;
+        if (Object.keys(updates).length > 0) {
+          await setDoc(doc(db, 'users', user.uid), updates, { merge: true });
+          toast.success('Card deleted — favorite slot cleared');
+          return;
+        }
       }
+      toast.success('Card deleted');
     } catch {
       toast.error('Failed to delete');
     }
@@ -131,9 +156,38 @@ export default function DashboardPage() {
     if (!user) return;
     try {
       await setDoc(doc(db, 'users', user.uid), { defaultCardSlug: slug }, { merge: true });
-      toast.success('Set as your default card');
+      toast.success('Set as your heart favorite');
     } catch {
-      toast.error('Failed to set default card');
+      toast.error('Failed to set favorite');
+    }
+  };
+
+  const setSecondaryCard = async (slug: string) => {
+    if (!user) return;
+    try {
+      await setDoc(doc(db, 'users', user.uid), { secondaryCardSlug: slug }, { merge: true });
+      toast.success('Set as your star favorite');
+    } catch {
+      toast.error('Failed to set second favorite');
+    }
+  };
+
+  const updateAppointmentStatus = async (id: string, status: 'confirmed' | 'cancelled') => {
+    try {
+      await updateDoc(doc(db, 'appointments', id), { status, updatedAt: serverTimestamp() });
+      toast.success(`Appointment ${status}`);
+    } catch {
+      toast.error('Failed to update appointment');
+    }
+  };
+
+  const deleteAppointment = async (id: string) => {
+    if (!confirm('Delete this appointment?')) return;
+    try {
+      await deleteDoc(doc(db, 'appointments', id));
+      toast.success('Appointment deleted');
+    } catch {
+      toast.error('Failed to delete appointment');
     }
   };
 
@@ -198,9 +252,16 @@ export default function DashboardPage() {
           <button
             onClick={() => setDefaultCard(c.slug)}
             className={`p-1 rounded transition cursor-pointer ${userData?.defaultCardSlug === c.slug ? 'text-accent' : 'text-ink-faint hover:text-accent'}`}
-            title={userData?.defaultCardSlug === c.slug ? 'Your default card' : 'Set as default card'}
+            title={userData?.defaultCardSlug === c.slug ? 'Heart favorite' : 'Set as heart favorite'}
           >
-            <Star className="w-3.5 h-3.5" fill={userData?.defaultCardSlug === c.slug ? 'currentColor' : 'none'} />
+            <Heart className="w-3.5 h-3.5" fill={userData?.defaultCardSlug === c.slug ? 'currentColor' : 'none'} />
+          </button>
+          <button
+            onClick={() => setSecondaryCard(c.slug)}
+            className={`p-1 rounded transition cursor-pointer ${userData?.secondaryCardSlug === c.slug ? 'text-blue-400' : 'text-ink-faint hover:text-blue-400'}`}
+            title={userData?.secondaryCardSlug === c.slug ? 'Star favorite' : 'Set as star favorite'}
+          >
+            <Star className="w-3.5 h-3.5" fill={userData?.secondaryCardSlug === c.slug ? 'currentColor' : 'none'} />
           </button>
           {showTeamBadge && (
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-purple-950 text-purple-400 border border-purple-800">Team</span>
@@ -250,7 +311,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-space">
-      <Navbar onAuthClick={() => navigate('/')} onSignOut={() => { logOut(); navigate('/'); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} messageCount={messages.filter((m) => !m.read).length} />
+      <Navbar onAuthClick={() => navigate('/')} onSignOut={() => { logOut(); navigate('/'); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug} messageCount={messages.filter((m) => !m.read).length} />
 
       <main className="max-w-4xl mx-auto px-5 py-8">
         {/* Header */}
@@ -302,8 +363,30 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Search */}
-        {personalCards.length > 0 && (
+        {/* Tabs */}
+        <div className="flex items-center gap-1 mb-6 border-b border-line">
+          {[
+            { key: 'cards', label: 'My Cards', badge: null },
+            { key: 'inquiries', label: 'Inquiries', badge: messages.filter((m) => !m.read).length || null },
+            { key: 'appointments', label: 'Appointments', badge: appointments.filter((a) => a.status === 'pending').length || null },
+          ].map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setActiveTab(t.key as typeof activeTab)}
+              className={`px-4 py-2.5 text-sm font-bold border-b-2 transition ${activeTab === t.key ? 'border-accent text-accent' : 'border-transparent text-ink-muted hover:text-ink'}`}
+            >
+              {t.label}
+              {t.badge !== null && (
+                <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full bg-accent text-space">{t.badge}</span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === 'cards' && (
+          <>
+            {/* Search */}
+            {personalCards.length > 0 && (
           <div className="relative mb-6">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
             <input
@@ -392,30 +475,34 @@ export default function DashboardPage() {
             )}
           </>
         )}
-        {/* Inquiries */}
-        <div className="mt-10">
-          <div className="flex items-center gap-3 mb-4">
-            <h2 className="text-xl font-extrabold">Inquiries</h2>
-            {messages.filter((m) => !m.read).length > 0 && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-accent text-space">
-                {messages.filter((m) => !m.read).length} new
-              </span>
-            )}
-          </div>
+      </>
+    )}
 
-          {messagesLoading ? (
-            <div className="flex items-center gap-2 text-sm text-ink-muted">
-              <div className="w-4 h-4 border-2 border-line border-t-accent rounded-full animate-spin" />
-              Loading inquiries…
+    {activeTab === 'inquiries' && (
+          <div>
+            {/* Inquiries */}
+            <div className="flex items-center gap-3 mb-4">
+              <h2 className="text-xl font-extrabold">Inquiries</h2>
+              {messages.filter((m) => !m.read).length > 0 && (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-accent text-space">
+                  {messages.filter((m) => !m.read).length} new
+                </span>
+              )}
             </div>
-          ) : messages.length === 0 ? (
-            <div className="bg-tile border border-line border-dashed rounded-2xl p-8 text-center">
-              <MessageCircle className="w-8 h-8 text-ink-faint mx-auto mb-2" />
-              <p className="text-sm text-ink-muted">No inquiries yet.</p>
-              <p className="text-xs text-ink-faint mt-1">When someone sends you a message from your card page, it will appear here.</p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
+
+            {messagesLoading ? (
+              <div className="flex items-center gap-2 text-sm text-ink-muted">
+                <div className="w-4 h-4 border-2 border-line border-t-accent rounded-full animate-spin" />
+                Loading inquiries…
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="bg-tile border border-line border-dashed rounded-2xl p-8 text-center">
+                <MessageCircle className="w-8 h-8 text-ink-faint mx-auto mb-2" />
+                <p className="text-sm text-ink-muted">No inquiries yet.</p>
+                <p className="text-xs text-ink-faint mt-1">When someone sends you a message from your card page, it will appear here.</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
               {messages.map((m) => (
                 <div
                   key={m.id}
@@ -486,6 +573,105 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+        )}
+
+        {activeTab === 'appointments' && (
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <h2 className="text-xl font-extrabold">Appointments</h2>
+              {appointments.filter((a) => a.status === 'pending').length > 0 && (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-accent text-space">
+                  {appointments.filter((a) => a.status === 'pending').length} pending
+                </span>
+              )}
+            </div>
+
+            {appointmentsLoading ? (
+              <div className="flex items-center gap-2 text-sm text-ink-muted">
+                <div className="w-4 h-4 border-2 border-line border-t-accent rounded-full animate-spin" />
+                Loading appointments…
+              </div>
+            ) : appointments.length === 0 ? (
+              <div className="bg-tile border border-line border-dashed rounded-2xl p-8 text-center">
+                <Calendar className="w-8 h-8 text-ink-faint mx-auto mb-2" />
+                <p className="text-sm text-ink-muted">No appointments yet.</p>
+                <p className="text-xs text-ink-faint mt-1">When someone books time from your card page, it will appear here.</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {appointments.map((a) => (
+                  <div
+                    key={a.id}
+                    className={`bg-tile border rounded-2xl p-5 transition ${a.status === 'pending' ? 'border-accent' : a.status === 'confirmed' ? 'border-emerald-500' : 'border-line'}`}
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm">{a.requesterName}</span>
+                          {a.status === 'pending' && <span className="w-2 h-2 rounded-full bg-accent" />}
+                          {a.status === 'confirmed' && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-emerald-950 text-emerald-400 border border-emerald-800">Confirmed</span>}
+                          {a.status === 'cancelled' && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-tile-soft text-ink-faint border border-line">Cancelled</span>}
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <Mail className="w-3 h-3 text-ink-faint" />
+                          <a href={`mailto:${a.requesterEmail}`} className="text-xs text-ink-muted hover:text-accent truncate no-underline">
+                            {a.requesterEmail}
+                          </a>
+                        </div>
+                        {a.requesterPhone && (
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-xs text-ink-muted">{a.requesterPhone}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <Link
+                          to={`/card/${a.cardSlug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-tile-soft border border-line text-ink-muted hover:text-ink no-underline"
+                        >
+                          /card/{a.cardSlug}
+                        </Link>
+                        <span className="text-[11px] text-ink-faint whitespace-nowrap">{timeAgo(a.createdAt)}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 mb-3 text-sm text-ink">
+                      <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5 text-ink-faint" /> {a.requestedDate}</span>
+                      <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-ink-faint" /> {a.requestedTime}</span>
+                      <span className="text-ink-faint">{a.timezone}</span>
+                    </div>
+                    {a.notes && <p className="text-sm text-ink mb-3 whitespace-pre-wrap">{a.notes}</p>}
+                    <div className="flex items-center gap-2">
+                      {a.status === 'pending' && (
+                        <>
+                          <button
+                            onClick={() => updateAppointmentStatus(a.id, 'confirmed')}
+                            className="flex items-center gap-1 px-3 py-1.5 bg-emerald-950 border border-emerald-800 rounded-lg text-xs font-semibold text-emerald-400 hover:bg-emerald-900 transition cursor-pointer"
+                          >
+                            <Check className="w-3 h-3" /> Confirm
+                          </button>
+                          <button
+                            onClick={() => updateAppointmentStatus(a.id, 'cancelled')}
+                            className="flex items-center gap-1 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-danger hover:text-danger transition cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      )}
+                      <button
+                        onClick={() => deleteAppointment(a.id)}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-danger hover:border-danger transition cursor-pointer"
+                      >
+                        <Trash2 className="w-3 h-3" /> Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </main>
 
       <Footer />

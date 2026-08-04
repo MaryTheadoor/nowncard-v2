@@ -86,6 +86,7 @@ export interface Card {
   hideLogo?: boolean;
   textColor?: string;
   qrMode?: 'url' | 'vcard';
+  appointmentsEnabled?: boolean;
 }
 
 export interface Message {
@@ -101,6 +102,23 @@ export interface Message {
   read: boolean;
 }
 
+export interface Appointment {
+  id: string;
+  cardId: string;
+  cardSlug: string;
+  ownerUid: string;
+  requesterName: string;
+  requesterEmail: string;
+  requesterPhone?: string;
+  requestedDate: string;
+  requestedTime: string;
+  timezone: string;
+  notes?: string;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  createdAt: unknown;
+  updatedAt: unknown;
+}
+
 export type Plan = 'free' | 'pro' | 'business';
 
 export interface UserData {
@@ -111,6 +129,7 @@ export interface UserData {
   cardCount?: number;
   isAdmin?: boolean;
   defaultCardSlug?: string;
+  secondaryCardSlug?: string;
   fcmToken?: string;
   createdAt?: unknown;
   lastLogin?: unknown;

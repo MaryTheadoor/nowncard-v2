@@ -11,10 +11,12 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AuthModal from '@/components/AuthModal';
 import ShareModal from '@/components/ShareModal';
+import AppointmentModal from '@/components/AppointmentModal';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import type { Card } from '@/types';
 
+import { Calendar } from 'lucide-react';
 import { IconPhone, IconMail, IconGlobe, IconPin } from '@/components/CardIcons';
 const IconDownload = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-[18px] h-[18px]"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10 12 15 17 10"/><path d="M12 15V3"/></svg>;
 const IconSend = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-10z"/></svg>;
@@ -32,6 +34,7 @@ export default function CardViewerPage() {
   const [sendingMessage, setSendingMessage] = useState(false);
   const [messageSent, setMessageSent] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const [appointmentOpen, setAppointmentOpen] = useState(false);
   const [flipped, setFlipped] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const trackedMeta = useRef(false);
@@ -93,7 +96,7 @@ export default function CardViewerPage() {
           setMeta('meta[name="twitter:description"]', cardDesc);
           setMeta('meta[name="twitter:image"]', cardImage);
           if (cardsDocId) {
-            try { await updateDoc(doc(db, 'cards', cardsDocId), { viewCount: increment(1) }); } catch { /* no-op */ }
+            try { await updateDoc(doc(db, 'cards', cardsDocId), { viewCount: increment(1) }); } catch (err) { console.error('[CardViewer] viewCount update failed:', err); }
           }
         }
       } catch {
@@ -127,7 +130,7 @@ export default function CardViewerPage() {
       const analyticsId = cardsDocId || card.id;
       try {
         setDoc(doc(db, 'analytics', analyticsId), { timeOnPage: increment(seconds), updatedAt: serverTimestamp() }, { merge: true });
-      } catch { /* no-op */ }
+      } catch (err) { console.error('[CardViewer] timeOnPage analytics failed:', err); }
     };
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
@@ -145,7 +148,7 @@ export default function CardViewerPage() {
       if (ref && !ref.includes(window.location.host)) payload.referrer = ref;
     }
 
-    try { await setDoc(doc(db, 'analytics', analyticsId), payload, { merge: true }); } catch { /* no-op */ }
+    try { await setDoc(doc(db, 'analytics', analyticsId), payload, { merge: true }); } catch (err) { console.error('[CardViewer] tap analytics failed:', err); }
   };
 
   const handleFlip = () => {
@@ -240,7 +243,7 @@ export default function CardViewerPage() {
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: pageBg }}>
       {!card.hideNavbar && (
-        <Navbar onAuthClick={() => setAuthOpen(true)} onSignOut={() => { logOut(); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} />
+        <Navbar onAuthClick={() => setAuthOpen(true)} onSignOut={() => { logOut(); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug} />
       )}
 
       {/* Card stage */}
@@ -377,7 +380,7 @@ export default function CardViewerPage() {
                   <QRCodeSVG value={card.qrMode === 'vcard' ? generateVCard(card, cardUrl) : cardUrl} size={150} level="M" includeMargin={false} />
                 </div>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  <button onClick={(e) => { e.stopPropagation(); downloadVCard(card, undefined, cardUrl); track('save'); if (cardsDocId) { try { updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch { /* no-op */ } } try { updateDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }); } catch { /* no-op */ } }} className="px-4 py-2 rounded-full text-sm font-bold bg-accent text-space border-none hover:brightness-110 transition cursor-pointer">
+                  <button onClick={(e) => { e.stopPropagation(); downloadVCard(card, undefined, cardUrl); track('save'); if (cardsDocId) { try { updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } } try { updateDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }} className="px-4 py-2 rounded-full text-sm font-bold bg-accent text-space border-none hover:brightness-110 transition cursor-pointer">
                     Save Contact
                   </button>
                   <button onClick={(e) => { e.stopPropagation(); const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); } else { promise.then(() => track('share')).catch(() => setShareOpen(true)); } }} className={`px-4 py-2 rounded-full text-sm font-bold bg-transparent border border-line hover:bg-tile-soft transition ${tc.textPrimary}`} style={{ color: primaryTextColor }}>
@@ -392,9 +395,14 @@ export default function CardViewerPage() {
 
         {/* Action bar — pinned below card */}
         <div className="flex flex-wrap gap-2.5 justify-center mt-6 max-w-[380px] w-full">
-          <button onClick={async () => { downloadVCard(card, undefined, cardUrl); track('save'); if (cardsDocId) { try { await updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch { /* no-op */ } } try { await updateDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }); } catch { /* no-op */ } }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-accent text-space border-none cursor-pointer hover:brightness-110 transition">
+          <button onClick={async () => { downloadVCard(card, undefined, cardUrl); track('save'); if (cardsDocId) { try { await updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } } try { await updateDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-accent text-space border-none cursor-pointer hover:brightness-110 transition">
             <IconDownload /> Save to Contacts
           </button>
+          {card.appointmentsEnabled && (
+            <button onClick={() => setAppointmentOpen(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-tile text-ink border border-line cursor-pointer hover:bg-tile-soft transition">
+              <Calendar className="w-4 h-4" /> Book
+            </button>
+          )}
           <button onClick={handleFlip} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-tile text-ink border border-line cursor-pointer hover:bg-tile-soft transition">
             {flipped ? 'Show Card' : 'Show QR'}
           </button>
@@ -459,6 +467,15 @@ export default function CardViewerPage() {
         error={authError}
         isAuthenticated={!!user}
       />
+
+      {card && (
+        <AppointmentModal
+          key={String(appointmentOpen)}
+          open={appointmentOpen}
+          onClose={() => setAppointmentOpen(false)}
+          card={card}
+        />
+      )}
     </div>
   );
 }

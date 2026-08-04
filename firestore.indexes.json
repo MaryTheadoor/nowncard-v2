@@ -25,6 +25,14 @@
       ]
     },
     {
+      "collectionGroup": "cards",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ownerUid", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "upgrades",
       "queryScope": "COLLECTION",
       "fields": [
@@ -39,9 +47,16 @@
         { "fieldPath": "recipientUid", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "appointments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ownerUid", "order": "ASCENDING" },
+        { "fieldPath": "requestedDate", "order": "ASCENDING" },
+        { "fieldPath": "requestedTime", "order": "ASCENDING" }
+      ]
     }
-  ]
-}
   ],
   "fieldOverrides": []
 }
