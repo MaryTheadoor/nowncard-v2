@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ExternalLink, Eye, EyeOff, Smartphone, Upload, User, Calendar, ChevronDown, ChevronUp, Copy } from 'lucide-react';
-import LiveCardPreview from '@/components/LiveCardPreview';
+import LivePagePreview from '@/components/LivePagePreview';
 import Navbar from '@/components/Navbar';
 import ShareModal from '@/components/ShareModal';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, where, getDocs, limit } from 'firebase/firestore';
@@ -549,24 +549,6 @@ export default function EditorPage() {
                 </div>
               )}
             </div>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
-              <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
-                <input type="checkbox" checked={card.appointmentsEnabled ?? false} onChange={(e) => updateField('appointmentsEnabled', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
-                Allow appointment requests on this card
-              </label>
-              {(userData?.plan === 'pro' || userData?.plan === 'business') ? (
-                <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
-                  <input type="checkbox" checked={card.featuredLinksEnabled ?? false} onChange={(e) => updateField('featuredLinksEnabled', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
-                  Featured links section (link tree)
-                </label>
-              ) : (
-                <div className="flex items-center gap-2 text-sm text-ink-faint">
-                  <input type="checkbox" disabled className="w-4 h-4 accent-accent rounded opacity-50" />
-                  <span>Featured links section (link tree)</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-accent">— Pro</span>
-                </div>
-              )}
-            </div>
             <div className="flex items-center gap-3 mb-4">
               <span className="text-sm text-ink-muted">Name layout</span>
               <div className="flex rounded-lg border border-line overflow-hidden">
@@ -931,11 +913,33 @@ export default function EditorPage() {
             </div>
           </div>
 
-          {/* Featured Links (link tree) — Pro, shown when enabled in Settings */}
-          {card.featuredLinksEnabled && (
-            <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
-              <h2 className="text-lg font-bold mb-1">Featured Links</h2>
-              <p className="text-xs text-ink-faint mb-4">Shown as a link list below your card — like a link tree. Great for migrating from other services.</p>
+          {/* Appointments */}
+          <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
+            <h2 className="text-lg font-bold mb-1">Appointments</h2>
+            <p className="text-xs text-ink-faint mb-4">Visitors can request a meeting from your card page. Requests appear in Dashboard → Appointments, where you can confirm or cancel them.</p>
+            <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
+              <input type="checkbox" checked={card.appointmentsEnabled ?? false} onChange={(e) => updateField('appointmentsEnabled', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
+              Allow appointment requests on this card
+            </label>
+          </div>
+
+          {/* Link List — Pro, full-width links below the card */}
+          <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
+            <h2 className="text-lg font-bold mb-1">Link List</h2>
+            <p className="text-xs text-ink-faint mb-4">A list of featured links shown below your card — handy for migrating from other link-in-bio services.</p>
+            {(userData?.plan === 'pro' || userData?.plan === 'business') ? (
+              <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer mb-4">
+                <input type="checkbox" checked={card.featuredLinksEnabled ?? false} onChange={(e) => updateField('featuredLinksEnabled', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
+                Show link list on this card
+              </label>
+            ) : (
+              <div className="flex items-center gap-2 text-sm text-ink-faint mb-4">
+                <input type="checkbox" disabled className="w-4 h-4 accent-accent rounded opacity-50" />
+                <span>Show link list on this card</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-accent">— Pro</span>
+              </div>
+            )}
+            {card.featuredLinksEnabled && (userData?.plan === 'pro' || userData?.plan === 'business') && (
               <div className="space-y-3">
                 {Array.isArray(card.featuredLinks) && card.featuredLinks.map((l: FeaturedLink, i: number) => (
                   <div key={i} className="flex flex-wrap gap-2">
@@ -946,8 +950,8 @@ export default function EditorPage() {
                 ))}
                 <button onClick={() => updateField('featuredLinks', [...(Array.isArray(card.featuredLinks) ? card.featuredLinks : []), { label: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Link</button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Images */}
           <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
@@ -1071,10 +1075,8 @@ export default function EditorPage() {
         {/* Desktop sticky preview */}
         <aside className="hidden lg:block lg:sticky lg:top-14 self-start">
           <div className="bg-tile border border-line rounded-2xl p-4">
-            <div className="text-[10px] text-ink-faint uppercase tracking-wider font-semibold mb-3">Live Preview</div>
-            <div style={{ transform: 'scale(0.9)', transformOrigin: 'top center', marginBottom: `${-665 * 0.1}px` }}>
-              <LiveCardPreview card={card} />
-            </div>
+            <div className="text-[10px] text-ink-faint uppercase tracking-wider font-semibold mb-3">Live Page Preview</div>
+            <LivePagePreview card={card} />
           </div>
         </aside>
       </div>
@@ -1112,9 +1114,9 @@ export default function EditorPage() {
 
       {previewOpen && (
         <div className="lg:hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6" onClick={() => setPreviewOpen(false)}>
-          <div className="bg-tile border border-line rounded-2xl p-4 max-w-[380px] w-full" onClick={(e) => e.stopPropagation()}>
-            <div className="text-[10px] text-ink-faint uppercase tracking-wider font-semibold mb-3">Live Preview</div>
-            <LiveCardPreview card={card} />
+          <div className="bg-tile border border-line rounded-2xl p-4 max-w-[380px] w-full max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="text-[10px] text-ink-faint uppercase tracking-wider font-semibold mb-3">Live Page Preview</div>
+            <LivePagePreview card={card} />
             <button onClick={() => setPreviewOpen(false)} className="mt-4 w-full py-2 bg-accent text-space font-bold rounded-full text-sm hover:brightness-110 transition">
               Close Preview
             </button>

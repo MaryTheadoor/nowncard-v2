@@ -16,7 +16,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import type { Card } from '@/types';
 
-import { Calendar, ExternalLink } from 'lucide-react';
+import { Calendar, ExternalLink, Pencil } from 'lucide-react';
 import { IconPhone, IconMail, IconGlobe, IconPin } from '@/components/CardIcons';
 const IconDownload = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-[18px] h-[18px]"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10 12 15 17 10"/><path d="M12 15V3"/></svg>;
 const IconSend = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-10z"/></svg>;
@@ -221,6 +221,7 @@ export default function CardViewerPage() {
   const init = initials(card.firstName, card.lastName);
   const org = orgLine(card);
   const cardUrl = `${window.location.origin}/card/${card.slug}`;
+  const isOwner = !!user && [card.ownerUid, card.ownerId, card.teamOwnerUid, card.teamOwnerId].filter(Boolean).includes(user.uid);
 
   const phones = (card.phones?.length ? card.phones : (card.phone ? [{ type: 'cell', number: card.phone }] : [])).filter((p) => p.number?.trim());
   const emails = (card.emails?.length ? card.emails : (card.email ? [{ type: 'work', address: card.email }] : [])).filter((e) => e.address?.trim());
@@ -400,6 +401,11 @@ export default function CardViewerPage() {
         <div className="w-full max-w-[380px] flex flex-col gap-6 mt-6 lg:mt-0">
         {/* Action bar — pinned below card */}
         <div className="flex flex-wrap gap-2.5 justify-center w-full">
+          {isOwner && (
+            <Link to={`/editor/${card.id}`} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-tile text-accent border border-accent cursor-pointer hover:bg-tile-soft transition no-underline">
+              <Pencil className="w-4 h-4" /> Edit Card
+            </Link>
+          )}
           <button onClick={async () => { downloadVCard(card, undefined, cardUrl); track('save'); if (cardsDocId) { try { await updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } } try { await updateDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-accent text-space border-none cursor-pointer hover:brightness-110 transition">
             <IconDownload /> Save to Contacts
           </button>
