@@ -33,6 +33,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate('/'); return; }
+    const mounted = { current: true };
 
     const messagesQuery = query(
       collection(db, 'messages'),
@@ -46,6 +47,7 @@ export default function DashboardPage() {
       orderBy('requestedTime', 'asc'),
     );
     const unsubMessages = onSnapshot(messagesQuery, (snap) => {
+      if (!mounted.current) return;
       const list = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Message));
       list.sort((a, b) => {
         const aTime = a.createdAt && typeof a.createdAt === 'object' && 'toMillis' in (a.createdAt as unknown as Record<string, unknown>) ? (a.createdAt as unknown as { toMillis: () => number }).toMillis() : 0;
@@ -55,14 +57,17 @@ export default function DashboardPage() {
       setMessages(list);
       setMessagesLoading(false);
     }, () => {
+      if (!mounted.current) return;
       setMessagesLoading(false);
     });
 
     const unsubAppointments = onSnapshot(appointmentsQuery, (snap) => {
+      if (!mounted.current) return;
       const list = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Appointment));
       setAppointments(list);
       setAppointmentsLoading(false);
     }, () => {
+      if (!mounted.current) return;
       setAppointmentsLoading(false);
     });
 
@@ -100,16 +105,18 @@ export default function DashboardPage() {
         personalList.sort(sortByUpdated);
         teamList.sort(sortByUpdated);
 
+        if (!mounted.current) return;
         setPersonalCards(personalList);
         setTeamCards(teamList);
       } catch {
         toast.error('Failed to load your cards');
       } finally {
-        setLoading(false);
+        if (mounted.current) setLoading(false);
       }
     })();
 
     return () => {
+      mounted.current = false;
       unsubMessages();
       unsubAppointments();
     };
