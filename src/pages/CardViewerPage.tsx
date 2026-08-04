@@ -16,7 +16,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import type { Card } from '@/types';
 
-import { Calendar } from 'lucide-react';
+import { Calendar, ExternalLink } from 'lucide-react';
 import { IconPhone, IconMail, IconGlobe, IconPin } from '@/components/CardIcons';
 const IconDownload = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-[18px] h-[18px]"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10 12 15 17 10"/><path d="M12 15V3"/></svg>;
 const IconSend = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-10z"/></svg>;
@@ -233,6 +233,9 @@ export default function CardViewerPage() {
     socials = Object.entries(card.socialLinks).filter(([, v]) => v).map(([k, v]) => ({ platform: k, url: v as string }));
 
   const paymentLinks = Array.isArray(card.paymentLinks) ? card.paymentLinks.filter((s) => s?.url) : [];
+  const featuredLinks = card.featuredLinksEnabled && Array.isArray(card.featuredLinks)
+    ? card.featuredLinks.filter((l) => l?.url?.trim() && l?.label?.trim())
+    : [];
 
   const fontFamily = card.customFontUrl ? "'CustomFont', sans-serif" : (card.fontFamily || 'Manrope');
   const fontScale = card.fontSizeScale || 1;
@@ -448,6 +451,26 @@ export default function CardViewerPage() {
             </div>
           )}
         </div>
+
+        {/* Featured links (link tree) */}
+        {featuredLinks.length > 0 && (
+          <div className="w-full flex flex-col gap-2.5">
+            <div className="text-xs font-bold text-ink-muted uppercase tracking-wider text-center">Links</div>
+            {featuredLinks.map((l, i) => (
+              <a
+                key={`fl-${i}`}
+                href={l.url.startsWith('http') ? l.url : `https://${l.url}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold bg-tile text-ink border border-line hover:border-accent hover:text-accent transition no-underline"
+                onClick={() => track(`link:${l.label}`)}
+              >
+                {l.label}
+                <ExternalLink className="w-3.5 h-3.5 text-ink-faint" />
+              </a>
+            ))}
+          </div>
+        )}
         </div>
       </div>
 

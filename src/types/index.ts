@@ -27,6 +27,11 @@ export interface SocialLink {
   url: string;
 }
 
+export interface FeaturedLink {
+  label: string;
+  url: string;
+}
+
 export interface Card {
   id: string;
   ownerUid: string;
@@ -51,6 +56,7 @@ export interface Card {
   websites?: Website[];
   socialLinks?: SocialLink[] | Record<string, string>;
   paymentLinks?: SocialLink[];
+  featuredLinks?: FeaturedLink[];
   birthday?: string;
   anniversary?: string;
   bio?: string;
@@ -87,6 +93,7 @@ export interface Card {
   textColor?: string;
   qrMode?: 'url' | 'vcard';
   appointmentsEnabled?: boolean;
+  featuredLinksEnabled?: boolean;
 }
 
 export interface Message {

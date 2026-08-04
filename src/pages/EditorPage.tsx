@@ -11,7 +11,7 @@ import { useAuth } from '@/hooks/auth-context';
 import BackgroundPositioner from '@/components/BackgroundPositioner';
 import { parseVCard } from '@/lib/vcard-parser';
 import { slugify, getCardLimit, GOOGLE_FONTS, compressImage, SOCIAL_PLATFORMS, PAYMENT_PLATFORMS } from '@/lib/utils';
-import type { Card, SocialLink } from '@/types';
+import type { Card, SocialLink, FeaturedLink } from '@/types';
 import { toast } from 'sonner';
 
 const defaultCard: Omit<Card, 'id' | 'ownerUid' | 'createdAt' | 'updatedAt'> = {
@@ -554,6 +554,18 @@ export default function EditorPage() {
                 <input type="checkbox" checked={card.appointmentsEnabled ?? false} onChange={(e) => updateField('appointmentsEnabled', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
                 Allow appointment requests on this card
               </label>
+              {(userData?.plan === 'pro' || userData?.plan === 'business') ? (
+                <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
+                  <input type="checkbox" checked={card.featuredLinksEnabled ?? false} onChange={(e) => updateField('featuredLinksEnabled', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
+                  Featured links section (link tree)
+                </label>
+              ) : (
+                <div className="flex items-center gap-2 text-sm text-ink-faint">
+                  <input type="checkbox" disabled className="w-4 h-4 accent-accent rounded opacity-50" />
+                  <span>Featured links section (link tree)</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-accent">— Pro</span>
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-3 mb-4">
               <span className="text-sm text-ink-muted">Name layout</span>
@@ -918,6 +930,24 @@ export default function EditorPage() {
               <button onClick={() => updateField('paymentLinks', [...(Array.isArray(card.paymentLinks) ? card.paymentLinks : []), { platform: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Payment Link</button>
             </div>
           </div>
+
+          {/* Featured Links (link tree) — Pro, shown when enabled in Settings */}
+          {card.featuredLinksEnabled && (
+            <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
+              <h2 className="text-lg font-bold mb-1">Featured Links</h2>
+              <p className="text-xs text-ink-faint mb-4">Shown as a link list below your card — like a link tree. Great for migrating from other services.</p>
+              <div className="space-y-3">
+                {Array.isArray(card.featuredLinks) && card.featuredLinks.map((l: FeaturedLink, i: number) => (
+                  <div key={i} className="flex flex-wrap gap-2">
+                    <input value={l.label} onChange={(e) => updateField('featuredLinks', (card.featuredLinks as FeaturedLink[]).map((fl, idx) => idx === i ? { ...fl, label: e.target.value } : fl))} placeholder="Label (e.g. My Portfolio)" className="w-full sm:w-[220px] px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                    <input value={l.url} onChange={(e) => updateField('featuredLinks', (card.featuredLinks as FeaturedLink[]).map((fl, idx) => idx === i ? { ...fl, url: e.target.value } : fl))} placeholder="https://example.com" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                    <button onClick={() => updateField('featuredLinks', (card.featuredLinks as FeaturedLink[]).filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">×</button>
+                  </div>
+                ))}
+                <button onClick={() => updateField('featuredLinks', [...(Array.isArray(card.featuredLinks) ? card.featuredLinks : []), { label: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Link</button>
+              </div>
+            </div>
+          )}
 
           {/* Images */}
           <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
