@@ -37,7 +37,6 @@ export default function DashboardPage() {
   const [reviewCompany, setReviewCompany] = useState('');
   const [savingReview, setSavingReview] = useState(false);
 
-
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate('/'); return; }
@@ -113,6 +112,23 @@ export default function DashboardPage() {
         personalList.sort(sortByUpdated);
         teamList.sort(sortByUpdated);
 
+        try {
+          const snap = await getDoc(doc(db, 'reviews', user.uid));
+          if (snap.exists()) {
+            const data = snap.data() as Omit<Review, 'id'>;
+            setMyReview({ id: user.uid, ...data });
+            setRating(data.rating ?? 5);
+            setReviewCompany(data.company ?? '');
+            setReviewText(data.content ?? '');
+          } else {
+            setMyReview(null);
+          }
+        } catch {
+          // rules deny read for non-featured reviews the user doesn't own — ignore
+        } finally {
+          setReviewLoading(false);
+        }
+
         if (!mounted.current) return;
         setPersonalCards(personalList);
         setTeamCards(teamList);
@@ -129,30 +145,6 @@ export default function DashboardPage() {
       unsubAppointments();
     };
   }, [user, authLoading, navigate]);
-
-  const loadMyReview = async () => {
-    if (!user) return;
-    try {
-      const snap = await getDoc(doc(db, 'reviews', user.uid));
-      if (snap.exists()) {
-        const data = snap.data() as Omit<Review, 'id'>;
-        setMyReview({ id: user.uid, ...data });
-        setRating(data.rating ?? 5);
-        setReviewCompany(data.company ?? '');
-        setReviewText(data.content ?? '');
-      } else {
-        setMyReview(null);
-      }
-    } catch {
-      // rules deny read for non-featured reviews the user doesn't own — ignore
-    } finally {
-      setReviewLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (user) loadMyReview();
-  }, [user]);
 
   const handleSaveReview = async () => {
     if (!user) return;

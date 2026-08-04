@@ -44,7 +44,8 @@ export default function AnalyticsPage() {
           return;
         }
         const cardData = { id: cardSnap.id, ...cardSnap.data() } as Card;
-        if (cardData.ownerUid !== user.uid) {
+        const isCardOwner = [cardData.ownerUid, cardData.ownerId, cardData.teamOwnerUid, cardData.teamOwnerId].filter(Boolean).includes(user.uid);
+        if (!isCardOwner) {
           toast.error('Not authorized');
           navigate('/dashboard');
           return;

@@ -13,7 +13,7 @@ import { onSchedule } from 'firebase-functions/v2/scheduler';
 import * as admin from 'firebase-admin';
 import { Client, Environment } from 'square';
 import express from 'express';
-import { defineSecret } from 'firebase-functions/params';
+import { defineSecret, defineString } from 'firebase-functions/params';
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -24,6 +24,7 @@ const db = admin.firestore();
 // ---------------------------------------------------------------------------
 const squareAccessToken = defineSecret('SQUARE_ACCESS_TOKEN');
 const squareSignatureKey = defineSecret('SQUARE_WEBHOOK_SIGNATURE_KEY');
+const squareWebhookUrl = defineString('SQUARE_WEBHOOK_URL', { default: '' });
 
 function getSquareToken(): string {
   return process.env.SQUARE_ACCESS_TOKEN || '';
@@ -52,13 +53,15 @@ const squareClient = new Client({
 // Helpers
 // ---------------------------------------------------------------------------
 
-function verifySquareSignature(signature: string, rawBody: string): boolean {
+function verifySquareSignature(signature: string, notificationUrl: string, rawBody: string): boolean {
   const key = getSignatureKey();
   if (!key) return false;
   try {
     const hmac = crypto.createHmac('sha256', key);
-    hmac.update(rawBody, 'utf8');
-    return hmac.digest('base64') === signature;
+    hmac.update(notificationUrl + rawBody, 'utf8');
+    const expected = Buffer.from(hmac.digest('base64'));
+    const actual = Buffer.from(signature);
+    return expected.length === actual.length && crypto.timingSafeEqual(expected, actual);
   } catch {
     return false;
   }
@@ -75,7 +78,7 @@ const webhookApp = express();
 webhookApp.use(express.raw({ type: '*/*' }));
 
 webhookApp.post('/', async (req, res) => {
-  const signature = req.headers['x-square-signature'] as string;
+  const signature = req.headers['x-square-hmacsha256-signature'] as string;
   if (!signature) {
     console.warn('Missing Square webhook signature header');
     res.status(400).send('Missing signature');
@@ -89,8 +92,10 @@ webhookApp.post('/', async (req, res) => {
     return;
   }
 
-  if (!verifySquareSignature(signature, rawBody)) {
-    console.warn('Square webhook signature verification failed');
+  const notificationUrl = squareWebhookUrl.value() || `https://${req.headers.host || req.hostname}${req.originalUrl || req.url}`;
+
+  if (!verifySquareSignature(signature, notificationUrl, rawBody)) {
+    console.warn('Square webhook signature verification failed', { notificationUrl });
     res.status(403).send('Invalid signature');
     return;
   }
@@ -232,15 +237,30 @@ export const createCheckout = onCall(async (request) => {
     throw new HttpsError('unauthenticated', 'Sign in required');
   }
 
-  const { plan, price, successUrl, cancelUrl } = request.data as {
+  const { plan, successUrl, cancelUrl } = request.data as {
     plan: string;
-    price: number;
     successUrl?: string;
     cancelUrl?: string;
   };
 
-  if (!plan || !price) {
-    throw new HttpsError('invalid-argument', 'Missing plan or price');
+  if (!plan || (plan !== 'pro' && plan !== 'business')) {
+    throw new HttpsError('invalid-argument', 'Invalid plan');
+  }
+
+  // Look up price server-side — never trust client-supplied price
+  let price: number;
+  try {
+    const pricingSnap = await db.collection('config').doc('pricing').get();
+    const pricing = pricingSnap.data() || {};
+    const rawPrice = plan === 'pro' ? pricing.proPrice : pricing.businessPrice;
+    price = Number(rawPrice ?? (plan === 'pro' ? 19 : 39));
+    if (!price || price <= 0 || !Number.isFinite(price)) {
+      throw new HttpsError('internal', 'Pricing not configured');
+    }
+  } catch (err) {
+    if (err instanceof HttpsError) throw err;
+    console.error('Failed to load pricing for checkout:', err);
+    throw new HttpsError('internal', 'Failed to load pricing');
   }
 
   const uid = request.auth.uid;

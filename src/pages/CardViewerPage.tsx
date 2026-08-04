@@ -139,7 +139,8 @@ export default function CardViewerPage() {
   const track = async (type: string) => {
     if (!card) return;
     const analyticsId = cardsDocId || card.id;
-    const payload: Record<string, unknown> = { [`taps.${type}`]: increment(1), updatedAt: serverTimestamp() };
+    const safeType = type.replace(/[^a-z0-9_:.-]/gi, '_').slice(0, 40);
+    const payload: Record<string, unknown> = { [`taps.${safeType}`]: increment(1), updatedAt: serverTimestamp() };
 
     if (!trackedMeta.current) {
       trackedMeta.current = true;
@@ -336,7 +337,7 @@ export default function CardViewerPage() {
                     {socials.map((s, i) => (
                       <a
                         key={`s-${i}`}
-                        href={s.url}
+                        href={s.url?.startsWith('http') ? s.url : `https://${s.url}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={`px-3 py-1.5 rounded-full font-bold lowercase tracking-wide border no-underline transition-colors ${tc.socialBorder} ${tc.socialText} ${tc.socialHoverBg} ${tc.socialHoverText}`}
@@ -353,7 +354,7 @@ export default function CardViewerPage() {
                     {paymentLinks.map((s, i) => (
                       <a
                         key={`pay-${i}`}
-                        href={s.url}
+                        href={s.url?.startsWith('http') ? s.url : `https://${s.url}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-3 py-1.5 rounded-full font-bold lowercase tracking-wide border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 transition-colors no-underline"
@@ -384,7 +385,7 @@ export default function CardViewerPage() {
                   <QRCodeSVG value={card.qrMode === 'vcard' ? generateVCard(card, cardUrl) : cardUrl} size={150} level="M" includeMargin={false} />
                 </div>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  <button onClick={(e) => { e.stopPropagation(); downloadVCard(card, undefined, cardUrl); track('save'); if (cardsDocId) { try { updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } } try { updateDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }} className="px-4 py-2 rounded-full text-sm font-bold bg-accent text-space border-none hover:brightness-110 transition cursor-pointer">
+                  <button onClick={(e) => { e.stopPropagation(); downloadVCard(card, undefined, cardUrl); track('save'); if (cardsDocId) { try { updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } } try { setDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }, { merge: true }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }} className="px-4 py-2 rounded-full text-sm font-bold bg-accent text-space border-none hover:brightness-110 transition cursor-pointer">
                     Save Contact
                   </button>
                   <button onClick={(e) => { e.stopPropagation(); const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); } else { promise.then(() => track('share')).catch(() => setShareOpen(true)); } }} className={`px-4 py-2 rounded-full text-sm font-bold bg-transparent border border-line hover:bg-tile-soft transition ${tc.textPrimary}`} style={{ color: primaryTextColor }}>
@@ -406,7 +407,7 @@ export default function CardViewerPage() {
               <Pencil className="w-4 h-4" /> Edit Card
             </Link>
           )}
-          <button onClick={async () => { downloadVCard(card, undefined, cardUrl); track('save'); if (cardsDocId) { try { await updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } } try { await updateDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-accent text-space border-none cursor-pointer hover:brightness-110 transition">
+          <button onClick={async () => { downloadVCard(card, undefined, cardUrl); track('save'); if (cardsDocId) { try { await updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } } try { await setDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }, { merge: true }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-accent text-space border-none cursor-pointer hover:brightness-110 transition">
             <IconDownload /> Save to Contacts
           </button>
           {card.appointmentsEnabled && (

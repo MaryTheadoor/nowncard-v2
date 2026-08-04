@@ -183,7 +183,6 @@ export default function EditorPage() {
       const data = stripUndefined({
         ...rest,
         slug,
-        ownerUid: user.uid,
         updatedAt: serverTimestamp(),
       });
 
@@ -196,8 +195,15 @@ export default function EditorPage() {
         toast.success('Card saved');
       } else {
         if (!data.isTeamCard) {
-          const userCards = await getDocs(query(collection(db, 'cards'), where('ownerUid', '==', user.uid)));
-          const personalCount = userCards.docs.filter((d) => !d.data().isTeamCard).length;
+          const [uidCards, idCards] = await Promise.all([
+            getDocs(query(collection(db, 'cards'), where('ownerUid', '==', user.uid))),
+            getDocs(query(collection(db, 'cards'), where('ownerId', '==', user.uid))),
+          ]);
+          const ownedIds = new Set([...uidCards.docs, ...idCards.docs].map((d) => d.id));
+          const personalCount = [...ownedIds].filter((docId) => {
+            const docData = uidCards.docs.find((d) => d.id === docId)?.data() || idCards.docs.find((d) => d.id === docId)?.data();
+            return !docData?.isTeamCard;
+          }).length;
           const limit = getCardLimit(userData?.plan);
           if (personalCount >= limit) {
             toast.error(`Your ${userData?.plan || 'free'} plan allows ${limit === Infinity ? 'unlimited' : limit} personal card${limit === 1 ? '' : 's'}. Upgrade to create more.`);

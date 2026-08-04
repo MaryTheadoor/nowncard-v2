@@ -25,18 +25,23 @@ service cloud.firestore {
       );
     }
 
-    // Users: self access; admin full access
+    // Users: self access; admin full access. Self-update cannot grant admin.
     match /users/{uid} {
       allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
       allow create: if request.auth != null && request.auth.uid == uid;
-      allow update, delete: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow update: if request.auth != null
+        && ((request.auth.uid == uid
+             && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin']))
+            || isAdmin());
+      allow delete: if request.auth != null && (request.auth.uid == uid || isAdmin());
     }
 
     // Cards: owners and team owners have control; public readable; admin can read any
     match /cards/{cardId} {
       allow read: if resource.data.isPublic == true || (request.auth != null && isOwner(resource.data)) || (request.auth != null && isTeamOwner(resource.data)) || isAdmin();
       allow create: if request.auth != null && (isOwner(request.resource.data) || isTeamOwner(request.resource.data));
-      allow update: if request.auth != null && (isOwner(resource.data) || isTeamOwner(resource.data) || isAdmin());
+      allow update: if (request.auth != null && (isOwner(resource.data) || isTeamOwner(resource.data) || isAdmin()))
+        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount', 'saveCount']);
       allow delete: if request.auth != null && (isOwner(resource.data) || isTeamOwner(resource.data) || isAdmin());
     }
 
@@ -48,22 +53,29 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Public cards: readable by anyone, writable by authenticated users or admin
+    // Public cards: readable by anyone; counter-only writes by anyone
     match /publicCards/{slug} {
       allow read: if true;
-      allow write: if request.auth != null || isAdmin();
+      allow create: if request.resource.data.keys().hasOnly(['saveCount', 'viewCount', 'updatedAt']);
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['saveCount', 'viewCount', 'updatedAt']);
+      allow delete: if false;
     }
 
-    // Analytics (legacy): writable by anyone with field validation
+    // Analytics (legacy): scoped to card owner/admin; writable by anyone with field validation
     match /analytics/{docId} {
-      allow read: if request.auth != null || isAdmin();
+      allow read: if isAdmin() || (request.auth != null && isOwner(get(/databases/$(database)/documents/cards/$(docId)).data));
       allow create, update: if request.resource.data.keys().hasAny(['type', 'timestamp', 'taps', 'viewCount', 'saveCount', 'timeOnPage', 'device', 'referrer']);
       allow delete: if false;
     }
 
-    // Pending upgrades: owner CRUD; admin read all
+    // Pending upgrades: owner create only; validate plan/price; admin manages
     match /pendingUpgrades/{docId} {
-      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.plan in ['pro', 'business']
+        && request.resource.data.price is number
+        && request.resource.data.price > 0
+        && request.resource.data.keys().hasAll(['uid', 'plan', 'price', 'used', 'createdAt', 'expiresAt']);
       allow read: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
       allow update: if isAdmin();
       allow delete: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
@@ -122,6 +134,14 @@ service cloud.firestore {
             || resource.data.senderUid == request.auth.uid);
     }
 
+    function getCardOwnerUid(cardId) {
+      return get(/databases/$(database)/documents/cards/$(cardId)).data.ownerUid;
+    }
+
+    function getCardOwnerId(cardId) {
+      return get(/databases/$(database)/documents/cards/$(cardId)).data.ownerId;
+    }
+
     // Appointments: visitors can request; owners manage; requesters can read their own
     match /appointments/{appointmentId} {
       allow create: if request.resource.data.keys().hasAll([
@@ -135,7 +155,9 @@ service cloud.firestore {
         && request.resource.data.requesterEmail.size() <= 254
         && request.resource.data.requestedDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
         && request.resource.data.requestedTime.matches('^[0-9]{2}:[0-9]{2}$')
-        && request.resource.data.timezone.size() <= 100;
+        && request.resource.data.timezone.size() <= 100
+        && (request.resource.data.ownerUid == getCardOwnerUid(request.resource.data.cardId)
+            || request.resource.data.ownerUid == getCardOwnerId(request.resource.data.cardId));
       allow read: if request.auth != null
         && (resource.data.ownerUid == request.auth.uid
             || resource.data.requesterEmail == request.auth.token.email
