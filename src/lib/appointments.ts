@@ -1,17 +1,14 @@
 import type { Appointment, Card } from '@/types';
 
-function formatICSDate(dateStr: string, timeStr: string, timezone: string): string {
-  // Build an ISO-like string from the user's selected date/time, then convert to UTC.
-  // If the browser supports IANA timezone conversion we use it; otherwise fall back to local.
+function toUTCDate(dateStr: string, timeStr: string, timezone: string): Date {
+  // Interpret the wall-clock date/time as being in the given IANA timezone
+  // (or the browser's local timezone when 'local'/unset) and return the UTC instant.
   const [year, month, day] = dateStr.split('-').map(Number);
   const [hours, minutes] = timeStr.split(':').map(Number);
 
-  // Construct a date object treating the selected values as local to the given timezone.
-  let start: Date;
   try {
-    start = new Date(Date.UTC(year, month - 1, day, hours, minutes));
-    // If timezone is a valid IANA string, shift from UTC to that timezone's offset.
-    if (timezone && timezone !== 'local' && Intl.DateTimeFormat().resolvedOptions().timeZone) {
+    if (timezone && timezone !== 'local') {
+      const utcGuess = new Date(Date.UTC(year, month - 1, day, hours, minutes));
       const fmt = new Intl.DateTimeFormat('en-US', {
         timeZone: timezone,
         year: 'numeric',
@@ -22,35 +19,30 @@ function formatICSDate(dateStr: string, timeStr: string, timezone: string): stri
         second: '2-digit',
         hour12: false,
       });
-      const parts = fmt.formatToParts(start);
+      const parts = fmt.formatToParts(utcGuess);
       const get = (type: string) => Number(parts.find((p) => p.type === type)?.value);
-      const localInTz = new Date(Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second')));
-      const offset = localInTz.getTime() - start.getTime();
-      start = new Date(start.getTime() - offset);
+      const hour = get('hour') === 24 ? 0 : get('hour');
+      const wallInTz = Date.UTC(get('year'), get('month') - 1, get('day'), hour, get('minute'), get('second'));
+      const offset = wallInTz - utcGuess.getTime();
+      return new Date(utcGuess.getTime() - offset);
     }
   } catch {
-    start = new Date(year, month - 1, day, hours, minutes);
+    // Invalid timezone string — fall back to browser-local interpretation.
   }
-
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${start.getUTCFullYear()}${pad(start.getUTCMonth() + 1)}${pad(start.getUTCDate())}T${pad(start.getUTCHours())}${pad(start.getUTCMinutes())}${pad(start.getUTCSeconds())}Z`;
+  return new Date(year, month - 1, day, hours, minutes);
 }
 
-function formatDateTimeLocal(dateStr: string, timeStr: string): { start: string; end: string } {
-  const start = formatICSDate(dateStr, timeStr, 'local');
-  const [year, month, day] = dateStr.split('-').map(Number);
-  const [hours, minutes] = timeStr.split(':').map(Number);
-  const endDate = new Date(year, month - 1, day, hours, minutes);
-  endDate.setMinutes(endDate.getMinutes() + 30);
+function formatICSStamp(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0');
-  const end = `${endDate.getUTCFullYear()}${pad(endDate.getUTCMonth() + 1)}${pad(endDate.getUTCDate())}T${pad(endDate.getUTCHours())}${pad(endDate.getUTCMinutes())}${pad(endDate.getUTCSeconds())}Z`;
-  return { start, end };
+  return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
 }
 
 export function generateICS(appointment: Appointment, card: Card): string {
-  const { start, end } = formatDateTimeLocal(appointment.requestedDate, appointment.requestedTime);
+  const startDate = toUTCDate(appointment.requestedDate, appointment.requestedTime, appointment.timezone);
+  const endDate = new Date(startDate.getTime() + 30 * 60 * 1000);
   const name = `${card.firstName || ''} ${card.lastName || ''}`.trim() || card.slug || 'Contact';
   const summary = `Appointment with ${name}`;
+  // ICS encodes line breaks inside property values as the two characters \n
   const description = `Appointment requested via NownCard for ${name}${appointment.notes ? `\\n\\nNotes: ${appointment.notes}` : ''}`;
   const location = card.company || '';
   const uid = `${appointment.id}@nowncard.com`;
@@ -63,9 +55,9 @@ export function generateICS(appointment: Appointment, card: Card): string {
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
     `UID:${uid}`,
-    `DTSTAMP:${formatICSDate(new Date().toISOString().slice(0, 10), new Date().toTimeString().slice(0, 5), 'local')}`,
-    `DTSTART:${start}`,
-    `DTEND:${end}`,
+    `DTSTAMP:${formatICSStamp(new Date())}`,
+    `DTSTART:${formatICSStamp(startDate)}`,
+    `DTEND:${formatICSStamp(endDate)}`,
     `SUMMARY:${escapeICS(summary)}`,
     `DESCRIPTION:${escapeICS(description)}`,
     location ? `LOCATION:${escapeICS(location)}` : '',
@@ -74,32 +66,28 @@ export function generateICS(appointment: Appointment, card: Card): string {
     'END:VCALENDAR',
   ].filter(Boolean);
 
-  return lines.join('\\r\\n');
+  // RFC 5545 requires real CRLF line endings
+  return lines.join('\r\n');
 }
 
 function escapeICS(value: string): string {
   return value
-    .replace(/\\\\/g, '\\\\')
+    .replace(/\\/g, '\\\\')
     .replace(/;/g, '\\;')
     .replace(/,/g, '\\,')
-    .replace(/\\n/g, '\\n');
+    .replace(/\r?\n/g, '\\n');
 }
 
 export function googleCalendarUrl(appointment: Appointment, card: Card): string {
   const name = `${card.firstName || ''} ${card.lastName || ''}`.trim() || card.slug || 'Contact';
-  const start = formatICSDate(appointment.requestedDate, appointment.requestedTime, appointment.timezone);
-  const [year, month, day] = appointment.requestedDate.split('-').map(Number);
-  const [hours, minutes] = appointment.requestedTime.split(':').map(Number);
-  const endDate = new Date(year, month - 1, day, hours, minutes);
-  endDate.setMinutes(endDate.getMinutes() + 30);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const end = `${endDate.getUTCFullYear()}${pad(endDate.getUTCMonth() + 1)}${pad(endDate.getUTCDate())}T${pad(endDate.getUTCHours())}${pad(endDate.getUTCMinutes())}${pad(endDate.getUTCSeconds())}Z`;
+  const startDate = toUTCDate(appointment.requestedDate, appointment.requestedTime, appointment.timezone);
+  const endDate = new Date(startDate.getTime() + 30 * 60 * 1000);
 
   const params = new URLSearchParams({
     action: 'TEMPLATE',
     text: `Appointment with ${name}`,
-    dates: `${start}/${end}`,
-    details: `Appointment requested via NownCard for ${name}${appointment.notes ? `\\n\\nNotes: ${appointment.notes}` : ''}`,
+    dates: `${formatICSStamp(startDate)}/${formatICSStamp(endDate)}`,
+    details: `Appointment requested via NownCard for ${name}${appointment.notes ? `\n\nNotes: ${appointment.notes}` : ''}`,
   });
 
   if (card.emails?.[0]?.address) {

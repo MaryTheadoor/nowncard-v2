@@ -246,9 +246,9 @@ export default function CardViewerPage() {
         <Navbar onAuthClick={() => setAuthOpen(true)} />
       )}
 
-      {/* Card stage */}
-      <div className={`flex-1 flex flex-col items-center px-5 pb-8 ${card.hideNavbar ? 'pt-8' : 'pt-2'}`} ref={cardRef}>
-        <div className="w-full max-w-[380px] aspect-[2/3.5] perspective-1200 relative">
+      {/* Card stage — stacked on mobile, side-by-side on desktop */}
+      <div className={`flex-1 flex flex-col lg:flex-row lg:justify-center lg:gap-12 items-center px-5 pb-8 ${card.hideNavbar ? 'pt-8' : 'pt-2'}`}>
+        <div className="w-full max-w-[380px] aspect-[2/3.5] perspective-1200 relative" ref={cardRef}>
           <div className={`w-full h-full preserve-3d transition-transform duration-[800ms] ${flipped ? 'rotate-y-180' : ''}`} style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }} onClick={handleFlip} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFlip(); } }} role="button" aria-label="Flip card" tabIndex={0}>
             {/* Front */}
             <div className={`card-face flex flex-col ${!card.cardBgColor && !isDark ? 'bg-card-bg' : ''}`} style={{ backgroundColor: tc.faceBg, boxShadow: tc.faceShadow }}>
@@ -393,8 +393,10 @@ export default function CardViewerPage() {
           </div>
         </div>
 
+        {/* Sidebar — actions + messaging; below card on mobile, right column on desktop */}
+        <div className="w-full max-w-[380px] flex flex-col gap-6 mt-6 lg:mt-0">
         {/* Action bar — pinned below card */}
-        <div className="flex flex-wrap gap-2.5 justify-center mt-6 max-w-[380px] w-full">
+        <div className="flex flex-wrap gap-2.5 justify-center w-full">
           <button onClick={async () => { downloadVCard(card, undefined, cardUrl); track('save'); if (cardsDocId) { try { await updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } } try { await updateDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-accent text-space border-none cursor-pointer hover:brightness-110 transition">
             <IconDownload /> Save to Contacts
           </button>
@@ -415,7 +417,7 @@ export default function CardViewerPage() {
         </div>
 
         {/* Messaging */}
-        <div className="w-full max-w-[380px] mt-6">
+        <div className="w-full">
           {messageSent ? (
             <div className="bg-tile border border-emerald-500/30 rounded-2xl p-5 text-center">
               <p className="text-sm font-semibold text-emerald-400 mb-1">Message sent</p>
@@ -445,6 +447,7 @@ export default function CardViewerPage() {
               </div>
             </div>
           )}
+        </div>
         </div>
       </div>
 
