@@ -7,7 +7,7 @@ import ShareModal from '@/components/ShareModal';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/auth-context';
 import BackgroundPositioner from '@/components/BackgroundPositioner';
 import { parseVCard } from '@/lib/vcard-parser';
 import { slugify, getCardLimit, GOOGLE_FONTS, compressImage, SOCIAL_PLATFORMS, PAYMENT_PLATFORMS } from '@/lib/utils';
@@ -33,7 +33,7 @@ export default function EditorPage() {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, userData, loading: authLoading, logOut } = useAuth();
+  const { user, userData, loading: authLoading } = useAuth();
   const [card, setCard] = useState<Partial<Card>>(defaultCard);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -428,13 +428,7 @@ export default function EditorPage() {
 
   return (
     <div className="min-h-screen bg-space">
-      <Navbar
-        onAuthClick={() => navigate('/')}
-        onSignOut={() => { logOut(); navigate('/'); }}
-        userEmail={user?.email}
-        isAdmin={userData?.isAdmin}
-        defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug}
-      />
+      <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-5 lg:grid lg:grid-cols-[1fr_420px] gap-6 pt-8 pb-24">
         <main className="flex-1 min-w-0 max-w-2xl">
 

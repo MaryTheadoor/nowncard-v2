@@ -5,7 +5,6 @@ import { collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { useAuth } from '@/hooks/useAuth';
 import { fullName, orgLine } from '@/lib/utils';
 import { captureElementAsPNG } from '@/lib/image-export';
 import type { Card } from '@/types';
@@ -14,7 +13,6 @@ const IconCamera = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentCol
 
 export default function QrPosterPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { user, userData, logOut } = useAuth();
   const [card, setCard] = useState<Card | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,8 +66,8 @@ export default function QrPosterPage() {
   if (error || !card) {
     return (
       <div className="min-h-screen bg-space flex flex-col">
-        <Navbar onAuthClick={() => {}} onSignOut={() => { logOut(); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug} />
-        <div className="flex-1 flex items-center justify-center px-6">
+        <Navbar onAuthClick={() => {}} />
+      <div className="flex-1 flex items-center justify-center px-6">
           <div className="text-center max-w-md">
             <h1 className="text-xl font-bold text-ink mb-2">Card Not Found</h1>
             <p className="text-ink-muted text-sm">{error}</p>
@@ -85,7 +83,7 @@ export default function QrPosterPage() {
     <div className="min-h-screen bg-space text-ink">
       {/* Screen preview */}
       <div className="print:hidden">
-        <Navbar onAuthClick={() => {}} onSignOut={() => { logOut(); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug} />
+        <Navbar onAuthClick={() => {}} />
         <main className="max-w-2xl mx-auto px-6 py-10 text-center">
           <h1 className="text-2xl font-extrabold mb-2">Printable Poster — {name || slug}</h1>
           <p className="text-ink-muted text-sm mb-8">

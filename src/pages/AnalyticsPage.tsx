@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Eye, Download, RotateCcw, Clock, MousePointer, Smartphone, Monitor, Tablet } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/auth-context';
 import Navbar from '@/components/Navbar';
 import type { Card } from '@/types';
 import { toast } from 'sonner';
@@ -25,7 +25,7 @@ const IconDevice = ({ type }: { type?: string }) => {
 export default function AnalyticsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user, userData, loading: authLoading, logOut } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [card, setCard] = useState<Card | null>(null);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -87,7 +87,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-space">
-      <Navbar onAuthClick={() => navigate('/')} onSignOut={() => { logOut(); navigate('/'); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug} />
+      <Navbar />
 
       <main className="max-w-3xl mx-auto px-5 py-8">
         <div className="flex items-center gap-3 mb-6">

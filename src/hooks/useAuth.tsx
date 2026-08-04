@@ -2,13 +2,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, linkWithPopup } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
+import { AuthContext } from './auth-context';
+import type { AuthState } from './auth-context';
 import type { User } from 'firebase/auth';
 
 const ADMIN_UIDS = new Set(['EeiBBDTu5jOooHbxyOC98JSlt6r1']);
 
-export function useAuth() {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [userData, setUserData] = useState<{ plan?: string; cardCount?: number; isAdmin?: boolean; defaultCardSlug?: string; secondaryCardSlug?: string } | null>(null);
+  const [userData, setUserData] = useState<AuthState['userData']>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -98,5 +100,11 @@ export function useAuth() {
     catch (e) { handleError(e); throw e; }
   }, []);
 
-  return { user, userData, loading, error, signInEmail, signUpEmail, signInGoogle, linkGoogle, signInAnon, logOut };
+  const value: AuthState = { user, userData, loading, error, signInEmail, signUpEmail, signInGoogle, linkGoogle, signInAnon, logOut };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }

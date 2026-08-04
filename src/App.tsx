@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/hooks/useTheme';
+import { AuthProvider } from '@/hooks/useAuth';
 
 // Eager-load landing page for fastest first paint
 import LandingPage from '@/pages/LandingPage';
@@ -35,8 +36,9 @@ function PageLoader() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <BrowserRouter>
+    <AuthProvider>
+      <ThemeProvider>
+        <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
@@ -58,8 +60,9 @@ function App() {
           </Routes>
         </Suspense>
         <Toaster position="top-center" richColors toastOptions={{ style: { background: '#111827', border: '1px solid #1e293b', color: '#f8f9fc' } }} />
-      </BrowserRouter>
-    </ThemeProvider>
+        </BrowserRouter>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 

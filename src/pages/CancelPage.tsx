@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Footer from '@/components/Footer';
 import { cancelPendingUpgrades } from '@/lib/payments';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/auth-context';
 
 export default function CancelPage() {
   const { user } = useAuth();

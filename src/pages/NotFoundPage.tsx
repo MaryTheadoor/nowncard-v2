@@ -1,21 +1,12 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { useAuth } from '@/hooks/useAuth';
 
 export default function NotFoundPage() {
-  const { user, userData, logOut } = useAuth();
-  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-space flex flex-col">
-      <Navbar
-        onAuthClick={() => navigate('/')}
-        onSignOut={() => { logOut(); navigate('/'); }}
-        userEmail={user?.email}
-        isAdmin={userData?.isAdmin}
-        defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug}
-      />
+      <Navbar />
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 text-center">
         <div className="text-7xl mb-4">🔍</div>

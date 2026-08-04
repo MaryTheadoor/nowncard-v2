@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Printer, Users, ClipboardCheck, Heart, Star, Search, X, Bell, MessageCircle, Mail, Check, Calendar, Clock } from 'lucide-react';
 import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc, setDoc, onSnapshot, orderBy, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/auth-context';
 import { useFCM } from '@/hooks/useFCM';
 import { downloadVCard } from '@/lib/vcard';
 import Navbar from '@/components/Navbar';
@@ -15,7 +15,7 @@ import { initials, getCardLimit, timeAgo } from '@/lib/utils';
 import Footer from '@/components/Footer';
 
 export default function DashboardPage() {
-  const { user, userData, loading: authLoading, logOut } = useAuth();
+  const { user, userData, loading: authLoading } = useAuth();
   const { subscribed: pushSubscribed, ready: pushReady, enableNotifications } = useFCM(user?.uid);
   const navigate = useNavigate();
   const [personalCards, setPersonalCards] = useState<Card[]>([]);
@@ -311,7 +311,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-space">
-      <Navbar onAuthClick={() => navigate('/')} onSignOut={() => { logOut(); navigate('/'); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug} messageCount={messages.filter((m) => !m.read).length} />
+      <Navbar messageCount={messages.filter((m) => !m.read).length} />
 
       <main className="max-w-4xl mx-auto px-5 py-8">
         {/* Header */}

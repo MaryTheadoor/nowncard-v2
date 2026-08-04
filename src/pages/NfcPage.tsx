@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/auth-context';
 import { generateVCard } from '@/lib/vcard';
 import type { Card } from '@/types';
 import { toast } from 'sonner';

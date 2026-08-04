@@ -7,7 +7,7 @@ import {
 } from 'firebase/firestore';
 import type { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/auth-context';
 import { getPaymentDetails, getPricing, updatePricing } from '@/lib/payments';
 import Navbar from '@/components/Navbar';
 import {
@@ -63,7 +63,7 @@ function ts(ts: unknown): number {
 }
 
 export default function AdminPage() {
-  const { user, userData, logOut, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
@@ -360,13 +360,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-space">
-      <Navbar
-        onAuthClick={() => navigate('/')}
-        onSignOut={() => { logOut(); navigate('/'); }}
-        userEmail={user?.email}
-        isAdmin={true}
-        defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug}
-      />
+      <Navbar />
 
       <main className="max-w-6xl mx-auto px-5 py-8">
         <div className="flex items-center gap-3 mb-6">

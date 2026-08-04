@@ -1,12 +1,12 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Search, Building2, Briefcase, Eye, SlidersHorizontal, X } from 'lucide-react';
 import { collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Navbar from '@/components/Navbar';
 import AuthModal from '@/components/AuthModal';
 import Footer from '@/components/Footer';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/auth-context';
 import type { Card } from '@/types';
 
 interface PublicCard {
@@ -42,8 +42,7 @@ function deriveIndustry(jobTitle?: string): string | undefined {
 type SortMode = 'az' | 'views' | 'recent';
 
 export default function RolodexPage() {
-  const { user, userData, signInEmail, signUpEmail, signInGoogle, linkGoogle, logOut, error } = useAuth();
-  const navigate = useNavigate();
+  const { user, signInEmail, signUpEmail, signInGoogle, linkGoogle, error } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
   const [cards, setCards] = useState<PublicCard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -139,13 +138,7 @@ export default function RolodexPage() {
 
   return (
     <div className="min-h-screen bg-space">
-      <Navbar
-        onAuthClick={() => setAuthOpen(true)}
-        onSignOut={() => { logOut(); navigate('/'); }}
-        userEmail={user?.email}
-        isAdmin={userData?.isAdmin}
-        defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug}
-      />
+      <Navbar onAuthClick={() => setAuthOpen(true)} />
 
       <main className="max-w-5xl mx-auto px-5 py-8">
         {/* Header */}

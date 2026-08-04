@@ -5,13 +5,13 @@ import DemoCard from '@/components/DemoCard';
 import Navbar from '@/components/Navbar';
 import AuthModal from '@/components/AuthModal';
 import Footer from '@/components/Footer';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/auth-context';
 import { useTheme } from '@/hooks/useThemeContext';
 import { createSquareCheckout, getPricing, type PricingConfig } from '@/lib/payments';
 import { toast } from 'sonner';
 
 export default function LandingPage() {
-  const { user, userData, signInEmail, signUpEmail, signInGoogle, linkGoogle, logOut, error } = useAuth();
+  const { user, userData, signInEmail, signUpEmail, signInGoogle, linkGoogle, error } = useAuth();
   const { resolved: themeResolved } = useTheme();
   const [authOpen, setAuthOpen] = useState(false);
   const [pricing, setPricing] = useState<PricingConfig>({ proPrice: 19, businessPrice: 39 });
@@ -29,13 +29,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-space">
-      <Navbar
-        onAuthClick={() => setAuthOpen(true)}
-        onSignOut={() => { logOut(); }}
-        userEmail={user?.email}
-        isAdmin={userData?.isAdmin}
-        defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug}
-      />
+      <Navbar onAuthClick={() => setAuthOpen(true)} />
 
       <main>
       {/* Hero */}

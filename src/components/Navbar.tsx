@@ -1,27 +1,42 @@
 import { useState } from 'react';
 import { Menu, X, Shield, Sun, Moon, Heart, Star, Bell } from 'lucide-react';
 import { useTheme } from '@/hooks/useThemeContext';
+import { useAuth } from '@/hooks/auth-context';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 interface NavbarProps {
   onAuthClick?: () => void;
-  onSignOut?: () => void;
-  userEmail?: string | null;
-  isAdmin?: boolean;
-  defaultCardSlug?: string;
-  secondaryCardSlug?: string;
   messageCount?: number;
 }
 
-export default function Navbar({ onAuthClick, onSignOut, userEmail, isAdmin, defaultCardSlug, secondaryCardSlug, messageCount = 0 }: NavbarProps) {
+export default function Navbar({ onAuthClick, messageCount = 0 }: NavbarProps) {
   const [open, setOpen] = useState(false);
   const { setTheme, resolved } = useTheme();
+  const { user, userData, logOut } = useAuth();
   const navigate = useNavigate();
+
+  const userEmail = user?.email;
+  const isAdmin = userData?.isAdmin;
+  const defaultCardSlug = userData?.defaultCardSlug;
+  const secondaryCardSlug = userData?.secondaryCardSlug;
+
+  const handleAuthClick = () => {
+    if (onAuthClick) {
+      onAuthClick();
+    } else {
+      navigate('/');
+    }
+  };
+
+  const handleSignOut = async () => {
+    await logOut();
+    navigate('/');
+  };
 
   const handleFavorite = (slug?: string) => {
     if (!userEmail) {
-      onAuthClick?.();
+      handleAuthClick();
       return;
     }
     if (slug) {
@@ -91,10 +106,10 @@ export default function Navbar({ onAuthClick, onSignOut, userEmail, isAdmin, def
             {userEmail ? (
               <>
                 <Link to="/dashboard" className="ml-2 btn btn-primary btn-md no-underline">My Cards</Link>
-                <button onClick={onSignOut} className="ml-2 btn btn-secondary btn-md">Sign Out</button>
+                <button onClick={handleSignOut} className="ml-2 btn btn-secondary btn-md">Sign Out</button>
               </>
             ) : (
-              <button onClick={onAuthClick} className="ml-2 btn btn-primary btn-md">Sign In</button>
+              <button onClick={handleAuthClick} className="ml-2 btn btn-primary btn-md">Sign In</button>
             )}
           </nav>
 
@@ -141,11 +156,11 @@ export default function Navbar({ onAuthClick, onSignOut, userEmail, isAdmin, def
                     )}
                   </Link>
                   <Link to="/rolodex" onClick={() => setOpen(false)} className="btn btn-secondary btn-md text-center no-underline">Directory</Link>
-                  <button onClick={() => { setOpen(false); onSignOut?.(); }} className="btn btn-secondary btn-md">Sign Out</button>
+                  <button onClick={() => { setOpen(false); handleSignOut(); }} className="btn btn-secondary btn-md">Sign Out</button>
                 </>
               ) : (
                 <>
-                  <button onClick={() => { setOpen(false); onAuthClick?.(); }} className="btn btn-primary btn-md">Sign In</button>
+                  <button onClick={() => { setOpen(false); handleAuthClick(); }} className="btn btn-primary btn-md">Sign In</button>
                   <Link to="/rolodex" onClick={() => setOpen(false)} className="btn btn-secondary btn-md text-center no-underline">Directory</Link>
                 </>
               )}

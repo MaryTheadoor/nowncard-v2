@@ -5,7 +5,7 @@ import { db } from '@/lib/firebase';
 import { downloadVCard, generateVCard } from '@/lib/vcard';
 import { escHtml, initials, fullName, orgLine, formatAddress, shareNative, detectDevice, PLAT, PAYMENT_PLAT } from '@/lib/utils';
 import { captureElementAsPNG } from '@/lib/image-export';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/auth-context';
 import { useCardTheme } from '@/hooks/useCardTheme';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -24,7 +24,7 @@ const IconCamera = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentCol
 
 export default function CardViewerPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { user, userData, signInEmail, signUpEmail, signInGoogle, linkGoogle, logOut, error: authError } = useAuth();
+  const { user, signInEmail, signUpEmail, signInGoogle, linkGoogle, error: authError } = useAuth();
   const [card, setCard] = useState<Card | null>(null);
   const [cardsDocId, setCardsDocId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -243,7 +243,7 @@ export default function CardViewerPage() {
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: pageBg }}>
       {!card.hideNavbar && (
-        <Navbar onAuthClick={() => setAuthOpen(true)} onSignOut={() => { logOut(); }} userEmail={user?.email} isAdmin={userData?.isAdmin} defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug} />
+        <Navbar onAuthClick={() => setAuthOpen(true)} />
       )}
 
       {/* Card stage */}

@@ -1,12 +1,9 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Mail, MessageSquare, Bug, ArrowRight, Home } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { useAuth } from '@/hooks/useAuth';
 
 export default function ContactPage() {
-  const { user, userData, logOut } = useAuth();
-  const navigate = useNavigate();
 
   const bugReportBody = encodeURIComponent(
     `Bug Report — NownCard\n\n` +
@@ -31,13 +28,7 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-space">
-      <Navbar
-        onAuthClick={() => navigate('/')}
-        onSignOut={() => { logOut(); navigate('/'); }}
-        userEmail={user?.email}
-        isAdmin={userData?.isAdmin}
-        defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug}
-      />
+      <Navbar />
 
       <main className="max-w-2xl mx-auto px-5 py-12">
         <div className="mb-8">

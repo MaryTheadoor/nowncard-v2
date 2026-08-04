@@ -1,21 +1,12 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { useAuth } from '@/hooks/useAuth';
 
 export default function PrivacyPage() {
-  const { user, userData, logOut } = useAuth();
-  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-space">
-      <Navbar
-        onAuthClick={() => navigate('/')}
-        onSignOut={() => { logOut(); navigate('/'); }}
-        userEmail={user?.email}
-        isAdmin={userData?.isAdmin}
-        defaultCardSlug={userData?.defaultCardSlug} secondaryCardSlug={userData?.secondaryCardSlug}
-      />
+      <Navbar />
 
       <main className="max-w-3xl mx-auto px-5 py-12">
         <div className="mb-8">
