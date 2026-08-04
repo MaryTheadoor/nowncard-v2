@@ -254,7 +254,7 @@ export default function EditorPage() {
       toast.success('Image uploaded');
     } catch (err) {
       console.error('[Upload] Failed:', err);
-      toast.error('Upload failed Ã¢â‚¬â€ please try again');
+      toast.error('Upload failed — please try again');
     }
   };
 
@@ -397,7 +397,7 @@ export default function EditorPage() {
     reader.onload = () => {
       try {
         const text = reader.result as string;
-        // Basic validation Ã¢â‚¬â€ must contain vCard markers
+        // Basic validation — must contain vCard markers
         if (!text.includes('BEGIN:VCARD') || !text.includes('END:VCARD')) {
           toast.error('File does not appear to be a valid vCard');
           return;
@@ -421,7 +421,7 @@ export default function EditorPage() {
     return (
       <div className="min-h-screen bg-space flex flex-col items-center justify-center text-ink-muted">
         <div className="w-6 h-6 border-2 border-line border-t-accent rounded-full animate-spin mb-4" />
-        <p>Loading editorÃ¢â‚¬Â¦</p>
+        <p>Loading editor…</p>
       </div>
     );
   }
@@ -527,7 +527,7 @@ export default function EditorPage() {
                 <label className={`flex items-center gap-2 text-sm ${isNewTeamCard ? 'text-accent' : 'text-ink-muted'} cursor-pointer`}>
                   <input type="checkbox" checked={card.isTeamCard ?? false} onChange={(e) => updateField('isTeamCard', e.target.checked)} disabled={isNewTeamCard} className="w-4 h-4 accent-accent rounded" />
                   Team card (doesn't count against member's plan limit)
-                  {isNewTeamCard && <span className="text-[10px] font-bold uppercase tracking-wider">Ã¢â‚¬â€ Pre-set</span>}
+                  {isNewTeamCard && <span className="text-[10px] font-bold uppercase tracking-wider">— Pre-set</span>}
                 </label>
               )}
               {(userData?.plan === 'pro' || userData?.plan === 'business') ? (
@@ -545,7 +545,7 @@ export default function EditorPage() {
                 <div className="flex items-center gap-2 text-sm text-ink-faint">
                   <input type="checkbox" disabled className="w-4 h-4 accent-accent rounded opacity-50" />
                   <span>Hide branding nav on card page</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-accent">Ã¢â‚¬â€ Pro</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-accent">— Pro</span>
                 </div>
               )}
             </div>
@@ -637,7 +637,7 @@ export default function EditorPage() {
                     />
                   </>
                 ) : (
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-accent">Ã¢â‚¬â€ Pro</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-accent">— Pro</span>
                 )}
                 {card.textColor && (
                   <button onClick={() => updateField('textColor', undefined)} className="text-xs text-ink-muted hover:text-ink underline">Reset</button>
@@ -694,7 +694,7 @@ export default function EditorPage() {
                     ) : (
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-ink">Manrope (default)</span>
-                        <span className="text-xs text-ink-faint">Ã¢â‚¬â€ Pro feature</span>
+                        <span className="text-xs text-ink-faint">— Pro feature</span>
                       </div>
                     )}
                   </div>
@@ -763,7 +763,7 @@ export default function EditorPage() {
                     ) : (
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-ink">16pt</span>
-                        <span className="text-xs text-ink-faint">Ã¢â‚¬â€ Pro feature</span>
+                        <span className="text-xs text-ink-faint">— Pro feature</span>
                       </div>
                     )}
                   </div>
@@ -788,7 +788,7 @@ export default function EditorPage() {
                         }}
                         className="text-ink-muted mt-1"
                       >
-                        {card.jobTitle || 'Product Designer'} Ã‚Â· {card.company || 'Acme Inc'}
+                        {card.jobTitle || 'Product Designer'} · {card.company || 'Acme Inc'}
                       </div>
                     </div>
                   )}
@@ -807,7 +807,7 @@ export default function EditorPage() {
                     <option>Cell</option><option>Work</option><option>Home</option><option>Fax</option>
                   </select>
                   <input value={p.number} onChange={(e) => updateField('phones', card.phones!.map((ph, idx) => idx === i ? { ...ph, number: e.target.value } : ph))} placeholder="Phone number" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-                  <button onClick={() => updateField('phones', card.phones!.filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">Ãƒâ€”</button>
+                  <button onClick={() => updateField('phones', card.phones!.filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">×</button>
                 </div>
               )) : null}
               <button onClick={() => updateField('phones', [...(card.phones || []), { type: 'Cell', number: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Phone</button>
@@ -818,7 +818,7 @@ export default function EditorPage() {
                     <option>Work</option><option>Personal</option>
                   </select>
                   <input value={e.address} onChange={(ev) => updateField('emails', card.emails!.map((em, idx) => idx === i ? { ...em, address: ev.target.value } : em))} placeholder="Email address" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-                  <button onClick={() => updateField('emails', card.emails!.filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">Ãƒâ€”</button>
+                  <button onClick={() => updateField('emails', card.emails!.filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">×</button>
                 </div>
               )) : null}
               <button onClick={() => updateField('emails', [...(card.emails || []), { type: 'Work', address: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Email</button>
@@ -829,7 +829,7 @@ export default function EditorPage() {
                     <option>Work</option><option>Personal</option><option>Portfolio</option><option>Blog</option>
                   </select>
                   <input value={w.url} onChange={(e) => updateField('websites', card.websites!.map((wb, idx) => idx === i ? { ...wb, url: e.target.value } : wb))} placeholder="https://example.com" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-                  <button onClick={() => updateField('websites', card.websites!.filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">Ãƒâ€”</button>
+                  <button onClick={() => updateField('websites', card.websites!.filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">×</button>
                 </div>
               )) : null}
               <button onClick={() => updateField('websites', [...(card.websites || []), { type: 'Work', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Website</button>
@@ -881,7 +881,7 @@ export default function EditorPage() {
                     />
                   )}
                   <input value={s.url} onChange={(e) => updateField('socialLinks', (card.socialLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, url: e.target.value } : sl))} placeholder="URL" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-                  <button onClick={() => updateField('socialLinks', (card.socialLinks as SocialLink[]).filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">Ãƒâ€”</button>
+                  <button onClick={() => updateField('socialLinks', (card.socialLinks as SocialLink[]).filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">×</button>
                 </div>
               ))}
               <button onClick={() => updateField('socialLinks', [...(Array.isArray(card.socialLinks) ? card.socialLinks : []), { platform: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Social</button>
@@ -912,7 +912,7 @@ export default function EditorPage() {
                     />
                   )}
                   <input value={s.url} onChange={(e) => updateField('paymentLinks', (card.paymentLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, url: e.target.value } : sl))} placeholder="URL" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-                  <button onClick={() => updateField('paymentLinks', (card.paymentLinks as SocialLink[]).filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">Ãƒâ€”</button>
+                  <button onClick={() => updateField('paymentLinks', (card.paymentLinks as SocialLink[]).filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">×</button>
                 </div>
               ))}
               <button onClick={() => updateField('paymentLinks', [...(Array.isArray(card.paymentLinks) ? card.paymentLinks : []), { platform: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Payment Link</button>
@@ -966,7 +966,7 @@ export default function EditorPage() {
                     <button type="button" onClick={() => updateField('backgroundImage', undefined)} className="text-xs text-danger font-bold border border-line rounded-lg px-2 py-1 hover:border-danger transition">Remove</button>
                   </div>
                 )}
-                {/* Background tuning controls Ã¢â‚¬â€ always visible */}
+                {/* Background tuning controls — always visible */}
                 <div className={`mt-2 space-y-3 border-t border-line pt-3 ${!card.backgroundImage ? 'opacity-50 pointer-events-none' : ''}`}>
                   {!card.backgroundImage && (
                     <p className="text-[11px] text-ink-faint">Upload a background photo to enable these controls</p>
@@ -1060,7 +1060,7 @@ export default function EditorPage() {
             </>
           )}
           <button onClick={handleSave} disabled={saving} className={`btn btn-md text-xs md:text-sm rounded-full gap-1.5 ${id ? 'btn-secondary border-accent text-accent hover:bg-accent hover:text-space' : 'btn-primary'}`}>
-            {saving ? (<>Savingâ€¦<span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" /></>) : 'Save'}
+            {saving ? (<>Saving…<span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" /></>) : 'Save'}
           </button>
         </div>
       </div>
