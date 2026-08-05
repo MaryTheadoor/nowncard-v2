@@ -75,7 +75,7 @@ service cloud.firestore {
         && request.resource.data.plan in ['pro', 'business']
         && request.resource.data.price is number
         && request.resource.data.price > 0
-        && request.resource.data.keys().hasAll(['uid', 'plan', 'price', 'used', 'createdAt', 'expiresAt']);
+        && request.resource.data.keys().hasAll(['uid', 'plan', 'price', 'paymentCompleted', 'createdAt', 'expiresAt']);
       allow read: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
       allow update: if isAdmin();
       allow delete: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());

@@ -1,5 +1,5 @@
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { collection, addDoc, serverTimestamp, query, where, getDocs, doc, updateDoc, deleteDoc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, serverTimestamp, query, where, getDocs, doc, deleteDoc, getDoc, setDoc, orderBy, limit, runTransaction } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 // ---------------------------------------------------------------------------
@@ -61,33 +61,57 @@ export async function createSquareCheckout(
 }
 
 // ---------------------------------------------------------------------------
-// Apply pending upgrades (used by SuccessPage fallback)
+// Apply pending upgrades (used by SuccessPage fallback + Dashboard)
 // ---------------------------------------------------------------------------
-export async function applyPendingUpgrades(uid: string) {
-  const snap = await getDocs(query(collection(db, 'pendingUpgrades'), where('uid', '==', uid)));
+// pendingId: apply the exact pending doc (SuccessPage, via activeCheckout).
+// Otherwise (Dashboard fallback): apply the newest pending doc that the webhook
+// has flagged as paid — never applies an abandoned/unpaid checkout.
+export async function applyPendingUpgrades(uid: string, pendingId?: string) {
+  if (pendingId) {
+    const applied = await applyPendingDoc(uid, pendingId, 'auto_success_page');
+    return { applied: applied ? 1 : 0 };
+  }
+
+  const snap = await getDocs(query(
+    collection(db, 'pendingUpgrades'),
+    where('uid', '==', uid),
+    where('paymentCompleted', '==', true),
+    orderBy('createdAt', 'desc'),
+    limit(1),
+  ));
   if (snap.empty) return { applied: 0 };
 
-  let applied = 0;
-  for (const d of snap.docs) {
-    const data = d.data();
-    await addDoc(collection(db, 'upgrades'), {
+  const applied = await applyPendingDoc(uid, snap.docs[0].id, 'auto_dashboard');
+  return { applied: applied ? 1 : 0 };
+}
+
+async function applyPendingDoc(uid: string, pendingId: string, source: string): Promise<boolean> {
+  let applied = false;
+  await runTransaction(db, async (tx) => {
+    const ref = doc(db, 'pendingUpgrades', pendingId);
+    const cur = await tx.get(ref);
+    if (!cur.exists() || cur.data().uid !== uid) return;
+
+    const data = cur.data();
+    tx.set(doc(collection(db, 'upgrades')), {
       uid,
       plan: data.plan,
       price: data.price,
       orderId: data.orderId || null,
       checkoutUrl: data.checkoutUrl || null,
-      createdAt: serverTimestamp(),
+      createdAt: data.createdAt || serverTimestamp(),
       appliedAt: serverTimestamp(),
-      source: 'auto_success_page',
+      source,
     });
-    await updateDoc(doc(db, 'users', uid), {
+    tx.delete(ref);
+    tx.update(doc(db, 'users', uid), {
       plan: data.plan,
       planUpdatedAt: serverTimestamp(),
+      activeCheckout: null,
     });
-    await deleteDoc(d.ref);
-    applied++;
-  }
-  return { applied };
+    applied = true;
+  });
+  return applied;
 }
 
 export async function cancelPendingUpgrades(uid: string) {

@@ -129,7 +129,7 @@ export default function AdminPage() {
   // ---------- Load Pending ----------
   const loadPending = async () => {
     try {
-      const snap = await getDocs(query(collection(db, 'pendingUpgrades'), where('used', '==', false), limit(50)));
+      const snap = await getDocs(query(collection(db, 'pendingUpgrades'), orderBy('createdAt', 'desc'), limit(50)));
       const list: PendingUpgrade[] = [];
       const uidSet = new Set<string>();
       for (const d of snap.docs) {

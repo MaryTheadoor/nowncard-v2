@@ -190,30 +190,51 @@ webhookApp.post('/', async (req, res) => {
 
         const totalMoney = payment.total_money || { amount: pending.price != null ? Math.round(pending.price * 100) : 0, currency: 'USD' };
 
-        await db.collection('upgrades').add({
-          uid: pending.uid,
-          plan: pending.plan,
-          price: pending.price,
-          paymentId: payment.id,
-          orderId: orderId,
-          amountPaid: totalMoney.amount,
-          currency: totalMoney.currency,
-          cardBrand: payment.card_details?.card?.card_brand || null,
-          lastFour: payment.card_details?.card?.last_4 || null,
-          receiptUrl: payment.receipt_url || null,
-          appliedAt: admin.firestore.FieldValue.serverTimestamp(),
-          source: 'square_webhook',
+        // Mark as paid first so the client fallback (SuccessPage/Dashboard) can
+        // honor a completed payment even if the apply transaction below fails.
+        // Tolerate the doc already being consumed by a concurrent apply.
+        try {
+          await pendingDoc.ref.update({ paymentCompleted: true });
+        } catch {
+          // Already applied elsewhere — the transaction below will confirm.
+        }
+
+        // Apply atomically: upgrade row + pending deletion + plan update in one
+        // transaction. Re-reading the pending doc inside the transaction makes
+        // this idempotent — Square retries and concurrent client applies will
+        // find the doc already gone and skip.
+        const outcome = await db.runTransaction(async (tx) => {
+          const current = await tx.get(pendingDoc.ref);
+          if (!current.exists) return 'already-applied';
+          const data = current.data()!;
+
+          tx.set(db.collection('upgrades').doc(), {
+            uid: data.uid,
+            plan: data.plan,
+            price: data.price,
+            paymentId: payment.id,
+            orderId,
+            amountPaid: totalMoney.amount,
+            currency: totalMoney.currency,
+            cardBrand: payment.card_details?.card?.card_brand || null,
+            lastFour: payment.card_details?.card?.last_4 || null,
+            receiptUrl: payment.receipt_url || null,
+            appliedAt: admin.firestore.FieldValue.serverTimestamp(),
+            source: 'square_webhook',
+          });
+
+          tx.delete(pendingDoc.ref);
+          tx.update(db.collection('users').doc(data.uid), {
+            plan: data.plan,
+            planUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            activeCheckout: null,
+          });
+
+          return 'applied';
         });
 
-        await pendingDoc.ref.delete();
-
-        await db.collection('users').doc(pending.uid).update({
-          plan: pending.plan,
-          planUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
-
-        console.log(`✅ Applied ${pending.plan} to user ${pending.uid} via webhook — ${formatCents(totalMoney.amount)}`);
-        res.status(200).send('OK');
+        console.log(`✅ ${outcome === 'applied' ? 'Applied' : 'Skipped (already applied)'} ${pending.plan} to user ${pending.uid} via webhook — ${formatCents(totalMoney.amount)}`);
+        res.status(200).send(outcome === 'applied' ? 'OK' : 'OK (already applied)');
         return;
       }
 
@@ -312,23 +333,36 @@ export const createCheckout = onCall(
 
     const orderId = result.paymentLink?.orderId;
     const checkoutUrl = result.paymentLink?.url;
+    const paymentLinkId = result.paymentLink?.id || null;
 
     if (!checkoutUrl) {
       throw new HttpsError('internal', 'Failed to create payment link URL');
     }
 
-    await db.collection('pendingUpgrades').add({
+    const pendingRef = await db.collection('pendingUpgrades').add({
       uid,
       plan,
       price,
       orderId: orderId || null,
-      paymentLinkId: result.paymentLink?.id || null,
+      paymentLinkId,
       checkoutUrl,
       cancelUrl: cancelUrl || null,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       expiresAt: admin.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)),
-      used: false,
+      paymentCompleted: false,
     });
+
+    // Point the user's active checkout at this pending doc so the /success page
+    // can apply the exact upgrade that was paid (the redirect URL cannot carry
+    // the link id — it only exists after this call).
+    await db.collection('users').doc(uid).set({
+      activeCheckout: {
+        pendingId: pendingRef.id,
+        plan,
+        paymentLinkId,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+    }, { merge: true });
 
     return { url: checkoutUrl, orderId: orderId || null };
   } catch (err) {

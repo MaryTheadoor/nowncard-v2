@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import Footer from '@/components/Footer';
 import { applyPendingUpgrades } from '@/lib/payments';
 import { useAuth } from '@/hooks/auth-context';
+import { db } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 type Status = 'checking' | 'applying' | 'done' | 'no-pending' | 'error' | 'signin-required';
 
@@ -12,9 +14,15 @@ export default function SuccessPage() {
 
   useEffect(() => {
     if (authLoading || !user) return;
-    applyPendingUpgrades(user.uid)
-      .then((r) => setUpgradeResult(r))
-      .catch(() => setUpgradeResult('error'));
+    (async () => {
+      try {
+        const userSnap = await getDoc(doc(db, 'users', user.uid));
+        const active = userSnap.data()?.activeCheckout as { pendingId?: string } | undefined;
+        setUpgradeResult(await applyPendingUpgrades(user.uid, active?.pendingId));
+      } catch {
+        setUpgradeResult('error');
+      }
+    })();
   }, [user, authLoading]);
 
   let status: Status;
