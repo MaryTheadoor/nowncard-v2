@@ -9,7 +9,7 @@ import { useCardTheme } from '@/hooks/useCardTheme';
 const DEMO_CARD: Partial<Card> = {
   id: 'demo',
   slug: 'jane-doe',
-  prefix: 'Dr.',
+  prefix: '',
   firstName: 'Jane',
   lastName: 'Doe',
   jobTitle: 'Product Designer',

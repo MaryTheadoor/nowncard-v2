@@ -49,7 +49,9 @@ export default function LandingPage() {
 
       <main>
       {/* Hero */}
-      <section className="text-center px-6 pt-16 pb-12 max-w-2xl mx-auto">
+      <section className="relative overflow-x-clip text-center px-6 pt-16 pb-12 max-w-2xl mx-auto">
+        <div aria-hidden className="pointer-events-none absolute -z-10 -inset-x-24 -top-24 h-[28rem] bg-[radial-gradient(ellipse_at_top,rgba(212,163,74,0.14),transparent_60%)]" />
+        <div aria-hidden className="pointer-events-none absolute -z-10 -inset-x-24 top-32 h-[28rem] bg-[radial-gradient(ellipse_at_top,rgba(74,144,217,0.10),transparent_60%)]" />
         <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-tile border border-line rounded-full text-accent text-xs font-bold uppercase tracking-wider mb-8">
           Your card. Your brand. Anywhere.
         </div>
@@ -78,6 +80,7 @@ export default function LandingPage() {
       {/* Pain Points */}
       <section className="bg-space-2 py-16 px-6">
         <div className="max-w-3xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/25 text-rose-500 dark:text-rose-400 text-[11px] font-bold uppercase tracking-wider mb-4">Can you relate?</div>
           <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-10">Does This Sound Familiar?</h2>
           <div className="space-y-5">
             {[
@@ -109,18 +112,19 @@ export default function LandingPage() {
       {/* Features */}
       <section id="features" className="bg-space-2 py-16 px-6">
         <div className="max-w-5xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/25 text-sky-500 dark:text-sky-400 text-[11px] font-bold uppercase tracking-wider mb-4">Features</div>
           <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-10">Everything You Need</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { icon: <Link2 className="w-5 h-5" />, title: 'Shareable Link', desc: 'Every card gets a clean URL. Share it anywhere — text, email, social, or embed it in your signature.' },
-              { icon: <QrCode className="w-5 h-5" />, title: 'QR Code', desc: 'Instant QR for every card. Print it on flyers, posters, or your phone wallpaper.' },
-              { icon: <Download className="w-5 h-5" />, title: 'vCard Export', desc: 'One tap adds your contact to any phone. Works with Apple, Android, and Outlook.' },
-              { icon: <Palette className="w-5 h-5" />, title: 'Custom Design', desc: 'Choose your theme, accent color, fonts, and layout. Make it unmistakably yours.' },
-              { icon: <Smartphone className="w-5 h-5" />, title: 'NFC Ready', desc: 'Tap-to-share with any NFC-enabled phone. Program physical tags to share instantly.' },
-              { icon: <Leaf className="w-5 h-5" />, title: 'Eco Friendly', desc: 'Skip the paper waste. Every digital card saves resources compared to printed cards that often end up in the trash.' },
+              { icon: <Link2 className="w-5 h-5" />, title: 'Shareable Link', desc: 'Every card gets a clean URL. Share it anywhere — text, email, social, or embed it in your signature.', chip: 'text-amber-400 bg-amber-500/10 border border-amber-500/25' },
+              { icon: <QrCode className="w-5 h-5" />, title: 'QR Code', desc: 'Instant QR for every card. Print it on flyers, posters, or your phone wallpaper.', chip: 'text-sky-400 bg-sky-500/10 border border-sky-500/25' },
+              { icon: <Download className="w-5 h-5" />, title: 'vCard Export', desc: 'One tap adds your contact to any phone. Works with Apple, Android, and Outlook.', chip: 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/25' },
+              { icon: <Palette className="w-5 h-5" />, title: 'Custom Design', desc: 'Choose your theme, accent color, fonts, and layout. Make it unmistakably yours.', chip: 'text-violet-400 bg-violet-500/10 border border-violet-500/25' },
+              { icon: <Smartphone className="w-5 h-5" />, title: 'NFC Ready', desc: 'Tap-to-share with any NFC-enabled phone. Program physical tags to share instantly.', chip: 'text-teal-400 bg-teal-500/10 border border-teal-500/25' },
+              { icon: <Leaf className="w-5 h-5" />, title: 'Eco Friendly', desc: 'Skip the paper waste. Every digital card saves resources compared to printed cards that often end up in the trash.', chip: 'text-lime-400 bg-lime-500/10 border border-lime-500/25' },
             ].map((f) => (
               <div key={f.title} className="bg-tile border border-line rounded-2xl p-5 text-left hover:-translate-y-1 hover:shadow-surface transition">
-                <div className="w-10 h-10 rounded-xl bg-tile-soft border border-line flex items-center justify-center text-accent mb-4">{f.icon}</div>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${f.chip}`}>{f.icon}</div>
                 <h3 className="text-base font-bold mb-2">{f.title}</h3>
                 <p className="text-sm text-ink-muted leading-relaxed">{f.desc}</p>
               </div>
@@ -146,6 +150,7 @@ export default function LandingPage() {
       {featuredReviews.length > 0 && (
         <section id="reviews" className="bg-space-2 py-16 px-6">
           <div className="max-w-5xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/25 text-violet-500 dark:text-violet-400 text-[11px] font-bold uppercase tracking-wider mb-4">Social proof</div>
             <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-3">Loved by Professionals</h2>
             <p className="text-ink-muted text-center mb-10">Real feedback from the people using NownCard every day.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -188,6 +193,7 @@ export default function LandingPage() {
       {/* Pricing */}
       <section id="pricing" className="bg-space-2 py-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/30 text-accent text-[11px] font-bold uppercase tracking-wider mb-4">Pricing</div>
           <h2 className="text-2xl md:text-3xl font-extrabold mb-2">Simple Plans</h2>
           <p className="text-ink-muted mb-10">Start free. Upgrade when you need more.</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-left">
