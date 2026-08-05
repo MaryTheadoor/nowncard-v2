@@ -67,6 +67,21 @@ function verifySquareSignature(signature: string, notificationUrl: string, rawBo
   }
 }
 
+// Square signs the payload over the EXACT URL it posts to (plus the raw body).
+// Prefer the explicitly-configured SQUARE_WEBHOOK_URL param; otherwise derive a
+// best-effort URL from the request and log so it can be pinned down if it drifts.
+function resolveNotificationUrl(req: express.Request): string {
+  const explicit = squareWebhookUrl.value();
+  if (explicit) return explicit.replace(/\/+$/, '');
+
+  const host = (req.headers.host as string) || req.hostname || '';
+  const path = (req.originalUrl || req.url || '').split('?')[0];
+  if (!host) {
+    console.warn('⚠️ Cannot derive Square webhook URL. Set the SQUARE_WEBHOOK_URL param so HMAC verification matches what Square registers.');
+  }
+  return `https://${host}${path}`;
+}
+
 function formatCents(amount: number): string {
   return `$${(amount / 100).toFixed(2)}`;
 }
@@ -92,10 +107,11 @@ webhookApp.post('/', async (req, res) => {
     return;
   }
 
-  const notificationUrl = squareWebhookUrl.value() || `https://${req.headers.host || req.hostname}${req.originalUrl || req.url}`;
+  const notificationUrl = resolveNotificationUrl(req);
 
   if (!verifySquareSignature(signature, notificationUrl, rawBody)) {
     console.warn('Square webhook signature verification failed', { notificationUrl });
+    console.warn('Hint: ensure SQUARE_WEBHOOK_URL equals the webhook URL registered in the Square dashboard (scheme, host, and path must match exactly).');
     res.status(403).send('Invalid signature');
     return;
   }
