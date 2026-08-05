@@ -234,9 +234,10 @@ async function resolveLocationId(): Promise<string> {
   if (SQUARE_LOCATION_ID) return SQUARE_LOCATION_ID;
   try {
     const { result } = await squareClient.locationsApi.listLocations();
-    const loc = result.locations?.[0];
+    const active = result.locations?.find((l) => l.status === 'ACTIVE');
+    const loc = active || result.locations?.[0];
     if (loc?.id) {
-      console.log(`Auto-detected Square location: ${loc.id} (${loc.name})`);
+      console.log(`Resolved Square location: ${loc.id} (${loc.name})${active ? '' : ' — fallback: no ACTIVE location found'}`);
       return loc.id;
     }
   } catch (err) {
@@ -248,7 +249,9 @@ async function resolveLocationId(): Promise<string> {
 // ---------------------------------------------------------------------------
 // Create Square Checkout URL (callable from client)
 // ---------------------------------------------------------------------------
-export const createCheckout = onCall(async (request) => {
+export const createCheckout = onCall(
+  { secrets: [squareAccessToken] },
+  async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Sign in required');
   }
@@ -374,7 +377,9 @@ export const getPaymentHistory = onCall(async (request) => {
 // ---------------------------------------------------------------------------
 // Get Square Payment / Order Details (Phase 2 — for admin deep-dive)
 // ---------------------------------------------------------------------------
-export const getPaymentDetails = onCall(async (request) => {
+export const getPaymentDetails = onCall(
+  { secrets: [squareAccessToken] },
+  async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Sign in required');
   }
