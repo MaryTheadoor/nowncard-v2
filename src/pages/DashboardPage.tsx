@@ -11,6 +11,7 @@ import type { Appointment, Card, Message, Review } from '@/types';
 import { toast } from 'sonner';
 
 import { createDemoCard } from '@/lib/demo';
+import { applyPendingUpgrades } from '@/lib/payments';
 import { initials, getCardLimit, timeAgo } from '@/lib/utils';
 import Footer from '@/components/Footer';
 
@@ -80,6 +81,7 @@ export default function DashboardPage() {
 
     (async () => {
       try {
+        applyPendingUpgrades(user.uid).catch(() => {});
         const userSnap = await getDoc(doc(db, 'users', user.uid));
         if (userSnap.exists()) setPlan(userSnap.data().plan || 'free');
 

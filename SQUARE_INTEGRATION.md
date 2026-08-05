@@ -1,48 +1,59 @@
 # Square Integration Guide
 
-## What's Already Working (Phase 1 — Client-Side)
+## How Checkout Works Today
 
-The checkout flow is **fully automated end-to-end** with these security improvements:
+The flow is fully automated end-to-end and server-authoritative:
 
-1. **State tokens** — Every checkout gets a random 32-char token stored in Firestore
-2. **Verified success page** — `/success?state=abc123` checks the token before applying the upgrade
-3. **30-minute expiry** — Pending upgrades auto-expire and delete themselves
-4. **Lazy apply on Dashboard** — If a user pays but never hits `/success`, the upgrade applies automatically when they visit Dashboard
-5. **One-time use** — State tokens can only be consumed once
+1. **Dynamic checkout** — Pricing is looked up server-side by the `createCheckout` Cloud Function. The client never supplies the price, so it can't be tampered with.
+2. **Payment link** — `createCheckout` creates a Square Payment Link and records a `pendingUpgrades` doc (`uid`, `plan`, `price`, `paymentLinkId`, `expiresAt`) keyed to the signed-in user.
+3. **Webhook auto-activation** — Square posts `payment.created` / `payment.updated` to the `squareWebhook` function. When status is `COMPLETED`, it writes an `upgrades` record, deletes the `pendingUpgrades` doc, and sets the user's plan. Requests are verified with an HMAC-SHA256 signature (header `X-Square-Hmacsha256-Signature`) over the notification URL + raw body.
+4. **Lazy apply** — If the webhook is missed or the user closes the tab, the upgrade still applies when they visit `/success` or `/dashboard` (`applyPendingUpgrades` applies any of the user's remaining pending upgrades).
+5. **Cancellation** — `/cancel` deletes the user's pending upgrades.
+6. **Expiry** — Pending upgrades expire after 7 days; `cleanupPendingUpgrades` (scheduled, every 6h) deletes them.
 
-## Square Dashboard Setup (for Phase 2 — Webhooks)
+### Square Dashboard Setup
 
-### 1. Get your credentials
 1. Go to https://developer.squareup.com/apps
 2. Create or open your NownCard app
 3. Switch to **Sandbox** for testing, **Production** for live
 4. Copy:
-   - **Application ID**
    - **Access Token** (Sandbox / Production)
    - **Webhook Signature Key** (under Webhooks section)
+   - **Location ID** (Locations → one of your locations)
 
-### 2. Configure environment variables
+### Configure Firebase Functions
 
 ```bash
-# Set Firebase Functions config
-firebase functions:config:set square.access_token="YOUR_ACCESS_TOKEN"
-firebase functions:config:set square.environment="sandbox"
-firebase functions:config:set square.webhook_signature_key="YOUR_SIGNATURE_KEY"
+# Secrets (used for Square API + webhook HMAC)
+firebase functions:secrets:set SQUARE_ACCESS_TOKEN
+firebase functions:secrets:set SQUARE_WEBHOOK_SIGNATURE_KEY
+
+# Params
+# SQUARE_WEBHOOK_URL — the EXACT public URL Square POSTs to (e.g. https://us-central1-vcard-studio-314.cloudfunctions.net/squareWebhook).
+#   Used for HMAC verification; if unset it is derived from the request, which only matches if the request host is identical.
+# SQUARE_LOCATION_ID — pin a location to avoid the auto-detection API call.
+firebase functions:params:set SQUARE_WEBHOOK_URL=...
+firebase functions:params:set SQUARE_LOCATION_ID=...
+
+# Or for local dev, via functions/.env (see functions/.env.example):
+# SQUARE_ACCESS_TOKEN=...
+# SQUARE_WEBHOOK_SIGNATURE_KEY=...
+# SQUARE_LOCATION_ID=...
 ```
 
-### 3. Register the webhook endpoint
+### Register the webhook endpoint
 
 In the Square Developer Dashboard:
 1. Go to **Webhooks** → **Subscriptions**
 2. Click **Create Subscription**
 3. Set URL to: `https://us-central1-vcard-studio-314.cloudfunctions.net/squareWebhook`
-   (Replace with your actual Firebase Functions URL)
+   (must match `SQUARE_WEBHOOK_URL`)
 4. Select events:
    - `payment.created`
    - `payment.updated`
 5. Save
 
-### 4. Deploy Cloud Functions
+### Deploy Cloud Functions
 
 ```bash
 cd functions
@@ -51,9 +62,9 @@ npm run build
 firebase deploy --only functions
 ```
 
-### 5. Test the webhook (optional)
+### Test with sandbox
 
-Square provides webhook test events in the dashboard, or you can use the sandbox test cards:
+Sandbox test cards:
 - **Visa**: `4111 1111 1111 1111`
 - **Expiry**: Any future date
 - **CVV**: Any 3 digits
@@ -62,33 +73,34 @@ Square provides webhook test events in the dashboard, or you can use the sandbox
 ## Architecture
 
 ```
-┌─────────────┐     ┌──────────────┐     ┌─────────────┐
-│   Landing   │────▶│ Square Link  │────▶│   Square    │
-│   (Upgrade) │     │  + state     │     │   Checkout  │
-└─────────────┘     └──────────────┘     └─────────────┘
-                                                │
-                                                │ redirect
-                                                ▼
-┌─────────────┐     ┌──────────────┐     ┌─────────────┐
-│  Dashboard  │◀────│   /success   │◀────│   User      │
-│ (lazy apply)│     │ verify state │     │ completes   │
-└─────────────┘     └──────────────┘     └─────────────┘
-                            │
-                            │ webhook (Phase 2)
-                            ▼
-                     ┌──────────────┐
-                     │ Cloud Function│
-                     │  squareWebhook│
-                     └──────────────┘
+┌─────────────┐   createCheckout   ┌──────────────┐   redirect   ┌─────────────┐
+│  Landing    │ ─────────────────▶ │  Square Link │ ────────────▶ │    Square   │
+│  (Upgrade)  │  (server pricing)  │  + pendingUpgrades           │   Checkout  │
+└─────────────┘                    └──────────────┘               └─────────────┘
+                                                                        │
+                                  webhook (payment.created/updated)     │ redirect
+                                        ▼                               ▼
+                              ┌─────────────────┐                ┌─────────────┐
+                              │ squareWebhook   │                │  /success   │
+                              │ HMAC verify →   │                │  applyPending│
+                              │ apply plan      │                │  Upgrades   │
+                              └─────────────────┘                └─────────────┘
+                                        │                               │
+                                        ▼                               ▼
+                              ┌─────────────────────────────────────────────┐
+                              │  /dashboard lazy-apply (safety net)         │
+                              └─────────────────────────────────────────────┘
 ```
 
-## Files Changed
+## Files
 
-| File | Change |
-|------|--------|
-| `src/lib/payments.ts` | Added state tokens, verification, expiry, lazy apply |
-| `src/pages/LandingPage.tsx` | Passes `state` token in Square redirect URL |
-| `src/pages/SuccessPage.tsx` | Verifies state token before applying upgrade |
-| `src/pages/DashboardPage.tsx` | Calls `lazyApplyPendingUpgrade` on mount |
-| `functions/src/index.ts` | Cloud Function webhook handler skeleton |
-| `scripts/test-square.js` | CLI script to test Square API credentials |
+| File | Role |
+|------|------|
+| `functions/src/index.ts` | `createCheckout`, `squareWebhook`, `getPaymentDetails`, `getPaymentHistory`, `cleanupPendingUpgrades` |
+| `src/lib/payments.ts` | Client wrappers: `createSquareCheckout`, `applyPendingUpgrades`, `cancelPendingUpgrades`, `getPaymentHistory`, `getPaymentDetails`, pricing read/write |
+| `src/pages/LandingPage.tsx` | Pricing section → `createSquareCheckout` |
+| `src/pages/SuccessPage.tsx` | `applyPendingUpgrades` on load |
+| `src/pages/CancelPage.tsx` | `cancelPendingUpgrades` on load |
+| `src/pages/DashboardPage.tsx` | Lazy-apply on mount |
+| `src/pages/AdminPage.tsx` | Pending approvals, upgrade history, pricing editor |
+| `firestore.rules` | `pendingUpgrades` create validation + admin management |

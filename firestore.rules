@@ -87,7 +87,7 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Upgrades: readable by admin; winnable by owner (via success page) or admin
+    // Upgrades: readable by admin; writable by owner (via success page) or admin
     match /upgrades/{docId} {
       allow read: if isAdmin();
       allow create: if request.auth != null && (request.resource.data.uid == request.auth.uid || isAdmin());
