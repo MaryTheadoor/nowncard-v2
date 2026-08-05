@@ -175,7 +175,7 @@ export default function DemoCard({ forceLight }: DemoCardProps) {
                 <button onClick={(e) => { e.stopPropagation(); handleSave(); }} className="btn btn-primary btn-md">
                   Save Contact
                 </button>
-                <button onClick={(e) => { e.stopPropagation(); handleShare(); }} className={`btn btn-secondary btn-md ${tc.textPrimary}`} style={{ color: primaryTextColor }}>
+                <button onClick={(e) => { e.stopPropagation(); handleShare(); }} className="btn btn-secondary btn-md">
                   Share
                 </button>
               </div>

@@ -677,7 +677,7 @@ export default function AdminPage() {
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
                           <button onClick={() => deleteCard(c.id)}
-                            className="p-1.5 rounded-lg hover:bg-red-500/10 text-ink-muted hover:text-danger transition" title="Delete">
+                            className="btn btn-danger btn-xs" title="Delete">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </td>
@@ -727,7 +727,7 @@ export default function AdminPage() {
                       >
                         {r.featured ? 'Featured' : 'Feature'}
                       </button>
-                      <button onClick={() => deleteReview(r.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-ink-muted hover:text-danger transition" title="Delete">
+                      <button onClick={() => deleteReview(r.id)} className="btn btn-danger btn-xs" title="Delete">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>

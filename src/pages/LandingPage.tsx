@@ -80,8 +80,7 @@ export default function LandingPage() {
       {/* Pain Points */}
       <section className="bg-space-2 py-16 px-6">
         <div className="max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/25 text-rose-500 dark:text-rose-400 text-[11px] font-bold uppercase tracking-wider mb-4">Can you relate?</div>
-          <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-10">Does This Sound Familiar?</h2>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-center text-rose-500 dark:text-rose-400 mb-10">Does This Sound Familiar?</h2>
           <div className="space-y-5">
             {[
               {
@@ -112,8 +111,7 @@ export default function LandingPage() {
       {/* Features */}
       <section id="features" className="bg-space-2 py-16 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/25 text-sky-500 dark:text-sky-400 text-[11px] font-bold uppercase tracking-wider mb-4">Features</div>
-          <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-10">Everything You Need</h2>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-center text-sky-500 dark:text-sky-400 mb-10">Everything You Need</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
               { icon: <Link2 className="w-5 h-5" />, title: 'Shareable Link', desc: 'Every card gets a clean URL. Share it anywhere — text, email, social, or embed it in your signature.', chip: 'text-amber-400 bg-amber-500/10 border border-amber-500/25' },
@@ -150,8 +148,7 @@ export default function LandingPage() {
       {featuredReviews.length > 0 && (
         <section id="reviews" className="bg-space-2 py-16 px-6">
           <div className="max-w-5xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/25 text-violet-500 dark:text-violet-400 text-[11px] font-bold uppercase tracking-wider mb-4">Social proof</div>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-3">Loved by Professionals</h2>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-center text-violet-500 dark:text-violet-400 mb-3">Loved by Professionals</h2>
             <p className="text-ink-muted text-center mb-10">Real feedback from the people using NownCard every day.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {featuredReviews.map((r) => (
@@ -193,8 +190,7 @@ export default function LandingPage() {
       {/* Pricing */}
       <section id="pricing" className="bg-space-2 py-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/30 text-accent text-[11px] font-bold uppercase tracking-wider mb-4">Pricing</div>
-          <h2 className="text-2xl md:text-3xl font-extrabold mb-2">Simple Plans</h2>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-accent mb-2">Simple Plans</h2>
           <p className="text-ink-muted mb-10">Start free. Upgrade when you need more.</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-left">
             <div className="bg-tile border border-line rounded-2xl p-7 hover:-translate-y-1 hover:shadow-surface transition">

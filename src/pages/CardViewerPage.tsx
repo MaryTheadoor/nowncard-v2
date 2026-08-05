@@ -388,7 +388,7 @@ export default function CardViewerPage() {
                   <button onClick={(e) => { e.stopPropagation(); downloadVCard(card, undefined, cardUrl); track('save'); if (cardsDocId) { try { updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } } try { setDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }, { merge: true }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }} className="btn btn-primary btn-md">
                     Save Contact
                   </button>
-                  <button onClick={(e) => { e.stopPropagation(); const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); } else { promise.then(() => track('share')).catch(() => setShareOpen(true)); } }} className={`btn btn-secondary btn-md ${tc.textPrimary}`} style={{ color: primaryTextColor }}>
+                  <button onClick={(e) => { e.stopPropagation(); const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); } else { promise.then(() => track('share')).catch(() => setShareOpen(true)); } }} className="btn btn-secondary btn-md">
                     Share
                   </button>
                 </div>
@@ -403,7 +403,7 @@ export default function CardViewerPage() {
         {/* Action bar — pinned below card */}
         <div className="flex flex-wrap gap-2.5 justify-center w-full">
           {isOwner && (
-            <Link to={`/editor/${card.id}`} className="btn btn-secondary btn-lg no-underline" style={{ color: accent, boxShadow: `0 2px 0 ${accent}` }}>
+            <Link to={`/editor/${card.id}`} className="btn btn-secondary btn-lg no-underline">
               <Pencil className="w-4 h-4" /> Edit Card
             </Link>
           )}

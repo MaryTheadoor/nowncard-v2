@@ -523,7 +523,7 @@ export default function DashboardPage() {
               <Link
                 to="/editor"
                 state={{ isTeamCard: true }}
-                className="btn btn-md bg-purple-600 text-white hover:bg-purple-700 no-underline"
+                className="btn btn-secondary btn-md no-underline"
               >
                 <Users className="w-4 h-4" /> Create Team Card
               </Link>
@@ -536,7 +536,7 @@ export default function DashboardPage() {
                 <Link
                   to="/editor"
                   state={{ isTeamCard: true }}
-                  className="btn btn-md bg-purple-600 text-white hover:bg-purple-700 no-underline"
+                  className="btn btn-secondary btn-md no-underline"
                 >
                   <Users className="w-4 h-4" /> Create Team Card
                 </Link>
@@ -725,7 +725,7 @@ export default function DashboardPage() {
                         <>
                           <button
                             onClick={() => updateAppointmentStatus(a.id, 'confirmed')}
-                            className="btn btn-xs bg-emerald-950 border border-emerald-800 text-emerald-400 hover:bg-emerald-900"
+                            className="btn btn-primary btn-xs"
                           >
                             <Check className="w-3 h-3" /> Confirm
                           </button>

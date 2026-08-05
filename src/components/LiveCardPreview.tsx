@@ -157,7 +157,7 @@ export default function LiveCardPreview({ card, className = '' }: LiveCardPrevie
                 <button onClick={(e) => { e.stopPropagation(); downloadVCard(card, undefined, cardUrl); }} className="btn btn-primary btn-md">
                   Save Contact
                 </button>
-                <button onClick={(e) => { e.stopPropagation(); const promise = shareNative({ title: name, url: cardUrl }); if (promise) promise.catch(() => {}); }} className={`btn btn-secondary btn-md ${tc.textPrimary}`} style={{ color: primaryTextColor }}>
+                <button onClick={(e) => { e.stopPropagation(); const promise = shareNative({ title: name, url: cardUrl }); if (promise) promise.catch(() => {}); }} className="btn btn-secondary btn-md">
                   Share
                 </button>
               </div>

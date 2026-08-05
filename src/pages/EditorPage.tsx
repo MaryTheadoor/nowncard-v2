@@ -1101,7 +1101,7 @@ export default function EditorPage() {
               <a href={`/card/${slugify(card.slug)}`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm"><ExternalLink className="w-3.5 h-3.5" /> View</a>
             </>
           )}
-          <button onClick={handleSave} disabled={saving} className={`btn btn-md ${id ? 'btn-secondary border border-accent text-accent' : 'btn-primary'}`}>
+          <button onClick={handleSave} disabled={saving} className="btn btn-primary btn-md">
             {saving ? (<>Saving…<span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" /></>) : 'Save'}
           </button>
         </div>

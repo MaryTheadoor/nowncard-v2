@@ -177,30 +177,30 @@
       0 2px 0 #8a6216;
   }
 
-  /* ── Secondary: tactile neutral surface ── */
+  /* ── Secondary: tactile blue ── */
   .btn-secondary {
-    background: linear-gradient(180deg, var(--space-2) 0%, var(--tile-soft) 100%);
-    color: var(--ink);
+    background: linear-gradient(180deg, #82bdf2 0%, #4a90d9 50%, #3578b8 100%);
+    color: #ffffff;
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.5) inset,
-      0 -1px 0 rgba(0,0,0,0.05) inset,
-      0 1px 0 rgba(0,0,0,0.08),
-      0 2px 5px rgba(0,0,0,0.08);
+      0 1px 0 rgba(255,255,255,0.3) inset,
+      0 -1px 0 rgba(0,0,0,0.12) inset,
+      0 2px 0 #285d8f,
+      0 3px 6px rgba(0,0,0,0.22);
   }
   .btn-secondary:hover:not(:disabled) {
-    color: var(--accent);
+    background: linear-gradient(180deg, #92c6f5 0%, #5da0e8 50%, #4a90d9 100%);
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.6) inset,
-      0 -1px 0 rgba(0,0,0,0.05) inset,
-      0 2px 0 var(--line),
-      0 3px 8px rgba(0,0,0,0.1);
+      0 1px 0 rgba(255,255,255,0.35) inset,
+      0 -1px 0 rgba(0,0,0,0.1) inset,
+      0 2px 0 #285d8f,
+      0 4px 10px rgba(0,0,0,0.28);
     transform: translateY(-1px);
   }
   .btn-secondary:active:not(:disabled) {
     transform: translateY(1px);
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.3) inset,
-      0 1px 0 rgba(0,0,0,0.08);
+      0 1px 0 rgba(255,255,255,0.2) inset,
+      0 2px 0 #285d8f;
   }
 
   /* ── Danger: tactile red ── */
