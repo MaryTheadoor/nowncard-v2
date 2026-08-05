@@ -3,5 +3,8 @@
     "default": "vcard-studio-314"
   },
   "targets": {},
-  "etags": {}
+  "etags": {},
+  "predeploy": {
+    "functions": "npm --prefix \"$RESOURCE_DIR\" run build"
+  }
 }
