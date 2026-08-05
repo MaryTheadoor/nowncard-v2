@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Printer, Users, ClipboardCheck, Heart, Star, Search, X, Bell, MessageCircle, Mail, Check, Calendar, Clock } from 'lucide-react';
+import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Printer, Users, ClipboardCheck, Heart, Star, Search, X, Bell, MessageCircle, Mail, Check, Calendar, Clock, CreditCard } from 'lucide-react';
 import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc, setDoc, onSnapshot, orderBy, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/auth-context';
@@ -11,9 +11,14 @@ import type { Appointment, Card, Message, Review } from '@/types';
 import { toast } from 'sonner';
 
 import { createDemoCard } from '@/lib/demo';
-import { applyPendingUpgrades } from '@/lib/payments';
+import { applyPendingUpgrades, getPaymentHistory, type PaymentRecord } from '@/lib/payments';
 import { initials, getCardLimit, timeAgo } from '@/lib/utils';
 import Footer from '@/components/Footer';
+
+function fmtMoney(cents: number, currency: string): string {
+  const symbol = currency && currency.toUpperCase() === 'USD' ? '$' : `${currency || ''} `;
+  return `${symbol}${(cents / 100).toFixed(2)}`;
+}
 
 export default function DashboardPage() {
   const { user, userData, loading: authLoading } = useAuth();
@@ -28,7 +33,10 @@ export default function DashboardPage() {
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'cards' | 'inquiries' | 'appointments' | 'review'>('cards');
+  const [activeTab, setActiveTab] = useState<'cards' | 'inquiries' | 'appointments' | 'review' | 'billing'>('cards');
+
+  const [paymentHistory, setPaymentHistory] = useState<PaymentRecord[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   const [myReview, setMyReview] = useState<Review | null>(null);
   const [reviewLoading, setReviewLoading] = useState(true);
@@ -147,6 +155,16 @@ export default function DashboardPage() {
       unsubAppointments();
     };
   }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    if (activeTab !== 'billing' || !user) return;
+    let mounted = true;
+    getPaymentHistory()
+      .then((h) => { if (mounted) setPaymentHistory(h); })
+      .catch(() => { if (mounted) toast.error('Failed to load payment history'); })
+      .finally(() => { if (mounted) setHistoryLoading(false); });
+    return () => { mounted = false; };
+  }, [activeTab, user]);
 
   const handleSaveReview = async () => {
     if (!user) return;
@@ -428,10 +446,11 @@ export default function DashboardPage() {
             { key: 'inquiries', label: 'Inquiries', badge: messages.filter((m) => !m.read).length || null },
             { key: 'appointments', label: 'Appointments', badge: appointments.filter((a) => a.status === 'pending').length || null },
             { key: 'review', label: 'Feedback', badge: null },
+            { key: 'billing', label: 'Billing', badge: null },
           ].map((t) => (
             <button
               key={t.key}
-              onClick={() => setActiveTab(t.key as typeof activeTab)}
+              onClick={() => { setActiveTab(t.key as typeof activeTab); if (t.key === 'billing') setHistoryLoading(true); }}
               className={`px-4 py-2.5 text-sm font-bold border-b-2 transition ${activeTab === t.key ? 'border-accent text-accent' : 'border-transparent text-ink-muted hover:text-ink'}`}
             >
               {t.label}
@@ -797,6 +816,53 @@ export default function DashboardPage() {
                 >
                   {savingReview ? 'Saving…' : (myReview ? 'Update Review' : 'Submit Review')}
                 </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'billing' && (
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <h2 className="text-xl font-extrabold">Billing</h2>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border ${plan === 'business' ? 'bg-purple-950 text-purple-400 border-purple-800' : plan === 'pro' ? 'bg-amber-950 text-amber-400 border-amber-800' : 'bg-tile-soft text-ink-faint border-line'}`}>{plan}</span>
+            </div>
+
+            {historyLoading ? (
+              <div className="flex items-center gap-2 text-sm text-ink-muted">
+                <div className="w-4 h-4 border-2 border-line border-t-accent rounded-full animate-spin" />
+                Loading payments…
+              </div>
+            ) : paymentHistory.length === 0 ? (
+              <div className="bg-tile border border-line border-dashed rounded-2xl p-8 text-center">
+                <CreditCard className="w-8 h-8 text-ink-faint mx-auto mb-2" />
+                <p className="text-sm text-ink-muted">No payments yet.</p>
+                <p className="text-xs text-ink-faint mt-1">When you upgrade to a paid plan, your payment history will appear here.</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {paymentHistory.map((p) => (
+                  <div key={p.id} className="bg-tile border border-line rounded-2xl p-5">
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="min-w-0">
+                        <div className="font-bold text-sm capitalize">{p.plan}</div>
+                        <div className="text-xs text-ink-muted mt-0.5">{p.appliedAt ? new Date(p.appliedAt).toLocaleString() : '—'}</div>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <div className="font-extrabold text-sm">{fmtMoney(p.amountPaid || p.price * 100, p.currency)}</div>
+                        {p.cardBrand && <div className="text-xs text-ink-faint mt-0.5">{p.cardBrand} ••••{p.lastFour || ''}</div>}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-tile-soft text-ink-muted border border-line">{p.source}</span>
+                      {p.receiptUrl && (
+                        <a href={p.receiptUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-accent hover:underline no-underline">
+                          <ExternalLink className="w-3 h-3" /> Receipt
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
