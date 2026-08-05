@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import BackLink from '@/components/BackLink';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -10,7 +10,7 @@ export default function PrivacyPage() {
 
       <main className="max-w-3xl mx-auto px-5 py-12">
         <div className="mb-8">
-          <Link to="/" className="text-sm text-ink-muted hover:text-ink transition no-underline">← Back to Home</Link>
+          <BackLink to="/">Back to Home</BackLink>
         </div>
 
         <h1 className="text-3xl font-extrabold mb-2">Privacy Policy</h1>

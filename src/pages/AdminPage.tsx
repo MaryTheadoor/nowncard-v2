@@ -398,12 +398,12 @@ export default function AdminPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-6 bg-tile border border-line rounded-xl p-1 overflow-x-auto">
+        <div className="flex items-center gap-1 mb-6 border-b border-line overflow-x-auto">
           {TABS.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               onClick={() => { setTab(key); if (key === 'pending') loadPending(); if (key === 'overview') loadStats(); if (key === 'pricing') loadPricing(); if (key === 'reviews') loadReviews(); }}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition ${tab === key ? 'bg-accent text-space' : 'text-ink-muted hover:bg-tile-soft hover:text-ink'}`}
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-bold whitespace-nowrap border-b-2 transition ${tab === key ? 'border-accent text-accent' : 'border-transparent text-ink-muted hover:text-ink'}`}
             >
               <Icon className="w-4 h-4" /> {label}
             </button>

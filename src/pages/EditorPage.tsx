@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ExternalLink, Eye, EyeOff, Smartphone, Upload, User, Calendar, ChevronDown, ChevronUp, Copy } from 'lucide-react';
 import LivePagePreview from '@/components/LivePagePreview';
 import Navbar from '@/components/Navbar';
+import BackLink from '@/components/BackLink';
 import ShareModal from '@/components/ShareModal';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -435,7 +436,10 @@ export default function EditorPage() {
   return (
     <div className="min-h-screen bg-space">
       <Navbar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-5 lg:grid lg:grid-cols-[1fr_420px] gap-6 pt-8 pb-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-5 pt-5">
+        <BackLink to="/dashboard">Back to Dashboard</BackLink>
+      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-5 lg:grid lg:grid-cols-[1fr_420px] gap-6 pt-4 pb-24">
         <main className="flex-1 min-w-0 max-w-2xl">
 
           {/* Auto-populate */}

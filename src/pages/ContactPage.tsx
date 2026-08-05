@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Mail, MessageSquare, Bug, ArrowRight, Home } from 'lucide-react';
+import { Mail, MessageSquare, Bug, ArrowRight } from 'lucide-react';
+import BackLink from '@/components/BackLink';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -32,9 +33,7 @@ export default function ContactPage() {
 
       <main className="max-w-2xl mx-auto px-5 py-12">
         <div className="mb-8">
-          <Link to="/" className="text-sm text-ink-muted hover:text-ink transition no-underline inline-flex items-center gap-1">
-            <Home className="w-3.5 h-3.5" /> Back to Home
-          </Link>
+          <BackLink to="/">Back to Home</BackLink>
         </div>
 
         <h1 className="text-3xl font-extrabold mb-2">Contact Support</h1>

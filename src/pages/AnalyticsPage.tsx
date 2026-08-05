@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Eye, Download, RotateCcw, Clock, MousePointer, Smartphone, Monitor, Tablet } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Eye, Download, RotateCcw, Clock, MousePointer, Smartphone, Monitor, Tablet } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/auth-context';
 import Navbar from '@/components/Navbar';
+import BackLink from '@/components/BackLink';
 import type { Card } from '@/types';
 import { toast } from 'sonner';
 
@@ -92,9 +93,7 @@ export default function AnalyticsPage() {
 
       <main className="max-w-3xl mx-auto px-5 py-8">
         <div className="flex items-center gap-3 mb-6">
-          <Link to="/dashboard" className="flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink transition no-underline">
-            <ArrowLeft className="w-4 h-4" /> Back
-          </Link>
+          <BackLink to="/dashboard">Back to Dashboard</BackLink>
         </div>
 
         <div className="mb-8">
