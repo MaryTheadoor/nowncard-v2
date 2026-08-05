@@ -25,6 +25,8 @@ const db = admin.firestore();
 const squareAccessToken = defineSecret('SQUARE_ACCESS_TOKEN');
 const squareSignatureKey = defineSecret('SQUARE_WEBHOOK_SIGNATURE_KEY');
 const squareWebhookUrl = defineString('SQUARE_WEBHOOK_URL', { default: '' });
+const squareEnvironment = defineString('SQUARE_ENVIRONMENT', { default: 'production' });
+const squareLocationId = defineString('SQUARE_LOCATION_ID', { default: '' });
 
 function getSquareToken(): string {
   return process.env.SQUARE_ACCESS_TOKEN || '';
@@ -33,8 +35,11 @@ function getSignatureKey(): string {
   return process.env.SQUARE_WEBHOOK_SIGNATURE_KEY || '';
 }
 
-const SQUARE_ENV = process.env.SQUARE_ENVIRONMENT || 'sandbox';
-const SQUARE_LOCATION_ID = process.env.SQUARE_LOCATION_ID || '';
+// Local emulator reads functions/.env into process.env; production uses params
+// (firebase functions:params:set). Default environment is production so a
+// production token is never accidentally used against the sandbox API.
+const SQUARE_ENV = process.env.SQUARE_ENVIRONMENT || squareEnvironment.value();
+const SQUARE_LOCATION_ID = process.env.SQUARE_LOCATION_ID || squareLocationId.value();
 
 // Startup validation — fail fast if missing required config
 if (!getSquareToken() && SQUARE_ENV === 'production') {
