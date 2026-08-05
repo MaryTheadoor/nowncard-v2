@@ -211,7 +211,7 @@ export default function CardViewerPage() {
         <div className="text-6xl mb-4">🔍</div>
         <h1 className="text-xl font-bold text-ink mb-2">Card Not Found</h1>
         <p className="text-ink-muted text-sm max-w-xs text-center">{error}</p>
-        <Link to="/" className="mt-6 px-5 py-2.5 bg-accent text-space font-bold rounded-xl text-sm hover:brightness-110 transition inline-block no-underline">Create your own →</Link>
+        <Link to="/" className="btn btn-primary btn-md no-underline inline-block mt-6">Create your own →</Link>
       </div>
     );
   }
@@ -385,10 +385,10 @@ export default function CardViewerPage() {
                   <QRCodeSVG value={card.qrMode === 'vcard' ? generateVCard(card, cardUrl) : cardUrl} size={150} level="M" includeMargin={false} />
                 </div>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  <button onClick={(e) => { e.stopPropagation(); downloadVCard(card, undefined, cardUrl); track('save'); if (cardsDocId) { try { updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } } try { setDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }, { merge: true }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }} className="px-4 py-2 rounded-full text-sm font-bold bg-accent text-space border-none hover:brightness-110 transition cursor-pointer">
+                  <button onClick={(e) => { e.stopPropagation(); downloadVCard(card, undefined, cardUrl); track('save'); if (cardsDocId) { try { updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } } try { setDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }, { merge: true }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }} className="btn btn-primary btn-md">
                     Save Contact
                   </button>
-                  <button onClick={(e) => { e.stopPropagation(); const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); } else { promise.then(() => track('share')).catch(() => setShareOpen(true)); } }} className={`px-4 py-2 rounded-full text-sm font-bold bg-transparent border border-line hover:bg-tile-soft transition ${tc.textPrimary}`} style={{ color: primaryTextColor }}>
+                  <button onClick={(e) => { e.stopPropagation(); const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); } else { promise.then(() => track('share')).catch(() => setShareOpen(true)); } }} className={`btn btn-secondary btn-md ${tc.textPrimary}`} style={{ color: primaryTextColor }}>
                     Share
                   </button>
                 </div>
@@ -403,25 +403,25 @@ export default function CardViewerPage() {
         {/* Action bar — pinned below card */}
         <div className="flex flex-wrap gap-2.5 justify-center w-full">
           {isOwner && (
-            <Link to={`/editor/${card.id}`} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-tile text-accent border border-accent cursor-pointer hover:bg-tile-soft transition no-underline">
+            <Link to={`/editor/${card.id}`} className="btn btn-secondary btn-lg no-underline" style={{ color: accent, boxShadow: `0 2px 0 ${accent}` }}>
               <Pencil className="w-4 h-4" /> Edit Card
             </Link>
           )}
-          <button onClick={async () => { downloadVCard(card, undefined, cardUrl); track('save'); if (cardsDocId) { try { await updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } } try { await setDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }, { merge: true }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-accent text-space border-none cursor-pointer hover:brightness-110 transition">
+          <button onClick={async () => { downloadVCard(card, undefined, cardUrl); track('save'); if (cardsDocId) { try { await updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } } try { await setDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }, { merge: true }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }} className="btn btn-primary btn-lg">
             <IconDownload /> Save to Contacts
           </button>
           {card.appointmentsEnabled && (
-            <button onClick={() => setAppointmentOpen(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-tile text-ink border border-line cursor-pointer hover:bg-tile-soft transition">
+            <button onClick={() => setAppointmentOpen(true)} className="btn btn-secondary btn-lg">
               <Calendar className="w-4 h-4" /> Book
             </button>
           )}
-          <button onClick={handleFlip} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-tile text-ink border border-line cursor-pointer hover:bg-tile-soft transition">
+          <button onClick={handleFlip} className="btn btn-secondary btn-lg">
             {flipped ? 'Show Card' : 'Show QR'}
           </button>
-          <button onClick={() => { const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); return; } promise.then(() => track('share')).catch(() => setShareOpen(true)); }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-tile text-ink border border-line cursor-pointer hover:bg-tile-soft transition">
+          <button onClick={() => { const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); return; } promise.then(() => track('share')).catch(() => setShareOpen(true)); }} className="btn btn-secondary btn-lg">
             Share
           </button>
-          <button onClick={handleSaveImage} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-tile text-ink border border-line cursor-pointer hover:bg-tile-soft transition">
+          <button onClick={handleSaveImage} className="btn btn-secondary btn-lg">
             <IconCamera /> Save Image
           </button>
         </div>
@@ -449,7 +449,7 @@ export default function CardViewerPage() {
                 <button
                   onClick={handleSendMessage}
                   disabled={!messageText.trim() || sendingMessage}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-accent text-space text-xs font-bold rounded-full hover:brightness-110 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="btn btn-primary btn-sm"
                 >
                   <IconSend />
                   {sendingMessage ? 'Sending…' : 'Send'}
@@ -469,7 +469,7 @@ export default function CardViewerPage() {
                 href={l.url.startsWith('http') ? l.url : `https://${l.url}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold bg-tile text-ink border border-line hover:border-accent hover:text-accent transition no-underline"
+                className="btn btn-secondary btn-lg w-full no-underline"
                 onClick={() => track(`link:${l.label}`)}
               >
                 {l.label}

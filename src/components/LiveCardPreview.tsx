@@ -154,10 +154,10 @@ export default function LiveCardPreview({ card, className = '' }: LiveCardPrevie
                 <QRCodeSVG value={card.qrMode === 'vcard' ? generateVCard(card, cardUrl) : cardUrl} size={150} level="M" includeMargin={false} />
               </div>
               <div className="flex flex-wrap gap-2 justify-center">
-                <button onClick={(e) => { e.stopPropagation(); downloadVCard(card, undefined, cardUrl); }} className="px-4 py-2 rounded-full text-sm font-bold bg-accent text-space border-none hover:brightness-110 transition cursor-pointer">
+                <button onClick={(e) => { e.stopPropagation(); downloadVCard(card, undefined, cardUrl); }} className="btn btn-primary btn-md">
                   Save Contact
                 </button>
-                <button onClick={(e) => { e.stopPropagation(); const promise = shareNative({ title: name, url: cardUrl }); if (promise) promise.catch(() => {}); }} className={`px-4 py-2 rounded-full text-sm font-bold bg-transparent border border-line hover:bg-tile-soft transition ${tc.textPrimary}`} style={{ color: primaryTextColor }}>
+                <button onClick={(e) => { e.stopPropagation(); const promise = shareNative({ title: name, url: cardUrl }); if (promise) promise.catch(() => {}); }} className={`btn btn-secondary btn-md ${tc.textPrimary}`} style={{ color: primaryTextColor }}>
                   Share
                 </button>
               </div>

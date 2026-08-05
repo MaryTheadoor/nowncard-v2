@@ -29,8 +29,8 @@ export default function CancelPage() {
           <h1 className="text-2xl font-extrabold mb-3">Payment Cancelled</h1>
           <p className="text-ink-muted mb-8">No worries. You can upgrade anytime from your dashboard.</p>
           <div className="flex gap-3 justify-center">
-            <Link to="/dashboard" className="px-6 py-2.5 bg-accent text-space font-bold rounded-full text-sm hover:brightness-110 transition">Go to Dashboard</Link>
-            <Link to="/" className="px-6 py-2.5 border border-line text-ink font-bold rounded-full text-sm hover:bg-tile-soft transition">Back to Home</Link>
+            <Link to="/dashboard" className="btn btn-primary btn-lg no-underline">Go to Dashboard</Link>
+            <Link to="/" className="btn btn-secondary btn-lg no-underline">Back to Home</Link>
           </div>
         </div>
       </main>

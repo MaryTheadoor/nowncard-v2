@@ -71,7 +71,7 @@ export default function QrPosterPage() {
           <div className="text-center max-w-md">
             <h1 className="text-xl font-bold text-ink mb-2">Card Not Found</h1>
             <p className="text-ink-muted text-sm">{error}</p>
-            <Link to="/" className="mt-4 inline-block px-5 py-2 bg-accent text-space font-bold rounded-full text-sm">Home</Link>
+            <Link to="/" className="btn btn-primary btn-md no-underline inline-block mt-4">Home</Link>
           </div>
         </div>
         <Footer />
@@ -116,13 +116,13 @@ export default function QrPosterPage() {
           </div>
 
           <div className="flex gap-3 justify-center mt-6">
-            <button onClick={() => window.print()} className="px-6 py-2.5 bg-accent text-space font-bold rounded-full text-sm hover:brightness-110 transition">
+            <button onClick={() => window.print()} className="btn btn-primary btn-lg">
               Print Poster
             </button>
-            <button onClick={handleSaveImage} className="flex items-center gap-2 px-6 py-2.5 border border-line text-ink font-bold rounded-full text-sm hover:bg-tile-soft transition">
+            <button onClick={handleSaveImage} className="btn btn-secondary btn-lg">
               <IconCamera /> Save as Image
             </button>
-            <Link to={`/card/${slug}`} className="px-6 py-2.5 border border-line text-ink font-bold rounded-full text-sm hover:bg-tile-soft transition">
+            <Link to={`/card/${slug}`} className="btn btn-secondary btn-lg no-underline">
               View Card
             </Link>
           </div>

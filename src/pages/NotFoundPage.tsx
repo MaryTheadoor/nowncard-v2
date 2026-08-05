@@ -15,10 +15,10 @@ export default function NotFoundPage() {
           The page you're looking for doesn't exist or has been moved.
         </p>
         <div className="flex gap-3">
-          <Link to="/" className="px-6 py-2.5 bg-accent text-space font-bold rounded-full text-sm hover:brightness-110 transition no-underline">
+          <Link to="/" className="btn btn-primary btn-lg no-underline">
             Back to Home
           </Link>
-          <Link to="/contact" className="px-6 py-2.5 border border-line text-ink font-bold rounded-full text-sm hover:bg-tile-soft transition no-underline">
+          <Link to="/contact" className="btn btn-secondary btn-lg no-underline">
             Contact Support
           </Link>
         </div>

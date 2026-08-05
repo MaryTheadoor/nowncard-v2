@@ -58,7 +58,7 @@ export default function SuccessPage() {
           <div className="text-6xl mb-6">{s.icon}</div>
           <h1 className="text-2xl font-extrabold mb-3">{s.title}</h1>
           <p className="text-ink-muted mb-8">{s.desc}</p>
-          <Link to="/dashboard" className="inline-block px-6 py-2.5 bg-accent text-space font-bold rounded-full text-sm hover:brightness-110 transition">Go to Dashboard</Link>
+          <Link to="/dashboard" className="btn btn-primary btn-lg no-underline">Go to Dashboard</Link>
         </div>
       </main>
 

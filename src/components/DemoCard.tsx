@@ -172,10 +172,10 @@ export default function DemoCard({ forceLight }: DemoCardProps) {
                 <QRCodeSVG value={cardUrl} size={150} level="M" includeMargin={false} />
               </div>
               <div className="flex flex-wrap gap-2 justify-center">
-                <button onClick={(e) => { e.stopPropagation(); handleSave(); }} className="px-4 py-2 rounded-full text-sm font-bold bg-accent text-space border-none hover:brightness-110 transition cursor-pointer">
+                <button onClick={(e) => { e.stopPropagation(); handleSave(); }} className="btn btn-primary btn-md">
                   Save Contact
                 </button>
-                <button onClick={(e) => { e.stopPropagation(); handleShare(); }} className={`px-4 py-2 rounded-full text-sm font-bold bg-transparent border border-line hover:bg-tile-soft transition ${tc.textPrimary}`} style={{ color: primaryTextColor }}>
+                <button onClick={(e) => { e.stopPropagation(); handleShare(); }} className={`btn btn-secondary btn-md ${tc.textPrimary}`} style={{ color: primaryTextColor }}>
                   Share
                 </button>
               </div>
@@ -187,13 +187,13 @@ export default function DemoCard({ forceLight }: DemoCardProps) {
 
       {/* Action bar */}
       <div className="flex flex-wrap gap-2.5 justify-center mt-5 max-w-[380px] w-full mx-auto">
-        <button onClick={handleSave} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-accent text-space border-none cursor-pointer hover:brightness-110 transition">
+        <button onClick={handleSave} className="btn btn-primary btn-lg">
           <IconDownload /> Save to Contacts
         </button>
-        <button onClick={handleFlip} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-tile text-ink border border-line cursor-pointer hover:bg-tile-soft transition">
+        <button onClick={handleFlip} className="btn btn-secondary btn-lg">
           {flipped ? 'Show Card' : 'Show QR'}
         </button>
-        <button onClick={handleShare} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-tile text-ink border border-line cursor-pointer hover:bg-tile-soft transition">
+        <button onClick={handleShare} className="btn btn-secondary btn-lg">
           Share
         </button>
       </div>

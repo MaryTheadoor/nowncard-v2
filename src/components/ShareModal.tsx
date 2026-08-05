@@ -116,11 +116,7 @@ export default function ShareModal({ open, onClose, url, title }: ShareModalProp
           </div>
           <button
             onClick={handleCopy}
-            className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-sm font-bold transition cursor-pointer ${
-              copied
-                ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                : 'bg-accent text-space hover:brightness-110 border-none'
-            }`}
+            className={`btn btn-md ${copied ? 'bg-emerald-600 text-white' : 'btn-primary'}`}
           >
             {copied ? <IconCheck /> : <IconCopy />}
             {copied ? 'Copied' : 'Copy'}

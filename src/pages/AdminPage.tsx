@@ -377,7 +377,7 @@ export default function AdminPage() {
           <KeyRound className="w-10 h-10 text-accent mx-auto mb-4" />
           <h1 className="text-xl font-extrabold mb-2">Admin Setup</h1>
           <p className="text-sm text-ink-muted mb-6">This account is eligible for admin privileges.</p>
-          <button onClick={handleBootstrap} className="w-full px-5 py-2.5 bg-accent text-space font-bold rounded-full hover:brightness-110 transition">
+          <button onClick={handleBootstrap} className="btn btn-primary btn-md w-full">
             Activate Admin
           </button>
         </div>
@@ -466,7 +466,7 @@ export default function AdminPage() {
               <button
                 onClick={savePricing}
                 disabled={savingPricing}
-                className="px-5 py-2.5 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition disabled:opacity-50"
+                className="btn btn-primary btn-md"
               >
                 {savingPricing ? 'Saving…' : 'Save Pricing'}
               </button>
@@ -506,11 +506,11 @@ export default function AdminPage() {
                         <td className="py-2 pr-4 text-xs text-ink-muted">{ts(p.createdAt) ? new Date(ts(p.createdAt)).toLocaleDateString() : '-'}</td>
                         <td className="py-2 text-right flex gap-1.5 justify-end">
                           <button onClick={() => approveUpgrade(p.id, p.uid, p.plan, p.price)} disabled={loadingAction === p.id}
-                            className="px-3 py-1 bg-accent text-space text-xs font-bold rounded-lg hover:brightness-110 transition disabled:opacity-50">
+                            className="btn btn-primary btn-xs">
                             {loadingAction === p.id ? '…' : 'Approve'}
                           </button>
                           <button onClick={() => rejectUpgrade(p.id)} disabled={loadingAction === p.id}
-                            className="px-3 py-1 border border-line text-ink-muted text-xs font-bold rounded-lg hover:border-danger hover:text-danger transition disabled:opacity-50">
+                            className="btn btn-danger btn-xs">
                             <X className="w-3 h-3" />
                           </button>
                         </td>
@@ -597,7 +597,7 @@ export default function AdminPage() {
                 <input value={userSearch} onChange={(e) => setUserSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && searchUsers()}
                   placeholder="Search by email…" className="w-full pl-9 pr-3 py-2 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
               </div>
-              <button onClick={searchUsers} className="px-4 py-2 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition">Search</button>
+              <button onClick={searchUsers} className="btn btn-primary btn-sm">Search</button>
             </div>
             {adminUsers.length === 0 ? (
               <p className="text-sm text-ink-muted">No users found. Try a search.</p>
@@ -617,7 +617,7 @@ export default function AdminPage() {
                         <td className="py-2 flex gap-1.5">
                           {['free', 'pro', 'business'].map((plan) => (
                             <button key={plan} onClick={() => setPlan(u.id, plan)}
-                              className={`px-2 py-0.5 rounded text-[11px] font-bold uppercase transition ${u.plan === plan ? 'bg-accent text-space' : 'bg-tile-soft text-ink-muted border border-line hover:border-accent hover:text-accent'}`}>
+                              className={`btn btn-xs uppercase ${u.plan === plan ? 'btn-primary' : 'btn-secondary'}`}>
                               {plan}
                             </button>
                           ))}
@@ -641,7 +641,7 @@ export default function AdminPage() {
                 <input value={cardSearch} onChange={(e) => setCardSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && searchCards()}
                   placeholder="Search by slug…" className="w-full pl-9 pr-3 py-2 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
               </div>
-              <button onClick={() => searchCards()} className="px-4 py-2 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition">Search</button>
+              <button onClick={() => searchCards()} className="btn btn-primary btn-sm">Search</button>
             </div>
             {adminCards.length === 0 ? (
               <p className="text-sm text-ink-muted">No cards found. Try a search.</p>
@@ -723,7 +723,7 @@ export default function AdminPage() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => toggleFeaturedReview(r.id, r.featured)}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition ${r.featured ? 'bg-accent text-space border-accent' : 'bg-tile-soft text-ink-muted border-line hover:border-accent hover:text-accent'}`}
+                        className={`btn btn-xs ${r.featured ? 'btn-primary' : 'btn-secondary'}`}
                       >
                         {r.featured ? 'Featured' : 'Feature'}
                       </button>

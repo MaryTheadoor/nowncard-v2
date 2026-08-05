@@ -446,15 +446,15 @@ export default function EditorPage() {
           <div className="bg-tile border border-line rounded-2xl p-5 mb-6">
             <h2 className="text-sm font-bold text-ink-muted uppercase tracking-wider mb-3">Auto-Fill</h2>
             <div className="flex flex-wrap gap-2">
-              <button onClick={populateFromGoogle} className="flex items-center gap-1.5 px-3 py-2 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
+              <button onClick={populateFromGoogle} className="btn btn-secondary btn-sm">
                 <User className="w-3.5 h-3.5" /> Use My Profile
               </button>
               {hasContactPicker && (
-                <button onClick={populateFromContacts} className="flex items-center gap-1.5 px-3 py-2 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
+                <button onClick={populateFromContacts} className="btn btn-secondary btn-sm">
                   <Smartphone className="w-3.5 h-3.5" /> Pick from Phone
                 </button>
               )}
-              <label className="flex items-center gap-1.5 px-3 py-2 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition cursor-pointer">
+              <label className="btn btn-secondary btn-sm cursor-pointer">
                 <Upload className="w-3.5 h-3.5" /> Upload .vcf
                 <input type="file" accept=".vcf,.vcard,text/vcard,text/x-vcard" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleVCardUpload(f); e.target.value = ''; }} />
               </label>
@@ -500,7 +500,7 @@ export default function EditorPage() {
                   )}
                 </div>
                 {card.slug?.trim() && (
-                  <a href={`/card/${slugify(card.slug)}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-4 py-2.5 bg-tile-soft border border-line rounded-lg text-sm font-bold text-ink hover:border-accent transition cursor-pointer no-underline whitespace-nowrap">
+                  <a href={`/card/${slugify(card.slug)}`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm no-underline whitespace-nowrap">
                     <ExternalLink className="w-3.5 h-3.5" /> View
                   </a>
                 )}
@@ -1101,7 +1101,7 @@ export default function EditorPage() {
               <a href={`/card/${slugify(card.slug)}`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm"><ExternalLink className="w-3.5 h-3.5" /> View</a>
             </>
           )}
-          <button onClick={handleSave} disabled={saving} className={`btn btn-md text-xs md:text-sm rounded-full gap-1.5 ${id ? 'btn-secondary border-accent text-accent hover:bg-accent hover:text-space' : 'btn-primary'}`}>
+          <button onClick={handleSave} disabled={saving} className={`btn btn-md ${id ? 'btn-secondary border border-accent text-accent' : 'btn-primary'}`}>
             {saving ? (<>Saving…<span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" /></>) : 'Save'}
           </button>
         </div>
@@ -1127,7 +1127,7 @@ export default function EditorPage() {
           <div className="bg-tile border border-line rounded-2xl p-4 max-w-[380px] w-full max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="text-[10px] text-ink-faint uppercase tracking-wider font-semibold mb-3">Live Page Preview</div>
             <LivePagePreview card={card} />
-            <button onClick={() => setPreviewOpen(false)} className="mt-4 w-full py-2 bg-accent text-space font-bold rounded-full text-sm hover:brightness-110 transition">
+            <button onClick={() => setPreviewOpen(false)} className="btn btn-primary btn-md w-full mt-4">
               Close Preview
             </button>
           </div>

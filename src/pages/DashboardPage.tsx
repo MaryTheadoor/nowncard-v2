@@ -354,31 +354,31 @@ export default function DashboardPage() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Link to={`/card/${c.slug}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
+        <Link to={`/card/${c.slug}`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-xs">
           <ExternalLink className="w-3 h-3" /> View
         </Link>
-        <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/card/${c.slug}`); toast.success('Link copied'); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition cursor-pointer">
+        <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/card/${c.slug}`); toast.success('Link copied'); }} className="btn btn-secondary btn-xs">
           <Copy className="w-3 h-3" /> Copy
         </button>
-        <button onClick={() => handleTogglePublic(c)} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition cursor-pointer">
+        <button onClick={() => handleTogglePublic(c)} className="btn btn-secondary btn-xs">
           {c.isPublic ? 'Make Private' : 'Make Public'}
         </button>
-        <button onClick={() => downloadVCard(c, undefined, `${window.location.origin}/card/${c.slug}`)} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition cursor-pointer">
+        <button onClick={() => downloadVCard(c, undefined, `${window.location.origin}/card/${c.slug}`)} className="btn btn-secondary btn-xs">
           <Download className="w-3 h-3" /> vCard
         </button>
-        <Link to={`/nfc/${c.slug}`} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
+        <Link to={`/nfc/${c.slug}`} className="btn btn-secondary btn-xs">
           <Nfc className="w-3 h-3" /> NFC
         </Link>
-        <Link to={`/poster/${c.slug}`} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
+        <Link to={`/poster/${c.slug}`} className="btn btn-secondary btn-xs">
           <Printer className="w-3 h-3" /> Poster
         </Link>
-        <Link to={`/analytics/${c.id}`} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
+        <Link to={`/analytics/${c.id}`} className="btn btn-secondary btn-xs">
           <BarChart3 className="w-3 h-3" /> Analytics
         </Link>
-        <Link to={`/editor/${c.id}`} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition">
+        <Link to={`/editor/${c.id}`} className="btn btn-secondary btn-xs">
           <Pencil className="w-3 h-3" /> Edit
         </Link>
-        <button onClick={() => handleDelete(c.id!)} className="flex items-center gap-1.5 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-danger hover:border-danger transition cursor-pointer">
+        <button onClick={() => handleDelete(c.id!)} className="btn btn-danger btn-xs">
           <Trash2 className="w-3 h-3" /> Delete
         </button>
       </div>
@@ -415,11 +415,11 @@ export default function DashboardPage() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={async () => { if (!user) return; try { const result = await createDemoCard(user.uid); toast.success('Demo card created'); navigate(`/editor/${result.id}`); } catch { toast.error('Failed to create demo'); } }} className="flex items-center gap-1.5 px-3 py-2 border border-line text-ink text-xs font-bold rounded-full hover:bg-tile-soft transition">
+            <button onClick={async () => { if (!user) return; try { const result = await createDemoCard(user.uid); toast.success('Demo card created'); navigate(`/editor/${result.id}`); } catch { toast.error('Failed to create demo'); } }} className="btn btn-secondary btn-sm">
               <Wand2 className="w-3.5 h-3.5" /> Demo
             </button>
             {plan === 'free' && (
-              <Link to="/#pricing" className="px-4 py-2 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition cursor-pointer no-underline">
+              <Link to="/#pricing" className="btn btn-primary btn-sm no-underline">
                 Upgrade to Pro
               </Link>
             )}
@@ -427,11 +427,11 @@ export default function DashboardPage() {
               const limit = getCardLimit(plan);
               const atLimit = personalCards.length >= limit;
               return atLimit ? (
-                <button onClick={() => toast.error(`Your ${plan} plan allows ${limit === Infinity ? 'unlimited' : limit} personal card${limit === 1 ? '' : 's'}. Upgrade to create more.`)} className="flex items-center gap-2 px-4 py-2 bg-tile-soft border border-line text-ink-faint text-sm font-bold rounded-full cursor-not-allowed no-underline">
+                <button onClick={() => toast.error(`Your ${plan} plan allows ${limit === Infinity ? 'unlimited' : limit} personal card${limit === 1 ? '' : 's'}. Upgrade to create more.`)} className="btn btn-secondary btn-md cursor-not-allowed opacity-60">
                   <Plus className="w-4 h-4" /> New Card
                 </button>
               ) : (
-                <Link to="/editor" className="flex items-center gap-2 px-4 py-2 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition no-underline">
+                <Link to="/editor" className="btn btn-primary btn-md no-underline">
                   <Plus className="w-4 h-4" /> New Card
                 </Link>
               );
@@ -489,11 +489,11 @@ export default function DashboardPage() {
               const limit = getCardLimit(plan);
               const atLimit = personalCards.length >= limit;
               return atLimit ? (
-                <button onClick={() => toast.error(`Your ${plan} plan allows ${limit === Infinity ? 'unlimited' : limit} personal card${limit === 1 ? '' : 's'}. Upgrade to create more.`)} className="inline-flex items-center gap-2 px-6 py-2.5 bg-tile-soft border border-line text-ink-faint font-bold rounded-full text-sm cursor-not-allowed">
+                <button onClick={() => toast.error(`Your ${plan} plan allows ${limit === Infinity ? 'unlimited' : limit} personal card${limit === 1 ? '' : 's'}. Upgrade to create more.`)} className="btn btn-secondary btn-lg cursor-not-allowed opacity-60">
                   <Plus className="w-4 h-4" /> Create your first card
                 </button>
               ) : (
-                <Link to="/editor" className="inline-flex items-center gap-2 px-6 py-2.5 bg-accent text-space font-bold rounded-full text-sm hover:brightness-110 transition">
+                <Link to="/editor" className="btn btn-primary btn-lg no-underline">
                   <Plus className="w-4 h-4" /> Create your first card
                 </Link>
               );
@@ -523,7 +523,7 @@ export default function DashboardPage() {
               <Link
                 to="/editor"
                 state={{ isTeamCard: true }}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white text-sm font-bold rounded-full hover:brightness-110 transition no-underline"
+                className="btn btn-md bg-purple-600 text-white hover:bg-purple-700 no-underline"
               >
                 <Users className="w-4 h-4" /> Create Team Card
               </Link>
@@ -536,7 +536,7 @@ export default function DashboardPage() {
                 <Link
                   to="/editor"
                   state={{ isTeamCard: true }}
-                  className="inline-flex items-center gap-2 px-5 py-2 bg-purple-600 text-white font-bold rounded-full text-sm hover:brightness-110 transition no-underline"
+                  className="btn btn-md bg-purple-600 text-white hover:bg-purple-700 no-underline"
                 >
                   <Users className="w-4 h-4" /> Create Team Card
                 </Link>
@@ -626,7 +626,7 @@ export default function DashboardPage() {
                             toast.error('Failed to mark as read');
                           }
                         }}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-accent transition cursor-pointer"
+                        className="btn btn-secondary btn-xs"
                       >
                         <Check className="w-3 h-3" /> Mark as read
                       </button>
@@ -641,7 +641,7 @@ export default function DashboardPage() {
                           toast.error('Failed to delete');
                         }
                       }}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-danger hover:border-danger transition cursor-pointer"
+                      className="btn btn-danger btn-xs"
                     >
                       <Trash2 className="w-3 h-3" /> Delete
                     </button>
@@ -725,13 +725,13 @@ export default function DashboardPage() {
                         <>
                           <button
                             onClick={() => updateAppointmentStatus(a.id, 'confirmed')}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-emerald-950 border border-emerald-800 rounded-lg text-xs font-semibold text-emerald-400 hover:bg-emerald-900 transition cursor-pointer"
+                            className="btn btn-xs bg-emerald-950 border border-emerald-800 text-emerald-400 hover:bg-emerald-900"
                           >
                             <Check className="w-3 h-3" /> Confirm
                           </button>
                           <button
                             onClick={() => updateAppointmentStatus(a.id, 'cancelled')}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-ink hover:border-danger hover:text-danger transition cursor-pointer"
+                            className="btn btn-secondary btn-xs"
                           >
                             Cancel
                           </button>
@@ -739,7 +739,7 @@ export default function DashboardPage() {
                       )}
                       <button
                         onClick={() => deleteAppointment(a.id)}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs font-semibold text-danger hover:border-danger transition cursor-pointer"
+className="btn btn-danger btn-xs"
                       >
                         <Trash2 className="w-3 h-3" /> Delete
                       </button>
@@ -812,7 +812,7 @@ export default function DashboardPage() {
                 <button
                   onClick={handleSaveReview}
                   disabled={savingReview || !reviewText.trim()}
-                  className="px-5 py-2.5 bg-accent text-space text-sm font-bold rounded-full hover:brightness-110 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="btn btn-primary btn-md"
                 >
                   {savingReview ? 'Saving…' : (myReview ? 'Update Review' : 'Submit Review')}
                 </button>

@@ -37,11 +37,11 @@ export default function LivePagePreview({ card, className = '', layout = 'stack'
         <div className={`pointer-events-none select-none ${isRow ? 'flex-1 min-w-0 flex flex-col gap-2.5 lg:mt-0' : ''}`} aria-hidden="true">
           {/* Action buttons */}
           <div className={`flex flex-wrap gap-2 justify-center ${isRow ? '' : 'mt-4'}`}>
-            <span className="px-4 py-2 rounded-xl text-xs font-bold bg-accent text-space">Save to Contacts</span>
+            <span className="btn btn-primary btn-sm pointer-events-none">Save to Contacts</span>
             {card.appointmentsEnabled && (
-              <span className="px-4 py-2 rounded-xl text-xs font-bold bg-space text-ink border border-line">Book</span>
+              <span className="btn btn-secondary btn-sm pointer-events-none">Book</span>
             )}
-            <span className="px-4 py-2 rounded-xl text-xs font-bold bg-space text-ink border border-line">Share</span>
+            <span className="btn btn-secondary btn-sm pointer-events-none">Share</span>
           </div>
 
           {/* Link list */}

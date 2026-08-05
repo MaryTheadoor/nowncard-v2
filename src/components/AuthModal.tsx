@@ -75,7 +75,7 @@ export default function AuthModal({ open, onClose, onSignInEmail, onSignUpEmail,
             </button>
           </div>
           {error && <p className="text-xs text-danger">{error}</p>}
-          <button type="submit" disabled={loading} className="w-full py-2.5 bg-accent text-space font-bold rounded-lg text-sm hover:brightness-110 transition disabled:opacity-50 cursor-pointer">
+          <button type="submit" disabled={loading} className="btn btn-primary btn-md w-full">
             {loading ? (mode === 'signin' ? 'Signing in…' : 'Creating account…') : mode === 'signin' ? 'Sign In' : 'Sign Up'}
           </button>
         </form>

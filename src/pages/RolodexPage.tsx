@@ -170,7 +170,7 @@ export default function RolodexPage() {
         <div className="flex items-center gap-2 mb-6">
           <button
             onClick={() => setShowFilters((s) => !s)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold border transition ${showFilters ? 'bg-accent text-space border-accent' : 'bg-tile text-ink border-line hover:bg-tile-soft'}`}
+            className={`btn btn-sm ${showFilters ? 'btn-primary' : 'btn-secondary'}`}
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             Filters
@@ -201,11 +201,7 @@ export default function RolodexPage() {
                   <button
                     key={ind}
                     onClick={() => setActiveIndustry(ind)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
-                      activeIndustry === ind
-                        ? 'bg-accent text-space border-accent'
-                        : 'bg-tile-soft text-ink border-line hover:border-accent hover:text-accent'
-                    }`}
+                    className={`btn btn-xs ${activeIndustry === ind ? 'btn-primary' : 'btn-secondary'}`}
                   >
                     {ind}
                   </button>
@@ -225,11 +221,7 @@ export default function RolodexPage() {
                   <button
                     key={opt.key}
                     onClick={() => setSortMode(opt.key as SortMode)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
-                      sortMode === opt.key
-                        ? 'bg-accent text-space border-accent'
-                        : 'bg-tile-soft text-ink border-line hover:border-accent hover:text-accent'
-                    }`}
+                    className={`btn btn-xs ${sortMode === opt.key ? 'btn-primary' : 'btn-secondary'}`}
                   >
                     {opt.label}
                   </button>
@@ -259,7 +251,7 @@ export default function RolodexPage() {
             {!user && (
               <button
                 onClick={() => setAuthOpen(true)}
-                className="mt-5 px-5 py-2.5 bg-accent text-space font-bold rounded-full text-sm hover:brightness-110 transition"
+                className="btn btn-primary btn-md mt-5"
               >
                 Create Your Card
               </button>

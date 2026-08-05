@@ -122,7 +122,7 @@ export default function NfcPage() {
           Web NFC is only available on Android devices with Chrome 89+.
           iOS does not support writing NFC tags from the browser.
         </p>
-        <Link to={`/card/${slug}`} className="flex items-center gap-2 px-5 py-2.5 bg-accent text-space font-bold rounded-full text-sm hover:brightness-110 transition">
+        <Link to={`/card/${slug}`} className="btn btn-primary btn-lg no-underline">
           <ArrowLeft className="w-4 h-4" /> Back to Card
         </Link>
       </div>
@@ -161,13 +161,13 @@ export default function NfcPage() {
           <div className="flex justify-center gap-2 mb-6">
             <button
               onClick={() => setMode('url')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold border transition ${mode === 'url' ? 'bg-accent text-space border-accent' : 'bg-space text-ink-muted border-line hover:border-accent'}`}
+              className={`btn btn-sm ${mode === 'url' ? 'btn-primary' : 'btn-secondary'}`}
             >
               <Globe className="w-3.5 h-3.5" /> Card URL
             </button>
             <button
               onClick={() => setMode('vcard')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold border transition ${mode === 'vcard' ? 'bg-accent text-space border-accent' : 'bg-space text-ink-muted border-line hover:border-accent'}`}
+              className={`btn btn-sm ${mode === 'vcard' ? 'btn-primary' : 'btn-secondary'}`}
             >
               <Contact className="w-3.5 h-3.5" /> vCard
             </button>
@@ -176,7 +176,7 @@ export default function NfcPage() {
           <button
             onClick={handleWrite}
             disabled={writing}
-            className="w-full sm:w-auto px-8 py-3 bg-accent text-space font-bold rounded-full hover:brightness-110 transition disabled:opacity-50 flex items-center justify-center gap-2 mx-auto"
+            className="btn btn-primary btn-lg w-full sm:w-auto mx-auto"
           >
             {writing ? (
               <>
