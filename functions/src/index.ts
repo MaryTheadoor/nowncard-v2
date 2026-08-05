@@ -8,7 +8,7 @@
 
 import * as crypto from 'crypto';
 import { onDocumentCreated } from 'firebase-functions/v2/firestore';
-import { onRequest, onCall, HttpsError } from 'firebase-functions/v2/https';
+import { onRequest, onCall, HttpsError, Request } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import * as admin from 'firebase-admin';
 import { Client, Environment } from 'square';
@@ -92,10 +92,11 @@ function formatCents(amount: number): string {
 }
 
 // ---------------------------------------------------------------------------
-// Square Webhook — uses express.raw() to preserve raw body for HMAC verification
+// Square Webhook — reads req.rawBody (the wire-format Buffer preserved by the
+// Functions Framework). express.raw() cannot be used: CF v2 pre-parses the body
+// by Content-Type before the app runs, so its stream is already consumed.
 // ---------------------------------------------------------------------------
 const webhookApp = express();
-webhookApp.use(express.raw({ type: '*/*' }));
 
 webhookApp.post('/', async (req, res) => {
   const signature = req.headers['x-square-hmacsha256-signature'] as string;
@@ -105,7 +106,7 @@ webhookApp.post('/', async (req, res) => {
     return;
   }
 
-  const rawBody = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : '';
+  const rawBody = (req as Request).rawBody?.toString('utf8') || '';
   if (!rawBody) {
     console.warn('Empty webhook body');
     res.status(400).send('Empty body');
