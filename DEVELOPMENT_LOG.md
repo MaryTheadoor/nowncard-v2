@@ -4,6 +4,36 @@
 
 ---
 
+## 2026-08-06 — Live Debugging Round (User-Reported Issues)
+
+### Problems Reported
+1. Card back background photo not fully featured (no positioning/zoom/rotation controls), rendering incorrectly
+2. Removing back background image didn't persist on save (image came back after refresh)
+3. Google sign-in failing in new browser instances (popup blocked)
+
+### Changes Made (`79f7d63`)
+- **Back background controls** (`src/types/index.ts`, `src/pages/CardViewerPage.tsx`, `src/pages/EditorPage.tsx`):
+  - Added `backBgPosition`, `backBgZoom`, `backBgRotation` to `Card` type — independent fields for back face
+  - `CardViewerPage` back face now uses `card.backBgPosition` / `card.backBgZoom` / `card.backBgRotation` instead of sharing the front's `bgPosition`/`bgRotation`
+  - `EditorPage` back background section now has full `BackgroundPositioner` + size selector controls matching the front background
+- **Image removal persistence** (`src/pages/EditorPage.tsx`):
+  - Save logic now uses Firestore `deleteField()` for fields explicitly set to `undefined` (via Remove button)
+  - Previously `stripUndefined` removed them from the payload, so `updateDoc` merge kept the old Firestore value
+- **Google sign-in redirect fallback** (`src/hooks/useAuth.tsx`):
+  - `signInGoogle` now tries `signInWithPopup` first, falls back to `signInWithRedirect` when popup is blocked (`auth/popup-blocked`, `auth/popup-closed-by-user`, `auth/cancelled-popup-request`)
+  - Added `getRedirectResult` call on `AuthProvider` mount to capture redirect completions
+
+### Verified
+- `npm run lint` — zero warnings
+- `npm run build` — successful (tsc + vite)
+- Manual review of all 4 changed files
+
+### Deployed
+- Git push to `origin/master`
+- Firebase Hosting to `nowncard-v2.web.app` + `vcard-studio-314.web.app` (also `nowncard.com`)
+
+---
+
 ## 2026-08-06 — Cleanup Round + Documentation Refresh
 
 ### Changes Made
