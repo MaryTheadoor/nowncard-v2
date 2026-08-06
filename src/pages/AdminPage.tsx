@@ -9,6 +9,7 @@ import type { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/auth-context';
 import { getPaymentDetails, getPricing, updatePricing } from '@/lib/payments';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import Navbar from '@/components/Navbar';
 import {
   Shield, Search, KeyRound, CreditCard, BarChart3,
@@ -324,7 +325,7 @@ export default function AdminPage() {
   const handleBootstrap = async () => {
     if (!user) return;
     try {
-      await setDoc(doc(db, 'users', user.uid), { isAdmin: true, plan: 'business', planUpdatedAt: serverTimestamp() }, { merge: true });
+      await httpsCallable(getFunctions(), 'bootstrapAdmin')();
       toast.success('You are now admin');
       setIsAdmin(true);
       setCanBootstrap(false);

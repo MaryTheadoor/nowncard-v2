@@ -89,7 +89,7 @@ export default function DashboardPage() {
 
     (async () => {
       try {
-        applyPendingUpgrades(user.uid).catch(() => {});
+        applyPendingUpgrades().catch(() => {});
         const userSnap = await getDoc(doc(db, 'users', user.uid));
         if (userSnap.exists()) setPlan(userSnap.data().plan || 'free');
 

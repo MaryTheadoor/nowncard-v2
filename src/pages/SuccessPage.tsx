@@ -14,15 +14,28 @@ export default function SuccessPage() {
 
   useEffect(() => {
     if (authLoading || !user) return;
+    let cancelled = false;
     (async () => {
       try {
         const userSnap = await getDoc(doc(db, 'users', user.uid));
         const active = userSnap.data()?.activeCheckout as { pendingId?: string } | undefined;
-        setUpgradeResult(await applyPendingUpgrades(user.uid, active?.pendingId));
+
+        // The webhook applies asynchronously; poll briefly so a just-completed
+        // payment resolves without forcing a manual refresh.
+        for (let attempt = 0; attempt < 6 && !cancelled; attempt++) {
+          const result = await applyPendingUpgrades(active?.pendingId);
+          if (result.applied > 0) {
+            setUpgradeResult(result);
+            return;
+          }
+          await new Promise((r) => setTimeout(r, 1500));
+        }
+        if (!cancelled) setUpgradeResult({ applied: 0 });
       } catch {
-        setUpgradeResult('error');
+        if (!cancelled) setUpgradeResult('error');
       }
     })();
+    return () => { cancelled = true; };
   }, [user, authLoading]);
 
   let status: Status;

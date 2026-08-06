@@ -6,8 +6,6 @@ import { AuthContext } from './auth-context';
 import type { AuthState } from './auth-context';
 import type { User } from 'firebase/auth';
 
-const ADMIN_UIDS = new Set(['EeiBBDTu5jOooHbxyOC98JSlt6r1']);
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<AuthState['userData']>(null);
@@ -26,19 +24,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userRef = doc(db, 'users', u.uid);
       getDoc(userRef).then((snap) => {
         if (!snap.exists()) {
-          const isAdmin = ADMIN_UIDS.has(u.uid);
-          const data = { plan: 'free', createdAt: serverTimestamp(), lastLogin: serverTimestamp(), email: u.email || null, isAdmin };
+          const data = { plan: 'free', createdAt: serverTimestamp(), lastLogin: serverTimestamp(), email: u.email || null };
           setDoc(userRef, data, { merge: true }).catch((err) => console.error('[useAuth] Failed to create user doc:', err));
           setUserData(data);
         } else {
           const data = snap.data();
-          const isAdmin = ADMIN_UIDS.has(u.uid) || data.isAdmin === true;
-          setUserData({ plan: data.plan || 'free', cardCount: data.cardCount || 0, isAdmin, defaultCardSlug: data.defaultCardSlug || undefined, secondaryCardSlug: data.secondaryCardSlug || undefined });
+          setUserData({ plan: data.plan || 'free', cardCount: data.cardCount || 0, isAdmin: data.isAdmin === true, defaultCardSlug: data.defaultCardSlug || undefined, secondaryCardSlug: data.secondaryCardSlug || undefined });
           setDoc(userRef, { lastLogin: serverTimestamp(), email: u.email || null }, { merge: true }).catch((err) => console.error('[useAuth] Failed to update lastLogin:', err));
         }
       }).catch((err) => {
         console.error('[useAuth] Failed to load user doc:', err);
-        setUserData({ plan: 'free', cardCount: 0, isAdmin: ADMIN_UIDS.has(u.uid), defaultCardSlug: undefined, secondaryCardSlug: undefined });
+        setUserData({ plan: 'free', cardCount: 0, isAdmin: false, defaultCardSlug: undefined, secondaryCardSlug: undefined });
       }).finally(() => {
         setLoading(false);
       });

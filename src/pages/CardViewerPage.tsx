@@ -470,7 +470,7 @@ export default function CardViewerPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-secondary btn-lg w-full no-underline"
-                onClick={() => track(`link:${l.label}`)}
+                onClick={() => track('link')}
               >
                 {l.label}
                 <ExternalLink className="w-3.5 h-3.5 text-ink-faint" />

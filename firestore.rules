@@ -25,15 +25,22 @@ service cloud.firestore {
       );
     }
 
-    // Users: self access; admin full access. Self-update cannot grant admin.
+    // Users: self access; admin full access.
+    // Security: self-create cannot set isAdmin or plan (server grants these),
+    // self-update cannot touch isAdmin/plan/planUpdatedAt/activeCheckout,
+    // and self-delete is blocked (only admins may delete user docs) to close
+    // the delete+recreate admin escalation.
     match /users/{uid} {
       allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
-      allow create: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && !request.resource.data.keys().hasAny(['isAdmin'])
+        && (!request.resource.data.keys().hasAny(['plan']) || request.resource.data.plan == 'free');
       allow update: if request.auth != null
         && ((request.auth.uid == uid
-             && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin']))
+             && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'plan', 'planUpdatedAt', 'activeCheckout']))
             || isAdmin());
-      allow delete: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow delete: if request.auth != null && isAdmin();
     }
 
     // Cards: owners and team owners have control; public readable; admin can read any
@@ -45,11 +52,21 @@ service cloud.firestore {
       allow delete: if request.auth != null && (isOwner(resource.data) || isTeamOwner(resource.data) || isAdmin());
     }
 
+    // Analytics writes come from the card viewer. The app records a fixed set
+    // of counter keys under the `taps.` prefix plus a few metadata fields.
+    // Using hasOnly (instead of the old hasAny) rejects arbitrary extra fields.
+    function isValidAnalyticsKeys() {
+      return request.resource.data.keys().hasOnly([
+        'type', 'timestamp', 'viewCount', 'saveCount', 'timeOnPage', 'device', 'referrer', 'updatedAt',
+        'taps.flip', 'taps.save', 'taps.share', 'taps.message', 'taps.call', 'taps.email', 'taps.website', 'taps.map', 'taps.image', 'taps.link',
+      ]);
+    }
+
     // Card analytics: writable by anyone (for tap tracking from public cards)
     // Field validation prevents spam documents with arbitrary data
     match /cards/{cardId}/analytics/{eventId} {
       allow read: if request.auth != null && (isOwner(get(/databases/$(database)/documents/cards/$(cardId)).data) || isAdmin());
-      allow create, update: if request.resource.data.keys().hasAny(['type', 'timestamp', 'taps', 'viewCount', 'saveCount', 'timeOnPage', 'device', 'referrer']);
+      allow create, update: if isValidAnalyticsKeys();
       allow delete: if false;
     }
 
@@ -64,18 +81,16 @@ service cloud.firestore {
     // Analytics (legacy): scoped to card owner/admin; writable by anyone with field validation
     match /analytics/{docId} {
       allow read: if isAdmin() || (request.auth != null && isOwner(get(/databases/$(database)/documents/cards/$(docId)).data));
-      allow create, update: if request.resource.data.keys().hasAny(['type', 'timestamp', 'taps', 'viewCount', 'saveCount', 'timeOnPage', 'device', 'referrer']);
+      allow create, update: if isValidAnalyticsKeys();
       allow delete: if false;
     }
 
-    // Pending upgrades: owner create only; validate plan/price; admin manages
+    // Pending upgrades: created ONLY by the server (createCheckout function via
+    // Admin SDK). Clients cannot create these — a forged doc with
+    // paymentCompleted: true was the payment-bypass vector. Reads are
+    // owner/admin (for cancel + admin panel); updates are server/admin only.
     match /pendingUpgrades/{docId} {
-      allow create: if request.auth != null
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.plan in ['pro', 'business']
-        && request.resource.data.price is number
-        && request.resource.data.price > 0
-        && request.resource.data.keys().hasAll(['uid', 'plan', 'price', 'paymentCompleted', 'createdAt', 'expiresAt']);
+      allow create: if false;
       allow read: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
       allow update: if isAdmin();
       allow delete: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
@@ -87,10 +102,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Upgrades: readable by admin; writable by owner (via success page) or admin
+    // Upgrades: server (webhook/callables via Admin SDK) and admins only.
+    // Clients cannot fabricate purchase history.
     match /upgrades/{docId} {
       allow read: if isAdmin();
-      allow create: if request.auth != null && (request.resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isAdmin();
       allow update, delete: if isAdmin();
     }
 
