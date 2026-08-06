@@ -374,7 +374,7 @@ export default function CardViewerPage() {
             <div className={`card-face flex flex-col ${!card.cardBgColor && !isDark ? 'bg-card-bg' : ''}`} style={{ transform: 'rotateY(180deg) translateZ(3px)', backgroundColor: tc.faceBg, boxShadow: tc.faceShadow }}>
               {(card.backBackgroundImage || card.backgroundImage) && (
                 <>
-                  <div className="absolute inset-0" style={{ backgroundImage: `url('${card.backBackgroundImage || card.backgroundImage}')`, backgroundPosition: card.bgPosition || 'center', backgroundSize: bgSizeStyle, backgroundRepeat: 'no-repeat', transform: `rotate(${card.bgRotation || 0}deg)` }} />
+                  <div className="absolute inset-0" style={{ backgroundImage: `url('${card.backBackgroundImage || card.backgroundImage}')`, backgroundPosition: card.backBgPosition || card.bgPosition || 'center', backgroundSize: card.backBgZoom ? `${card.backBgZoom}% auto` : bgSizeStyle, backgroundRepeat: 'no-repeat', transform: `rotate(${card.backBgRotation ?? card.bgRotation ?? 0}deg)` }} />
                   <div className="absolute inset-0" style={{ backgroundColor: tc.overlayBg, opacity: bgOpacity }} />
                 </>
               )}

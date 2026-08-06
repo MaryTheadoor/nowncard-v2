@@ -71,6 +71,9 @@ export interface Card {
   bgSize?: string;
   bgZoom?: number;
   bgRotation?: number;
+  backBgPosition?: string;
+  backBgZoom?: number;
+  backBgRotation?: number;
   accentColor?: string;
   cardTheme?: 'light' | 'dark';
   cardBgColor?: string;

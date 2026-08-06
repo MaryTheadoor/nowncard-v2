@@ -5,7 +5,7 @@ import LivePagePreview from '@/components/LivePagePreview';
 import Navbar from '@/components/Navbar';
 import BackLink from '@/components/BackLink';
 import ShareModal from '@/components/ShareModal';
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, deleteField, serverTimestamp, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { useAuth } from '@/hooks/auth-context';
@@ -190,6 +190,13 @@ export default function EditorPage() {
         slug,
         updatedAt: serverTimestamp(),
       });
+
+      // Track fields explicitly set to undefined for deletion on update
+      if (id) {
+        for (const [key, value] of Object.entries(rest)) {
+          if (value === undefined) (data as Record<string, unknown>)[key] = deleteField();
+        }
+      }
 
       const existing = await getDocs(query(collection(db, 'cards'), where('slug', '==', slug), where('ownerUid', '==', user.uid)));
       const taken = existing.docs.some((d) => d.id !== id);
@@ -1081,6 +1088,32 @@ export default function EditorPage() {
                 <button type="button" onClick={() => updateField('backBackgroundImage', undefined)} className="text-xs text-danger font-bold border border-line rounded-lg px-2 py-1 hover:border-danger transition">Remove</button>
               </div>
             )}
+            <div className={`mt-2 space-y-3 border-t border-line pt-3 ${!(card.backBackgroundImage || card.backgroundImage) ? 'opacity-50 pointer-events-none' : ''}`}>
+              {!(card.backBackgroundImage || card.backgroundImage) && (
+                <p className="text-[11px] text-ink-faint">Upload a back background photo to enable these controls</p>
+              )}
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-ink-muted w-16">Size</span>
+                <select value={card.bgSize || 'cover'} onChange={(e) => updateField('bgSize', e.target.value)} className="flex-1 px-2.5 py-2 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent">
+                  <option value="cover">Cover</option>
+                  <option value="contain">Contain</option>
+                  <option value="auto">Auto</option>
+                </select>
+              </div>
+              {(card.backBackgroundImage || card.backgroundImage) && (
+                <BackgroundPositioner
+                  imageUrl={card.backBackgroundImage || card.backgroundImage || ''}
+                  opacity={card.bgOpacity ?? 0.6}
+                  position={card.backBgPosition || card.bgPosition || 'center'}
+                  zoom={(card.backBgZoom ?? card.bgZoom ?? 100) / 100}
+                  rotation={card.backBgRotation ?? card.bgRotation ?? 0}
+                  onPositionChange={(pos) => updateField('backBgPosition', pos)}
+                  onZoomChange={(z) => updateField('backBgZoom', z === 100 ? undefined : z)}
+                  onRotationChange={(r) => updateField('backBgRotation', r)}
+                  accentColor={card.accentColor || '#d4a34a'}
+                />
+              )}
+            </div>
           </div>
         </main>
 
