@@ -96,7 +96,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     catch (e) { handleError(e); throw e; }
   }, []);
 
-  const value: AuthState = { user, userData, loading, error, signInEmail, signUpEmail, signInGoogle, linkGoogle, signInAnon, logOut };
+  const refreshUserData = useCallback(async () => {
+    if (!auth.currentUser) return;
+    try {
+      const snap = await getDoc(doc(db, 'users', auth.currentUser.uid));
+      if (snap.exists()) {
+        const data = snap.data();
+        setUserData({ plan: data.plan || 'free', cardCount: data.cardCount || 0, isAdmin: data.isAdmin === true, defaultCardSlug: data.defaultCardSlug || undefined, secondaryCardSlug: data.secondaryCardSlug || undefined });
+      }
+    } catch (err) {
+      console.error('[useAuth] Failed to refresh user data:', err);
+    }
+  }, []);
+
+  const value: AuthState = { user, userData, loading, error, signInEmail, signUpEmail, signInGoogle, linkGoogle, signInAnon, logOut, refreshUserData };
 
   return (
     <AuthContext.Provider value={value}>

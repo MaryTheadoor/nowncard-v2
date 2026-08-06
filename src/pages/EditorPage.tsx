@@ -96,6 +96,10 @@ export default function EditorPage() {
         const isTeamOwner = data?.teamOwnerUid === user.uid || data?.teamOwnerId === user.uid;
         if (snap.exists() && (isOwner || isTeamOwner)) {
           setCard(data as Card);
+          setAccentHex((data as Card).accentColor || '#d4a34a');
+          setCardBgHex((data as Card).cardBgColor || '#f4f1ec');
+          setPageBgHex((data as Card).pageBgColor || '#0a0e1a');
+          setTextHex((data as Card).textColor || '#1a1612');
           if (data?.birthday || data?.anniversary) setShowDates(true);
         } else {
           toast.error('Card not found');

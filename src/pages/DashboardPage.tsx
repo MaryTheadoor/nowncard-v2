@@ -21,7 +21,7 @@ function fmtMoney(cents: number, currency: string): string {
 }
 
 export default function DashboardPage() {
-  const { user, userData, loading: authLoading } = useAuth();
+  const { user, userData, loading: authLoading, refreshUserData } = useAuth();
   const { subscribed: pushSubscribed, ready: pushReady, enableNotifications } = useFCM(user?.uid);
   const navigate = useNavigate();
   const [personalCards, setPersonalCards] = useState<Card[]>([]);
@@ -205,6 +205,7 @@ export default function DashboardPage() {
         if (userData?.secondaryCardSlug === deletedCard.slug) updates.secondaryCardSlug = null;
         if (Object.keys(updates).length > 0) {
           await setDoc(doc(db, 'users', user.uid), updates, { merge: true });
+          await refreshUserData();
           toast.success('Card deleted — favorite slot cleared');
           return;
         }
@@ -232,6 +233,7 @@ export default function DashboardPage() {
     if (!user) return;
     try {
       await setDoc(doc(db, 'users', user.uid), { defaultCardSlug: slug }, { merge: true });
+      await refreshUserData();
       toast.success('Set as your heart favorite');
     } catch {
       toast.error('Failed to set favorite');
@@ -242,6 +244,7 @@ export default function DashboardPage() {
     if (!user) return;
     try {
       await setDoc(doc(db, 'users', user.uid), { secondaryCardSlug: slug }, { merge: true });
+      await refreshUserData();
       toast.success('Set as your star favorite');
     } catch {
       toast.error('Failed to set second favorite');

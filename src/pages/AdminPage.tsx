@@ -77,6 +77,7 @@ export default function AdminPage() {
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalCards, setTotalCards] = useState(0);
   const [totalUpgrades, setTotalUpgrades] = useState(0);
+  const [statsError, setStatsError] = useState(false);
 
   // --- Pricing ---
   const [proPriceStr, setProPriceStr] = useState('19');
@@ -118,7 +119,10 @@ export default function AdminPage() {
       setTotalUsers(usersSnap.data().count);
       setTotalCards(cardsSnap.data().count);
       setTotalUpgrades(upgradesSnap.data().count);
-    } catch { /* silent */ }
+      setStatsError(false);
+    } catch {
+      setStatsError(true);
+    }
   };
 
   const loadPricing = async () => {
@@ -196,7 +200,7 @@ export default function AdminPage() {
     try {
       const detail = await getPaymentDetails(orderId);
       setPaymentDetails((prev) => ({ ...prev, [orderId]: detail }));
-    } catch { /* no-op */ }
+    } catch { toast.error('Failed to load payment details'); }
   };
 
   // ---------- User Search ----------
@@ -428,6 +432,9 @@ export default function AdminPage() {
                 </div>
               ))}
             </div>
+            {statsError && (
+              <p className="text-xs text-danger">Could not load stats. Check the admin permissions.</p>
+            )}
             <button onClick={loadStats} className="flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent transition">
               <RefreshCw className="w-3 h-3" /> Refresh stats
             </button>

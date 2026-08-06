@@ -12,6 +12,7 @@ export interface AuthState {
   linkGoogle: () => Promise<void>;
   signInAnon: () => Promise<void>;
   logOut: () => Promise<void>;
+  refreshUserData: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthState | null>(null);

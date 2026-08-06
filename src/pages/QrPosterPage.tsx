@@ -41,7 +41,7 @@ export default function QrPosterPage() {
     })();
   }, [slug]);
 
-  const cardUrl = `https://nowncard.com/card/${slug}`;
+  const cardUrl = `${window.location.origin}/card/${slug}`;
   const name = card ? fullName(card) : '';
   const org = card ? orgLine(card) : '';
 

@@ -46,6 +46,7 @@ export default function RolodexPage() {
   const [authOpen, setAuthOpen] = useState(false);
   const [cards, setCards] = useState<PublicCard[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [activeIndustry, setActiveIndustry] = useState('All');
   const [sortMode, setSortMode] = useState<SortMode>('az');
@@ -77,8 +78,9 @@ export default function RolodexPage() {
         });
         list.sort((a, b) => a.slug.localeCompare(b.slug));
         setCards(list);
+        setLoadError(null);
       } catch {
-        // silent fail
+        setLoadError('Failed to load the card directory. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -236,6 +238,18 @@ export default function RolodexPage() {
           <div className="flex flex-col items-center justify-center py-16 text-ink-muted">
             <div className="w-6 h-6 border-2 border-line border-t-accent rounded-full animate-spin mb-4" />
             <p className="text-sm">Loading cards…</p>
+          </div>
+        ) : loadError ? (
+          <div className="text-center py-16">
+            <div className="text-4xl mb-3">⚠️</div>
+            <p className="text-ink font-bold mb-1">Something Went Wrong</p>
+            <p className="text-ink-muted text-sm max-w-xs mx-auto">{loadError}</p>
+            <button
+              onClick={() => { setLoading(true); setLoadError(null); window.location.reload(); }}
+              className="btn btn-secondary btn-md mt-5"
+            >
+              Retry
+            </button>
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">
