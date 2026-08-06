@@ -1,7 +1,7 @@
 # NownCard v2 — Production Status
 
 > Current live state, environment details, and action items.
-> **Last updated:** 2026-07-27
+> **Last updated:** 2026-08-06
 > ⚠️ Source of truth is `MASTER_SPEC.md`. This file documents live state only.
 
 ---
@@ -57,9 +57,26 @@
 ### Payment Integration
 | Feature | Status | Provider |
 |---------|--------|----------|
-| Checkout | ✅ | Square checkout links |
-| Webhook | ✅ | `squareWebhook` Cloud Function v2 |
-| Plan activation | ✅ | Success page + webhook auto-activation |
+| Checkout | ✅ | Square — dynamic `createCheckout` (server-side pricing, redirect allowlist, pending dedupe) |
+| Webhook | ✅ | `squareWebhook` Cloud Function v2 — HMAC verified + amount verified, atomic/idempotent apply |
+| Plan activation | ✅ | Server-authoritative: webhook + `applyPendingUpgrade` callable; client cannot self-grant |
+| Payment history | ✅ | `getPaymentHistory` + admin `getPaymentDetails` |
+
+---
+
+## Security Status (2026-08-05 hardening)
+
+| Item | Status |
+|------|--------|
+| Admin elevation | ✅ `bootstrapAdmin` callable + server-side allowlist; self-grant blocked in rules |
+| Plan self-write | ✅ Blocked in rules; only server/admins write `plan` |
+| `pendingUpgrades` client create | ✅ Blocked (`allow create: if false`) |
+| `upgrades` client writes | ✅ Admin-only |
+| Analytics field validation | ✅ `hasOnly` (was `hasAny`) |
+| CSP / Permissions-Policy | ✅ Live on both hosting sites |
+| Service worker cache | ✅ `sw.js`/`firebase-messaging-sw.js` → `no-cache` |
+| SVG uploads | ✅ Blocked in `storage.rules` |
+| FCM push anti-spam | ✅ Only when card owner matches recipient |
 
 ---
 
@@ -98,11 +115,14 @@
 
 | Function | Trigger | Purpose | Status |
 |----------|---------|---------|--------|
-| `squareWebhook` | HTTPS onRequest | Square payment webhook — applies plans on payment completion | ✅ Deployed (HMAC verified) |
+| `squareWebhook` | HTTPS onRequest | Square payment webhook — applies plans on payment completion | ✅ Deployed (HMAC + amount verified) |
 | `createCheckout` | HTTPS onCall | Creates dynamic Square checkout link | ✅ Deployed |
+| `applyPendingUpgrade` | HTTPS onCall | Server-verified plan activation (SuccessPage/Dashboard) | ✅ Deployed |
+| `bootstrapAdmin` | HTTPS onCall | Server-verified admin elevation (allowlist) | ✅ Deployed |
 | `getPaymentDetails` | HTTPS onCall | Payment/order details lookup | ✅ Deployed |
 | `getPaymentHistory` | HTTPS onCall | User payment history | ✅ Deployed |
 | `notifyOnMessage` | Firestore onDocumentCreated (`messages/{id}`) | Sends FCM push to recipient | ✅ Deployed |
+| `notifyOnAppointment` | Firestore onDocumentCreated (`appointments/{id}`) | Sends FCM push on appointment request | ✅ Deployed |
 | `cleanupPendingUpgrades` | Scheduled (6h) | Deletes expired pending upgrades | ✅ Deployed |
 
 ### Runtime
@@ -122,27 +142,34 @@
 
 | Date | Commit | Changes |
 |------|--------|---------|
+| 2026-08-06 | `c2883d1` | Cleanup: dead code removed, editor toggles unified, dynamic FAQ pricing |
+| 2026-08-06 | `bb325a8` | Editor hex sync, favorite refresh, origin-relative QR, surface load errors |
+| 2026-08-05 | `1d3c5ae` | **Security rework** — server-authoritative plan/admin, locked rules, CSP, SW caching |
+| 2026-08-05 | `3765312` | Blue secondary buttons restored, landing section-title colors |
+| 2026-08-05 | `06c3466` | Tactile button system unified app-wide |
+| 2026-08-05 | `38f0af5` | Navigation unification (BackLink, underline tabs, editor back link) |
+| 2026-08-05 | `81bf4ab` | Payments: apply only paid upgrade, atomically + idempotently |
+| 2026-08-05 | `030dd66` | Webhook raw-body fix (`req.rawBody`) |
+| 2026-08-04 | `abec8f5` | Square payment history in Dashboard Billing tab |
 | 2026-07-27 | Rollback | Deployed `master` build (may 18-19 state) after June 12 rebuild discarded |
-| 2026-05-18 | `0a439f4` | Last stable deploy — background image fixes, BackgroundPositioner, bottom bar |
-| Prior | Various | See `MASTER_SPEC.md` and git history |
+| 2026-05-18 | `0a439f4` | Last stable pre-2026-08 deploy — background image fixes, BackgroundPositioner, bottom bar |
 
 ---
 
 ## Action Items
 
-### 🟡 In Progress (rebuild per MASTER_SPEC.md)
-| # | Item | Phase |
-|---|------|-------|
-| 1 | **Auth consolidation** — context-based AuthProvider | Phase 1 |
-| 2 | **CardFace component** — unify card rendering | Phase 2 |
-| 3 | **Page improvements** — editor reorg, dashboard fixes | Phase 3 |
-| 4 | **Visual polish** — button system, animations | Phase 4 |
-| 5 | **Hardening** — CSP headers, ARIA, tests | Phase 5 |
-
-### 🟢 Verify
+### 🟡 Verify (blocking release confidence)
 | # | Item | Notes |
 |---|------|-------|
-| 6 | **FCM end-to-end** | Send test message, confirm notification delivery |
+| 1 | **Live checkout E2E** | Real Pro/Business purchase after 2026-08-05 security rework (webhook verified; full flow not yet exercised) |
+| 2 | **FCM end-to-end** | Send test message, confirm notification delivery to a device |
+
+### 🟢 Done (completed 2026-08-05/06)
+- ✅ Auth consolidation (context-based AuthProvider) — Phase 1
+- ✅ CardFace/flip-card rendering unified (`LiveCardPreview` used everywhere; `CardPreview` removed) — Phase 2
+- ✅ Page improvements (editor reorg, dashboard fixes, hex sync, favorites refresh) — Phase 3
+- ✅ Visual polish (tactile button system, navigation unification) — Phase 4
+- ✅ Hardening (server-authoritative payment/admin, locked rules, CSP, SW caching, SVG block) — Phase 5
 
 ---
 

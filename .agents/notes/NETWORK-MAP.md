@@ -12,24 +12,23 @@
 |-----------|-------|
 | Project ID | `vcard-studio-314` |
 | Project Number | `58487120224` |
-| Live URL | https://vcard-studio-314.web.app |
-| Hosting Site | `vcard-studio-314` |
+| Live URL | https://nowncard.com (custom domain) + https://vcard-studio-314.web.app |
+| Staging URL | https://nowncard-v2.web.app |
+| Hosting Sites | `vcard-studio-314` (prod), `nowncard-v2` (staging) |
 | App ID | `1:58487120224:web:f53e2cda0f276fd237fe05` |
 | Platform | WEB |
-| Custom Domain | ❌ Not configured (or not visible via CLI) |
-| Firestore | ✅ Rules compile, indexes defined |
-| Storage | ✅ Rules compile |
+| Custom Domain | ✅ `nowncard.com` — confirmed live |
+| Firestore | ✅ Rules compile + deployed (2026-08-05 security hardening) |
+| Storage | ✅ Rules compile (SVG uploads blocked) |
 | Auth | Email/Password + Google |
 | App Check | ❌ Disabled |
+| Cloud Functions | ✅ 9 functions deployed (v2, Node 22) |
+| Payments | ✅ Square (webhook: `https://squarewebhook-bms24k7cqa-uc.a.run.app`) |
 
-**Routes/Rewrites:**
-- `/` → `index.html` (landing)
-- `/card/**` → `card.html` (public card viewer)
-- `/app.html` → `app.html` (dashboard / card editor)
-- `/debug` → `debug.html` (diagnostics)
-- `/admin` → `admin.html`
-- `/success` → `success.html`
-- `/cancel` → `cancel.html`
+**Routing:** Single-page React app. All routes serve `index.html` (SPA rewrite):
+- `/` landing · `/dashboard` · `/editor` · `/editor/:id` · `/success` · `/cancel` · `/admin`
+- `/card/:slug` · `/poster/:slug` · `/nfc/:slug` · `/analytics/:id` · `/rolodex`
+- `/terms` · `/privacy` · `/contact` · `*` → 404 page
 
 ---
 
@@ -81,14 +80,11 @@
 
 ---
 
-## Domain Strategy (TBD)
+## Domain Strategy (RESOLVED)
 
-User states a custom domain is "already set up." Need to verify:
-1. Is it connected to `vcard-studio-314` or one of the sibling projects?
-2. If connected, why doesn't `firebase hosting:sites:get` show it?
-3. Common places: Cloudflare proxy, separate registrar DNS, or Firebase Hosting custom domain config.
-
-**Action needed:** Screenshot Firebase Console Hosting page for domain verification.
+- `nowncard.com` is live and served by the `vcard-studio-314` hosting site (custom domain configured in Firebase Hosting).
+- Staging lives at `nowncard-v2.web.app`.
+- No Cloudflare proxy currently involved; direct Firebase Hosting.
 
 ---
 

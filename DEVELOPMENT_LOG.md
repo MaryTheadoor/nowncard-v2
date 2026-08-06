@@ -4,6 +4,69 @@
 
 ---
 
+## 2026-08-06 — Cleanup Round + Documentation Refresh
+
+### Changes Made
+- **Dead code removal** (`c2883d1`): deleted `CardPreview.tsx`, `captureElementAsJPEG`, `signInAnon`, `normalizeCardContacts`, `UserData`/`Plan` types, unused CSS (`.btn-ghost`, `.shadow-card`, `.backface-hidden`).
+- **Editor toggles unified**: name layout / preset / QR / font-size toggles now use `btn btn-secondary` + `btn-selected` (were flat `bg-accent` segmented controls).
+- **Dynamic FAQ pricing**: Landing FAQ (list + JSON-LD) now reads from `config/pricing` via `useMemo` instead of hardcoded $19/$39.
+- **Local `.env` cleanup**: removed unused `VITE_STRIPE_*` + `VITE_PAYMENT_PROVIDER` vars (gitignored file).
+- **Documentation refresh**: rewrote `.agents/notes/WORKSPACE.md`, `.agents/notes/vcard-studio-TODO.md`, refreshed `PRODUCTION_STATUS.md` (security status, functions table, deployments, action items), appended this log entry.
+
+### Deployed
+- Hosting to `nowncard-v2.web.app` + `vcard-studio-314.web.app` (staging + prod).
+
+---
+
+## 2026-08-06 — Medium Patch Round (from audit)
+
+### Changes Made (`bb325a8`)
+- **Editor hex sync**: hex color inputs now load the existing card's actual colors instead of defaults.
+- **Favorites refresh**: added `refreshUserData()` to auth context; heart/star favorite changes (and favorite-slot clearing on delete) update `userData` immediately — Navbar no longer stale until reload.
+- **QR poster origin-relative**: `/poster/:slug` uses `window.location.origin` instead of hardcoded `nowncard.com`.
+- **Surfaced silent failures**: Admin stats show an error line instead of all-zeros; `loadPaymentDetail` toasts; Rolodex shows an error state + retry instead of a misleading empty directory.
+
+---
+
+## 2026-08-05 — Security Rework: Server-Authoritative Plan/Admin
+
+### Problems Fixed (critical)
+1. **Free plan-upgrade bypass** — clients could create `pendingUpgrades` with `paymentCompleted: true` and self-apply via a client-side transaction.
+2. **Admin self-grant** — delete + recreate user doc with `isAdmin: true`.
+3. **Self-plan write** — users could set `users.plan` directly.
+4. **Fabricated purchase history** — clients could write `upgrades` docs.
+
+### Changes Made (`1d3c5ae`)
+- **`firestore.rules`**: `users` create blocks `isAdmin`/`plan`, self-update blocks `isAdmin`/`plan`/`planUpdatedAt`/`activeCheckout`, self-delete admin-only; `pendingUpgrades` create blocked (`if false`); `upgrades` admin-only writes; analytics `hasAny` → `hasOnly`.
+- **`functions/src/index.ts`**:
+  - New `applyPendingUpgrade` callable — applies only when the HMAC-verified webhook set `paymentCompleted: true` (idempotent via shared `applyPaidUpgradeTx`).
+  - New `bootstrapAdmin` callable — checks server-side `ADMIN_UIDS` allowlist, sets `isAdmin` + `plan: business`.
+  - Webhook now verifies paid amount ≥ configured price before applying.
+  - `createCheckout`: redirect URL allowlist (`nowncard.com`, `.web.app`, `localhost`) + dedupe of unpaid pending docs.
+  - FCM push guards — only push when message/appointment card owner matches recipient.
+- **Client**: `payments.ts` routes apply through the callable; `useAuth.tsx` no longer writes `isAdmin` on create; `AdminPage` bootstrap via callable; `SuccessPage` polls briefly for webhook.
+- **`storage.rules`**: SVG uploads blocked.
+- **`firebase.json`**: CSP + Permissions-Policy headers; `sw.js`/`firebase-messaging-sw.js` → `no-cache`.
+
+### Verified
+- Functions + rules + storage deployed; all 9 functions live.
+- Headers confirmed via HTTP on nowncard.com.
+- Signed webhook test → HTTP 200 (HMAC + amount check path).
+
+### Deployed
+- Functions, Firestore rules, Storage rules, and hosting to staging + prod.
+
+---
+
+## 2026-08-05 — UI Styling Updates
+
+### Changes Made
+- `3765312` — restored blue `btn-secondary` (tactile blue gradient), colored landing section titles (removed eyebrow badges).
+- `06c3466` — unified ~90 ad-hoc buttons onto the tactile `btn` system (gold primary, blue secondary, red danger).
+- `38f0af5` — navigation unification: shared `BackLink`, Admin tab bar → underline style, editor top "Back to Dashboard" link, Dashboard h1 → "Dashboard".
+
+---
+
 ## 2026-05-06 — Messaging Fix, Simplification, Documentation
 
 ### Problems Reported
@@ -93,4 +156,4 @@ Key milestones from git history:
 
 1. **Legacy `ownerId` cards** — Any card created before the `ownerUid` field was added will have `ownerId` instead. Code must check both fields. Editor now ensures `ownerUid` is written on every save.
 2. **publicCards collection** — May be stale/out of sync. CardViewer falls back to it if `cards` collection lookup fails. No active mirroring logic exists.
-3. **OneSignal** — Placeholder app ID means push notifications are non-functional until real credentials are provided.
+3. **FCM (Firebase Cloud Messaging)** — Configured with real keys and `notifyOnMessage` deployed, but end-to-end delivery to a device is not yet verified.
