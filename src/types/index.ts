@@ -126,23 +126,6 @@ export interface Appointment {
   updatedAt: unknown;
 }
 
-export type Plan = 'free' | 'pro' | 'business';
-
-export interface UserData {
-  uid: string;
-  email?: string | null;
-  displayName?: string | null;
-  plan?: Plan;
-  cardCount?: number;
-  isAdmin?: boolean;
-  defaultCardSlug?: string;
-  secondaryCardSlug?: string;
-  fcmToken?: string;
-  createdAt?: unknown;
-  lastLogin?: unknown;
-  planUpdatedAt?: unknown;
-}
-
 export interface Review {
   id: string;
   userId: string;

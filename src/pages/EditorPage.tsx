@@ -565,9 +565,9 @@ export default function EditorPage() {
             </div>
             <div className="flex items-center gap-3 mb-4">
               <span className="text-sm text-ink-muted">Name layout</span>
-              <div className="flex rounded-lg border border-line overflow-hidden">
-                <button onClick={() => updateField('nameLayout', 'personal')} className={`px-3 py-1.5 text-sm font-semibold transition ${card.nameLayout !== 'business' ? 'bg-accent text-space' : 'text-ink-muted hover:bg-tile-soft'}`}>Personal</button>
-                <button onClick={() => updateField('nameLayout', 'business')} className={`px-3 py-1.5 text-sm font-semibold transition ${card.nameLayout === 'business' ? 'bg-accent text-space' : 'text-ink-muted hover:bg-tile-soft'}`}>Business</button>
+              <div className="flex gap-2">
+                <button onClick={() => updateField('nameLayout', 'personal')} className={`btn btn-sm btn-secondary ${card.nameLayout !== 'business' ? 'btn-selected' : ''}`}>Personal</button>
+                <button onClick={() => updateField('nameLayout', 'business')} className={`btn btn-sm btn-secondary ${card.nameLayout === 'business' ? 'btn-selected' : ''}`}>Business</button>
               </div>
               <span className="text-xs text-ink-faint">{card.nameLayout === 'business' ? 'Company name is the header' : 'Person name is the header'}</span>
             </div>
@@ -654,17 +654,17 @@ export default function EditorPage() {
               {/* Preset */}
               <div className="flex items-center gap-3">
                 <span className="text-sm text-ink-muted">Preset</span>
-                <div className="flex rounded-lg border border-line overflow-hidden">
-                  <button onClick={() => { updateField('cardBgColor', undefined); updateField('cardTheme', 'light'); }} className={`px-3 py-1.5 text-sm font-semibold transition ${card.cardTheme !== 'dark' && !card.cardBgColor ? 'bg-accent text-space' : 'text-ink-muted hover:bg-tile-soft'}`}>Light</button>
-                  <button onClick={() => { updateField('cardBgColor', undefined); updateField('cardTheme', 'dark'); }} className={`px-3 py-1.5 text-sm font-semibold transition ${card.cardTheme === 'dark' && !card.cardBgColor ? 'bg-accent text-space' : 'text-ink-muted hover:bg-tile-soft'}`}>Dark</button>
+                <div className="flex gap-2">
+                  <button onClick={() => { updateField('cardBgColor', undefined); updateField('cardTheme', 'light'); }} className={`btn btn-sm btn-secondary ${card.cardTheme !== 'dark' && !card.cardBgColor ? 'btn-selected' : ''}`}>Light</button>
+                  <button onClick={() => { updateField('cardBgColor', undefined); updateField('cardTheme', 'dark'); }} className={`btn btn-sm btn-secondary ${card.cardTheme === 'dark' && !card.cardBgColor ? 'btn-selected' : ''}`}>Dark</button>
                 </div>
               </div>
               {/* QR */}
               <div className="flex items-center gap-3">
                 <span className="text-sm text-ink-muted">QR code</span>
-                <div className="flex rounded-lg border border-line overflow-hidden">
-                  <button onClick={() => updateField('qrMode', undefined)} className={`px-3 py-1.5 text-sm font-semibold transition ${card.qrMode !== 'vcard' ? 'bg-accent text-space' : 'text-ink-muted hover:bg-tile-soft'}`}>Link to card</button>
-                  <button onClick={() => updateField('qrMode', 'vcard')} className={`px-3 py-1.5 text-sm font-semibold transition ${card.qrMode === 'vcard' ? 'bg-accent text-space' : 'text-ink-muted hover:bg-tile-soft'}`}>Contact card</button>
+                <div className="flex gap-2">
+                  <button onClick={() => updateField('qrMode', undefined)} className={`btn btn-sm btn-secondary ${card.qrMode !== 'vcard' ? 'btn-selected' : ''}`}>Link to card</button>
+                  <button onClick={() => updateField('qrMode', 'vcard')} className={`btn btn-sm btn-secondary ${card.qrMode === 'vcard' ? 'btn-selected' : ''}`}>Contact card</button>
                 </div>
                 <span className="text-xs text-ink-faint">{card.qrMode === 'vcard' ? 'Scan adds contact directly' : 'Scan opens your card page'}</span>
               </div>
@@ -738,9 +738,7 @@ export default function EditorPage() {
                           <button
                             key={pt}
                             onClick={() => setCard((prev) => ({ ...prev, fontSizeScale: scale }))}
-                            className={`px-2.5 py-1 text-xs font-bold rounded-full transition ${
-                              Math.abs((card.fontSizeScale || 1) - scale) < 0.06 ? 'bg-accent text-space' : 'border border-line text-ink-muted hover:bg-tile-soft'
-                            }`}
+                            className={`btn btn-xs btn-secondary ${Math.abs((card.fontSizeScale || 1) - scale) < 0.06 ? 'btn-selected' : ''}`}
                           >
                             {pt}
                           </button>

@@ -10,7 +10,6 @@ export interface AuthState {
   signUpEmail: (email: string, password: string) => Promise<void>;
   signInGoogle: () => Promise<void>;
   linkGoogle: () => Promise<void>;
-  signInAnon: () => Promise<void>;
   logOut: () => Promise<void>;
   refreshUserData: () => Promise<void>;
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Link2, QrCode, Download, Palette, Smartphone, Leaf, Star } from 'lucide-react';
 import DemoCard from '@/components/DemoCard';
@@ -23,6 +23,33 @@ export default function LandingPage() {
   useEffect(() => {
     getPricing().then(setPricing).catch(() => {});
   }, []);
+
+  const faqs = useMemo(() => [
+    {
+      q: 'What is a digital business card?',
+      a: 'A digital business card is a mobile-friendly web page that displays your contact information, photo, social links, and more. Recipients can save your details as a vCard with one tap — no app required. It\'s like a physical business card, but always with you and never runs out.',
+    },
+    {
+      q: 'Do recipients need to download an app?',
+      a: 'No. Your card opens in any browser — on any phone, tablet, or computer. Recipients can call, email, visit your website, follow your socials, and save your contact directly from the page. Nothing to install.',
+    },
+    {
+      q: 'Can I use my own domain or branding?',
+      a: 'Yes. Pro and Business plans let you remove NownCard branding and use custom colors, fonts, and layouts. Business plans support white-label cards with no external branding at all.',
+    },
+    {
+      q: 'How does the QR code and NFC work?',
+      a: 'Every card automatically gets a QR code that links directly to your card page. For NFC, you can program a physical NFC tag to open your card when tapped — great for keychains, stickers, or business card blanks.',
+    },
+    {
+      q: 'Is there a free plan?',
+      a: `Yes — the Free plan gives you one digital card with a shareable link, QR code, vCard export, and basic analytics. Upgrade to Pro ($${pricing.proPrice}/year) for up to 5 cards, custom fonts, and no branding. Business ($${pricing.businessPrice}/year) adds unlimited cards, team features, and white-label options.`,
+    },
+    {
+      q: 'Can I update my card after sharing it?',
+      a: 'Absolutely. Your card lives at a permanent URL. Update your info, photo, or design anytime — everyone who has your link sees the latest version instantly. No reprinting, no "sorry, that\'s my old number."',
+    },
+  ], [pricing.proPrice, pricing.businessPrice]);
 
   useEffect(() => {
     (async () => {
@@ -259,32 +286,7 @@ export default function LandingPage() {
       <section className="py-16 px-6 max-w-3xl mx-auto">
         <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-10">Frequently Asked Questions</h2>
         <div className="space-y-3">
-          {[
-            {
-              q: 'What is a digital business card?',
-              a: 'A digital business card is a mobile-friendly web page that displays your contact information, photo, social links, and more. Recipients can save your details as a vCard with one tap — no app required. It\'s like a physical business card, but always with you and never runs out.',
-            },
-            {
-              q: 'Do recipients need to download an app?',
-              a: 'No. Your card opens in any browser — on any phone, tablet, or computer. Recipients can call, email, visit your website, follow your socials, and save your contact directly from the page. Nothing to install.',
-            },
-            {
-              q: 'Can I use my own domain or branding?',
-              a: 'Yes. Pro and Business plans let you remove NownCard branding and use custom colors, fonts, and layouts. Business plans support white-label cards with no external branding at all.',
-            },
-            {
-              q: 'How does the QR code and NFC work?',
-              a: 'Every card automatically gets a QR code that links directly to your card page. For NFC, you can program a physical NFC tag to open your card when tapped — great for keychains, stickers, or business card blanks.',
-            },
-            {
-              q: 'Is there a free plan?',
-              a: 'Yes — the Free plan gives you one digital card with a shareable link, QR code, vCard export, and basic analytics. Upgrade to Pro ($19/year) for up to 5 cards, custom fonts, and no branding. Business ($39/year) adds unlimited cards, team features, and white-label options.',
-            },
-            {
-              q: 'Can I update my card after sharing it?',
-              a: 'Absolutely. Your card lives at a permanent URL. Update your info, photo, or design anytime — everyone who has your link sees the latest version instantly. No reprinting, no "sorry, that\'s my old number."',
-            },
-          ].map((faq) => (
+          {faqs.map((faq) => (
             <details key={faq.q} className="bg-tile border border-line rounded-2xl group">
               <summary className="p-5 text-sm font-bold cursor-pointer hover:text-accent transition select-none">{faq.q}</summary>
               <p className="px-5 pb-5 text-sm text-ink-muted leading-relaxed">{faq.a}</p>
@@ -297,12 +299,11 @@ export default function LandingPage() {
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'FAQPage',
-              mainEntity: [
-                { '@type': 'Question', name: 'What is a digital business card?', acceptedAnswer: { '@type': 'Answer', text: 'A digital business card is a mobile-friendly web page that displays your contact information, photo, social links, and more. Recipients can save your details as a vCard with one tap — no app required.' } },
-                { '@type': 'Question', name: 'Do recipients need to download an app?', acceptedAnswer: { '@type': 'Answer', text: 'No. Your card opens in any browser on any device. Recipients can call, email, visit your website, and save your contact directly from the page.' } },
-                { '@type': 'Question', name: 'Is there a free plan?', acceptedAnswer: { '@type': 'Answer', text: 'Yes — the Free plan gives you one digital card with a shareable link, QR code, vCard export, and basic analytics. Pro is $19/year for up to 5 cards. Business is $39/year for unlimited cards and team features.' } },
-                { '@type': 'Question', name: 'Can I update my card after sharing it?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. Update your info anytime — everyone with your link sees the latest version instantly. No reprinting required.' } },
-              ],
+              mainEntity: faqs.slice(0, 4).map((faq) => ({
+                '@type': 'Question',
+                name: faq.q,
+                acceptedAnswer: { '@type': 'Answer', text: faq.a },
+              })),
             }),
           }}
         />

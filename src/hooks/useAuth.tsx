@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, linkWithPopup } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, linkWithPopup } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { AuthContext } from './auth-context';
@@ -84,12 +84,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     catch (e) { handleError(e); throw e; }
   }, []);
 
-  const signInAnon = useCallback(async () => {
-    setError(null);
-    try { await signInAnonymously(auth); }
-    catch (e) { handleError(e); throw e; }
-  }, []);
-
   const logOut = useCallback(async () => {
     setError(null);
     try { await signOut(auth); }
@@ -109,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const value: AuthState = { user, userData, loading, error, signInEmail, signUpEmail, signInGoogle, linkGoogle, signInAnon, logOut, refreshUserData };
+  const value: AuthState = { user, userData, loading, error, signInEmail, signUpEmail, signInGoogle, linkGoogle, logOut, refreshUserData };
 
   return (
     <AuthContext.Provider value={value}>
