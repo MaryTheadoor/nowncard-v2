@@ -16,7 +16,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import type { Card } from '@/types';
 
-import { Calendar, ExternalLink, Pencil } from 'lucide-react';
+import { Calendar, ExternalLink, Pencil, UtensilsCrossed, ChevronDown } from 'lucide-react';
 import { IconPhone, IconMail, IconGlobe, IconPin } from '@/components/CardIcons';
 const IconDownload = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-[18px] h-[18px]"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10 12 15 17 10"/><path d="M12 15V3"/></svg>;
 const IconSend = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-10z"/></svg>;
@@ -39,6 +39,7 @@ export default function CardViewerPage() {
   const [authOpen, setAuthOpen] = useState(false);
   const [appointmentOpen, setAppointmentOpen] = useState(false);
   const [flipped, setFlipped] = useState(false);
+  const [menuExpanded, setMenuExpanded] = useState(false);
   const [savingImage, setSavingImage] = useState(false);
   const [vcfHelpOpen, setVcfHelpOpen] = useState(false);
   const trackedMeta = useRef(false);
@@ -264,6 +265,24 @@ export default function CardViewerPage() {
   const featuredLinks = card.featuredLinksEnabled && Array.isArray(card.featuredLinks)
     ? card.featuredLinks.filter((l) => l?.url?.trim() && l?.label?.trim())
     : [];
+
+  // Menu (food trucks / venues) — compact preview with a "view full menu" toggle.
+  const menu = Array.isArray(card.menu)
+    ? card.menu.filter((c) => c?.name?.trim() && Array.isArray(c.items) && c.items.some((it) => it?.name?.trim()))
+    : [];
+  const menuItemCount = menu.reduce((n, c) => n + c.items.filter((it) => it?.name?.trim()).length, 0);
+  const MENU_PREVIEW_ITEMS = 6;
+  const visibleMenu = (() => {
+    if (menuExpanded) return menu;
+    const out: typeof menu = [];
+    let count = 0;
+    for (const cat of menu) {
+      if (count >= MENU_PREVIEW_ITEMS) break;
+      const items = cat.items.filter((it) => it?.name?.trim()).slice(0, MENU_PREVIEW_ITEMS - count);
+      if (items.length) { out.push({ ...cat, items }); count += items.length; }
+    }
+    return out;
+  })();
 
   const fontFamily = card.customFontUrl ? "'CustomFont', sans-serif" : (card.fontFamily || 'Manrope');
   const fontScale = card.fontSizeScale || 1;
@@ -507,6 +526,42 @@ export default function CardViewerPage() {
                 <ExternalLink className="w-3.5 h-3.5 text-ink-faint" />
               </a>
             ))}
+          </div>
+        )}
+
+        {/* Menu (food trucks / venues) */}
+        {menu.length > 0 && (
+          <div className="w-full flex flex-col gap-2.5">
+            <div className="text-xs font-bold text-ink-muted uppercase tracking-wider text-center flex items-center justify-center gap-1.5">
+              <UtensilsCrossed className="w-3.5 h-3.5" /> Menu
+            </div>
+            <div className="bg-tile border border-line rounded-2xl p-5">
+              {visibleMenu.map((cat, ci) => (
+                <div key={`mc-${ci}`} className={ci > 0 ? 'mt-4 pt-4 border-t border-line' : ''}>
+                  <h2 className="text-sm font-bold text-ink mb-2">{cat.name}</h2>
+                  <div className="flex flex-col">
+                    {cat.items.map((item, ii) => (
+                      <div key={`mi-${ci}-${ii}`} className="flex items-baseline justify-between gap-3 py-1.5">
+                        <div className="min-w-0">
+                          <div className="text-sm text-ink font-medium">{item.name}</div>
+                          {item.description ? <div className="text-xs text-ink-muted">{item.description}</div> : null}
+                        </div>
+                        {item.price ? <div className="text-sm font-bold text-accent whitespace-nowrap">{item.price}</div> : null}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {menuItemCount > MENU_PREVIEW_ITEMS && (
+                <button
+                  onClick={() => { setMenuExpanded((s) => !s); track('menu'); }}
+                  className="mt-3 w-full text-sm font-semibold text-accent hover:underline cursor-pointer flex items-center justify-center gap-1"
+                >
+                  {menuExpanded ? 'Show less' : `View full menu (${menuItemCount} items)`}
+                  <ChevronDown className={`w-4 h-4 transition-transform ${menuExpanded ? 'rotate-180' : ''}`} />
+                </button>
+              )}
+            </div>
           </div>
         )}
         </div>

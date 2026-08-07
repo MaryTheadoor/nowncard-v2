@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ExternalLink, Eye, EyeOff, Smartphone, Upload, User, Calendar, ChevronDown, ChevronUp, Copy } from 'lucide-react';
+import { ExternalLink, Eye, EyeOff, Smartphone, Upload, User, Calendar, ChevronDown, ChevronUp, Copy, UtensilsCrossed } from 'lucide-react';
 import LivePagePreview from '@/components/LivePagePreview';
 import Navbar from '@/components/Navbar';
 import BackLink from '@/components/BackLink';
 import ShareModal from '@/components/ShareModal';
+import MenuEditor from '@/components/MenuEditor';
 import { doc, getDoc, deleteField, serverTimestamp, collection, query, where, getDocs, limit, runTransaction } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
@@ -12,7 +13,7 @@ import { useAuth } from '@/hooks/auth-context';
 import BackgroundPositioner from '@/components/BackgroundPositioner';
 import { parseVCard } from '@/lib/vcard-parser';
 import { slugify, getCardLimit, GOOGLE_FONTS, compressImage, SOCIAL_PLATFORMS, PAYMENT_PLATFORMS } from '@/lib/utils';
-import type { Card, SocialLink, FeaturedLink } from '@/types';
+import type { Card, SocialLink, FeaturedLink, MenuCategory } from '@/types';
 import { toast } from 'sonner';
 
 const defaultCard: Omit<Card, 'id' | 'ownerUid' | 'createdAt' | 'updatedAt'> = {
@@ -173,6 +174,12 @@ export default function EditorPage() {
       });
       if (Array.isArray(rest.socialLinks)) rest.socialLinks = rest.socialLinks.filter((s: unknown) => (s as { url?: string }).url?.trim());
       if (Array.isArray(rest.paymentLinks)) rest.paymentLinks = rest.paymentLinks.filter((s: unknown) => (s as { url?: string }).url?.trim());
+      if (Array.isArray(rest.menu)) {
+        rest.menu = (rest.menu as MenuCategory[])
+          .map((cat) => ({ ...cat, items: cat.items.filter((it) => it.name?.trim()) }))
+          .filter((cat) => cat.name?.trim() && cat.items.length > 0);
+        if ((rest.menu as MenuCategory[]).length === 0) rest.menu = [];
+      }
 
       const stripUndefined = (obj: Record<string, unknown>): Record<string, unknown> => {
         const result: Record<string, unknown> = {};
@@ -1065,6 +1072,21 @@ export default function EditorPage() {
                   </div>
                 ))}
                 <button onClick={() => updateField('featuredLinks', [...(Array.isArray(card.featuredLinks) ? card.featuredLinks : []), { label: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Link</button>
+              </div>
+            )}
+          </div>
+
+          {/* Menu — Business */}
+          <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
+            <h2 className="text-lg font-bold mb-1">Menu</h2>
+            <p className="text-xs text-ink-faint mb-4">Add a simple menu for your food truck or venue. Items appear on your card page with a toggle to expand the full list.</p>
+            {userData?.plan === 'business' ? (
+              <MenuEditor value={card.menu || []} onChange={(menu) => updateField('menu', menu)} />
+            ) : (
+              <div className="flex items-center gap-2 text-sm text-ink-faint">
+                <UtensilsCrossed className="w-4 h-4" />
+                <span>Menu is a Business-plan feature.</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-accent">— Business</span>
               </div>
             )}
           </div>

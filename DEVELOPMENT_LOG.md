@@ -4,6 +4,26 @@
 
 ---
 
+## 2026-08-07 — Menu feature (Business plan) for food trucks / small venues
+
+- **Data model**: `Card.menu?: MenuCategory[]` where `MenuCategory = { name, items: MenuItem[] }`
+  and `MenuItem = { name, description?, price? }`.
+- **Editor** (`EditorPage` + new `MenuEditor` component): Business-plan-only section
+  (locked "— Business" badge for other plans) to add categories and items (name/price/
+  optional description). Empty categories/items filtered on save.
+- **Card page** (`CardViewerPage`): a compact "Menu" section rendered below the card the
+  same way featured links appear — shows the first few items, with a
+  "View full menu (N items) / Show less" toggle when there are more. Mirrored as a
+  non-interactive mock in the editor's `LivePagePreview`.
+- Menu display is presence-based (shows whenever a card has items); the *editor* is the
+  business-gated surface.
+
+### Verified
+- lint + typecheck clean; card page regression clean (no errors; no menu section when a
+  card has no menu data). Live rendering needs a business-account card with menu items.
+
+---
+
 ## 2026-08-07 — NFC analysis + copy alignment
 
 Analyzed the deployed NFC functionality against the site copy.

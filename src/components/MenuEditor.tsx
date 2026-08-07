@@ -1,0 +1,97 @@
+import { Plus, Trash2 } from 'lucide-react';
+import type { MenuCategory, MenuItem } from '@/types';
+
+interface MenuEditorProps {
+  value: MenuCategory[];
+  onChange: (menu: MenuCategory[]) => void;
+}
+
+function emptyItem(): MenuItem {
+  return { name: '', price: '', description: '' };
+}
+
+function emptyCategory(): MenuCategory {
+  return { name: '', items: [emptyItem()] };
+}
+
+const inputCls = 'w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent';
+
+export default function MenuEditor({ value, onChange }: MenuEditorProps) {
+  const menu = value || [];
+
+  const updateCategory = (ci: number, cat: MenuCategory) => {
+    onChange(menu.map((c, i) => i === ci ? cat : c));
+  };
+  const updateItem = (ci: number, ii: number, patch: Partial<MenuItem>) => {
+    onChange(menu.map((c, i) => i === ci ? { ...c, items: c.items.map((it, j) => j === ii ? { ...it, ...patch } : it) } : c));
+  };
+  const addItem = (ci: number) => {
+    onChange(menu.map((c, i) => i === ci ? { ...c, items: [...c.items, emptyItem()] } : c));
+  };
+  const removeItem = (ci: number, ii: number) => {
+    onChange(menu.map((c, i) => i === ci ? { ...c, items: c.items.filter((_, j) => j !== ii) } : c));
+  };
+  const addCategory = () => {
+    onChange([...menu, emptyCategory()]);
+  };
+  const removeCategory = (ci: number) => {
+    onChange(menu.filter((_, i) => i !== ci));
+  };
+
+  return (
+    <div className="space-y-4">
+      {menu.map((cat, ci) => (
+        <div key={ci} className="bg-space border border-line rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <input
+              value={cat.name}
+              onChange={(e) => updateCategory(ci, { ...cat, name: e.target.value })}
+              placeholder="Category (e.g. Tacos, Drinks, Desserts)"
+              className={`${inputCls} flex-1 font-semibold`}
+            />
+            <button onClick={() => removeCategory(ci)} aria-label="Remove category" className="p-2 text-ink-faint hover:text-danger transition cursor-pointer">
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            {cat.items.map((item, ii) => (
+              <div key={ii} className="flex items-center gap-2">
+                <input
+                  value={item.name}
+                  onChange={(e) => updateItem(ci, ii, { name: e.target.value })}
+                  placeholder="Item name"
+                  className={`${inputCls} flex-1`}
+                />
+                <input
+                  value={item.price || ''}
+                  onChange={(e) => updateItem(ci, ii, { price: e.target.value })}
+                  placeholder="$5"
+                  className={`${inputCls} w-20 flex-shrink-0 text-right`}
+                />
+                <button onClick={() => removeItem(ci, ii)} aria-label="Remove item" className="p-2 text-ink-faint hover:text-danger transition cursor-pointer">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <button onClick={() => addItem(ci)} className="mt-2 text-xs font-semibold text-accent hover:text-accent-hover cursor-pointer">
+            + Add item
+          </button>
+        </div>
+      ))}
+
+      <button
+        onClick={addCategory}
+        className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition cursor-pointer"
+      >
+        <Plus className="w-4 h-4 inline-block mr-1 -mt-0.5" /> Add Category
+      </button>
+
+      <p className="text-[11px] text-ink-faint">
+        Items with a name will show on your card page. Leave a field blank to skip it.
+      </p>
+    </div>
+  );
+}

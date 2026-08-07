@@ -32,6 +32,17 @@ export interface FeaturedLink {
   url: string;
 }
 
+export interface MenuItem {
+  name: string;
+  description?: string;
+  price?: string;
+}
+
+export interface MenuCategory {
+  name: string;
+  items: MenuItem[];
+}
+
 export interface Card {
   id: string;
   ownerUid: string;
@@ -57,6 +68,7 @@ export interface Card {
   socialLinks?: SocialLink[] | Record<string, string>;
   paymentLinks?: SocialLink[];
   featuredLinks?: FeaturedLink[];
+  menu?: MenuCategory[];
   birthday?: string;
   anniversary?: string;
   bio?: string;
