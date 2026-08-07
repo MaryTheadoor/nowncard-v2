@@ -76,14 +76,8 @@ service cloud.firestore {
         && (!request.resource.data.keys().hasAny(['taps']) || (request.resource.data.taps is map && request.resource.data.taps.size() <= 25));
     }
 
-    // Card analytics: writable by anyone (for tap tracking from public cards)
-    // Field validation prevents spam documents with arbitrary data
-    match /cards/{cardId}/analytics/{eventId} {
-      allow read: if request.auth != null && (isOwner(get(/databases/$(database)/documents/cards/$(cardId)).data) || isAdmin());
-      allow create, update: if isValidAnalyticsKeys();
-      allow delete: if false;
-    }
-
+    // NOTE: the legacy `cards/{cardId}/analytics/{eventId}` subcollection rule was
+    // removed — no code uses that subcollection (analytics live at `analytics/{cardId}`).
     // NOTE: the legacy publicCards collection is no longer written or read by the
     // app, so its rule block was removed (defaults to deny-all).
 
@@ -125,27 +119,8 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Stripe subscriptions (managed by Firebase Extension)
-    match /customers/{uid}/subscriptions/{subId} {
-      allow read: if request.auth != null && request.auth.uid == uid;
-      allow write: if false;
-    }
-
-    // Stripe checkout sessions (managed by Firebase Extension)
-    match /customers/{uid}/checkout_sessions/{sessionId} {
-      allow read: if request.auth != null && request.auth.uid == uid;
-      allow create: if request.auth != null && request.auth.uid == uid;
-      allow update: if false;
-      allow delete: if false;
-    }
-
-    // Stripe portal sessions (managed by Firebase Extension)
-    match /customers/{uid}/portal_sessions/{sessionId} {
-      allow read: if request.auth != null && request.auth.uid == uid;
-      allow create: if request.auth != null && request.auth.uid == uid;
-      allow update: if false;
-      allow delete: if false;
-    }
+    // NOTE: the Stripe-extension `customers/*` rule blocks were removed — payments
+    // are Square + callables, and nothing reads/writes that collection.
 
     // Messages: authenticated senders only; readable by sender or recipient
     match /messages/{messageId} {
