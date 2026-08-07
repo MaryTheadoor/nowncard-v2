@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { X, Calendar, Clock, Mail, User, Phone, FileText, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
-import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { downloadICS, googleCalendarUrl, outlookCalendarUrl } from '@/lib/appointments';
 import { toast } from 'sonner';
@@ -77,14 +77,22 @@ export default function AppointmentModal({ open, onClose, card }: AppointmentMod
     (async () => {
       try {
         setNowMs(Date.now());
-        const snap = await getDocs(query(collection(db, 'appointments'), where('cardId', '==', card.id)));
-        if (!cancelled) setExisting(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Appointment));
+        // Visitors are unauthenticated and can't read the appointments collection
+        // directly (rules require auth), so booked slots come from a callable that
+        // returns only scheduling fields (no requester PII).
+        const { getFunctions, httpsCallable } = await import('firebase/functions');
+        const callable = httpsCallable(getFunctions(), 'getBookedSlots');
+        const res = await callable({ cardId: card.id });
+        const data = res.data as { slots?: Array<{ requestedDate: string; requestedTime: string; durationMinutes: number }> };
+        if (!cancelled) {
+          setExisting((data.slots || []).map((s, i) => ({ id: String(i), cardId: card.id, cardSlug: card.slug, ownerUid: '', requesterName: '', requesterEmail: '', requestedDate: s.requestedDate, requestedTime: s.requestedTime, timezone: '', durationMinutes: s.durationMinutes, status: 'pending', createdAt: null, updatedAt: null })));
+        }
       } catch (err) {
         console.error('[AppointmentModal] Failed to load existing appointments:', err);
       }
     })();
     return () => { cancelled = true; };
-  }, [open, card.id]);
+  }, [open, card.id, card.slug]);
 
   const timezone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone || 'local', []);
 

@@ -12,8 +12,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const handleError = (err: unknown) => {
+    const code = (err as { code?: string })?.code || '';
+    const messages: Record<string, string> = {
+      'auth/user-not-found': 'No account found with this email.',
+      'auth/wrong-password': 'Incorrect password.',
+      'auth/email-already-in-use': 'An account already exists with this email.',
+      'auth/invalid-email': 'Please enter a valid email address.',
+      'auth/weak-password': 'Password should be at least 6 characters.',
+      'auth/invalid-credential': 'Invalid email or password.',
+      'auth/too-many-requests': 'Too many attempts. Please try again later.',
+      'auth/internal-error': 'Authentication service error. Please try again.',
+      'auth/account-exists-with-different-credential': 'This email is already linked to a different sign-in method.',
+    };
+    setError(messages[code] || (err instanceof Error ? err.message : 'Authentication failed'));
+  };
+
   useEffect(() => {
-    getRedirectResult(auth).catch(() => {});
+    getRedirectResult(auth).catch((err) => handleError(err));
 
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
@@ -43,21 +59,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     return unsub;
   }, []);
-
-  const handleError = (err: unknown) => {
-    const code = (err as { code?: string })?.code || '';
-    const messages: Record<string, string> = {
-      'auth/user-not-found': 'No account found with this email.',
-      'auth/wrong-password': 'Incorrect password.',
-      'auth/email-already-in-use': 'An account already exists with this email.',
-      'auth/invalid-email': 'Please enter a valid email address.',
-      'auth/weak-password': 'Password should be at least 6 characters.',
-      'auth/invalid-credential': 'Invalid email or password.',
-      'auth/too-many-requests': 'Too many attempts. Please try again later.',
-      'auth/internal-error': 'Authentication service error. Please try again.',
-    };
-    setError(messages[code] || (err instanceof Error ? err.message : 'Authentication failed'));
-  };
 
   const signInEmail = useCallback(async (email: string, password: string) => {
     setError(null);

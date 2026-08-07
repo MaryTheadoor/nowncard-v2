@@ -4,6 +4,35 @@
 
 ---
 
+## 2026-08-07 — Site-wide health check + critical fixes (see HEALTH_CHECK.md)
+
+Ran a four-agent read-only audit (security, code quality, data model/rules, performance/a11y)
+with live verification. Found and fixed four live bugs (payments, fonts, analytics, appointments)
+plus ~9 more. Summary:
+
+- **CSP blocked callable Cloud Functions** (payments/admin dead) + **Storage fonts**. Fixed
+  `connect-src` (added `*.cloudfunctions.net`, `*.run.app`) and `font-src`
+  (firebasestorage.googleapis.com) in `firebase.json`. Verified callables now reach the server.
+- **Analytics tap tracking silently broken** — rules used dotted `taps.*` allowlist keys that
+  never match top-level `keys()`. Fixed to allow top-level `taps` map (with value checks).
+  Verified live: taps write 200 (was 403).
+- **Appointment double-booking** — anonymous visitors couldn't read booked slots (rules
+  auth-gated). Added public `getBookedSlots` callable; modal now uses it. Verified live.
+- Editor save crash on `undefined` inside arrays (stripUndefined now recurses); slug
+  save-time block; legacy `ownerUid` convergence; `cancelPendingUpgrades` no longer deletes
+  paid pendings; `createCheckout` dedupe only deletes >10-min-old pendings; Google redirect
+  errors surfaced; FCM SW registered at a narrow scope (SW collision fix); card-flip
+  keyboard trap fixed; removed zombie `publicCards` write + rules.
+- Full report (all findings, fixes, and remaining items): **`HEALTH_CHECK.md`**.
+
+### Verified
+- Lint + frontend/functions typecheck clean.
+- Live: callable request now 401 (server reachable, not CSP-blocked), analytics `taps` write
+  200, `getBookedSlots` 200, appointment modal renders 16 slots with no errors, save-contact
+  vCard download intact.
+
+---
+
 ## 2026-08-07 — Fix card-image render error for cards with social links
 
 - `/card-images/<slug>.png` failed with 500 for cards that had social links

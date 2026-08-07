@@ -19,9 +19,11 @@ export async function requestFCMPermission(): Promise<string | null> {
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') return null;
 
-  // Register the dedicated FCM service worker explicitly and pass it to getToken.
-  // This keeps push delivery reliable even though the PWA SW (/sw.js) is also registered.
-  const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+  // Register the dedicated FCM service worker with a NARROW scope so it does NOT
+  // collide with the PWA caching worker (/sw.js), which is also registered at scope
+  // '/'. Two registrations at the same scope would ping-pong (one uninstalls the
+  // other). Firebase's SDK uses '/firebase-cloud-messaging-push-scope' by default.
+  const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/firebase-cloud-messaging-push-scope' });
 
   const vapidKey = 'BLIFncz4-3yYsHxs2h6W3GOJ55imlmFmRgrE_Eu-F93ZoOJ_nm6xazwC0RRmu09JTw01u7E0lM0Iz-X3ClJa5gg';
   try {

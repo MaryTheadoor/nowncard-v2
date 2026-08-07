@@ -188,7 +188,6 @@ export default function CardViewerPage() {
     if (action === 'download-import') setVcfHelpOpen(true);
     track('save');
     if (cardsDocId) { try { updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }
-    try { setDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }, { merge: true }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); }
   };
 
   const handleSendMessage = async () => {
@@ -281,7 +280,7 @@ export default function CardViewerPage() {
       {/* Card stage — stacked on mobile, side-by-side on desktop */}
       <div className={`flex-1 flex flex-col lg:flex-row lg:justify-center lg:gap-12 items-center px-5 pb-8 ${card.hideNavbar ? 'pt-8' : 'pt-2'}`}>
         <div className="w-full max-w-[380px] aspect-[2/3.5] perspective-1200 relative">
-          <div className={`w-full h-full preserve-3d transition-transform duration-[800ms] ${flipped ? 'rotate-y-180' : ''}`} style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }} onClick={handleFlip} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFlip(); } }} role="button" aria-label="Flip card" tabIndex={0}>
+          <div className={`w-full h-full preserve-3d transition-transform duration-[800ms] ${flipped ? 'rotate-y-180' : ''}`} style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }} onClick={handleFlip} onKeyDown={(e) => { if (e.target !== e.currentTarget) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFlip(); } }} role="button" aria-label="Flip card" tabIndex={0}>
             {/* Front */}
             <div className={`card-face flex flex-col ${!card.cardBgColor && !isDark ? 'bg-card-bg' : ''}`} style={{ backgroundColor: tc.faceBg, boxShadow: tc.faceShadow }}>
               {card.backgroundImage && (

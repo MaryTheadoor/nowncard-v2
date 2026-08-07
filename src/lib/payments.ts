@@ -75,8 +75,11 @@ export async function applyPendingUpgrades(pendingId?: string): Promise<{ applie
 }
 
 export async function cancelPendingUpgrades(uid: string) {
+  // Only delete UNPAID pending docs — deleting a paymentCompleted:true doc that
+  // the webhook flagged but applyPendingUpgrade hasn't consumed yet would lose
+  // a paid-but-unapplied upgrade.
   const snap = await getDocs(query(collection(db, 'pendingUpgrades'), where('uid', '==', uid)));
-  const promises = snap.docs.map((d) => deleteDoc(d.ref));
+  const promises = snap.docs.filter((d) => d.data().paymentCompleted !== true).map((d) => deleteDoc(d.ref));
   await Promise.all(promises);
 }
 

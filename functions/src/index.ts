@@ -400,14 +400,21 @@ export const createCheckout = onCall(
       throw new HttpsError('internal', 'Failed to create payment link URL');
     }
 
-    // Dedupe: cancel any existing unpaid pending upgrades for this user first,
-    // so repeated clicks don't stack up unfulfilled pending docs.
+    // Dedupe: cancel stale unpaid pending upgrades for this user first, so
+    // repeated clicks don't stack up unfulfilled pending docs. Only delete ones
+    // older than 10 minutes — a checkout in flight in another tab must not be
+    // deleted or the arriving webhook would have no pending doc to consume.
     const staleSnap = await db.collection('pendingUpgrades')
       .where('uid', '==', uid)
       .where('paymentCompleted', '==', false)
       .get();
+    const staleCutoffMs = Date.now() - 10 * 60 * 1000;
     const batch = db.batch();
-    staleSnap.docs.forEach((d) => batch.delete(d.ref));
+    staleSnap.docs.forEach((d) => {
+      const createdAt = d.data().createdAt;
+      const createdMs = createdAt && typeof createdAt.toMillis === 'function' ? createdAt.toMillis() : 0;
+      if (createdMs && createdMs < staleCutoffMs) batch.delete(d.ref);
+    });
     await batch.commit();
 
     const pendingRef = await db.collection('pendingUpgrades').add({
@@ -781,6 +788,35 @@ export const cleanupPendingUpgrades = onSchedule('every 6 hours', async () => {
   await batch.commit();
 
   console.log(`🧹 Cleaned up ${snap.size} expired pending upgrades`);
+});
+
+// ---------------------------------------------------------------------------
+// getBookedSlots (callable, public) — returns the booked date/time slots for a
+// card so anonymous visitors can't double-book. Returns only scheduling fields
+// (no requester PII). Unauthenticated reads of the appointments collection are
+// blocked by rules, so this callable is the intended public path.
+// ---------------------------------------------------------------------------
+export const getBookedSlots = onCall(async (request) => {
+  const { cardId } = request.data as { cardId?: string };
+  if (!cardId || typeof cardId !== 'string') {
+    throw new HttpsError('invalid-argument', 'cardId is required');
+  }
+  const snap = await db.collection('appointments')
+    .where('cardId', '==', cardId)
+    .get();
+  const slots: Array<{ requestedDate: string; requestedTime: string; durationMinutes: number }> = [];
+  snap.docs.forEach((d) => {
+    const a = d.data();
+    if (a.status === 'cancelled') return;
+    if (typeof a.requestedDate === 'string' && typeof a.requestedTime === 'string') {
+      slots.push({
+        requestedDate: a.requestedDate,
+        requestedTime: a.requestedTime,
+        durationMinutes: typeof a.durationMinutes === 'number' ? a.durationMinutes : 30,
+      });
+    }
+  });
+  return { slots };
 });
 
 // ---------------------------------------------------------------------------

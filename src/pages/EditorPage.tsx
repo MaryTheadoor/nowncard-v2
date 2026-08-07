@@ -180,6 +180,11 @@ export default function EditorPage() {
           if (value === undefined) continue;
           if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
             result[key] = stripUndefined(value as Record<string, unknown>);
+          } else if (Array.isArray(value)) {
+            // Recurse into array items too — imported contacts/vCards can leave
+            // explicit `undefined` fields inside address/contact objects, and
+            // Firestore throws on any nested undefined.
+            result[key] = value.map((v) => (v !== null && typeof v === 'object' && !Array.isArray(v) ? stripUndefined(v as Record<string, unknown>) : v));
           } else {
             result[key] = value;
           }
@@ -203,8 +208,15 @@ export default function EditorPage() {
       const existing = await getDocs(query(collection(db, 'cards'), where('slug', '==', slug), where('ownerUid', '==', user.uid)));
       const taken = existing.docs.some((d) => d.id !== id);
       if (taken) { toast.error('That slug is taken'); setSaving(false); return; }
+      // The debounced availability check also covers other users' PUBLIC cards;
+      // block save when it already flagged the slug as taken (still subject to a
+      // check-then-act race — full uniqueness needs a slug registry transaction).
+      if (slugStatus === 'taken') { toast.error('That slug is taken'); setSaving(false); return; }
 
       if (id) {
+        // Legacy cards may only have ownerId — converge them onto ownerUid so the
+        // dual-field fallback debt eventually goes away.
+        if (!card.ownerUid && card.ownerId === user.uid) data.ownerUid = user.uid;
         await updateDoc(doc(db, 'cards', id), data);
         toast.success('Card saved');
       } else {
