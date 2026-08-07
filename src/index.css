@@ -44,21 +44,21 @@
   --card-face-shadow-dark: 0 1px 0 rgba(255,255,255,0.05) inset, 0 24px 60px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
 }
 
-/* Dark theme */
+/* Dark theme — deep-purple page, navy tiles for contrast, brighter gold accent */
 .dark {
-  --space: #0a0e1a;
-  --space-2: #0d1220;
+  --space: #391681;
+  --space-2: #2e1270;
   --tile: #111827;
   --tile-soft: #1a2235;
   --ink: #f8f9fc;
   --ink-muted: #8a93a5;
   --ink-faint: #7d89a1;
-  --accent: #d4a34a;
-  --accent-hover: #e0b55a;
-  --secondary: #5da0e8;
-  --secondary-hover: #6db3f2;
-  --line: #1e293b;
-  --line-soft: #1a2235;
+  --accent: #f5b940;
+  --accent-hover: #ffc95e;
+  --secondary: #74b8ff;
+  --secondary-hover: #86c4ff;
+  --line: #4b3a93;
+  --line-soft: #3a2a78;
   --card-bg: #f4f1ec;
   --danger: #ef4444;
 }
@@ -104,7 +104,7 @@
     background-size: 256px 256px;
   }
   ::selection {
-    background: rgba(212, 163, 74, 0.35);
+    background: rgba(245, 185, 64, 0.35);
     color: var(--ink);
   }
 }
@@ -151,9 +151,9 @@
     transform: none;
   }
 
-  /* ── Primary: tactile gold ── */
+  /* ── Primary: tactile gold (brightened to pop on the purple theme) ── */
   .btn-primary {
-    background: linear-gradient(180deg, #eccf77 0%, #d4a340 50%, #b88a24 100%);
+    background: linear-gradient(180deg, #f6da7c 0%, #e2ad41 50%, #c19126 100%);
     color: #1a1408;
     box-shadow:
       0 1px 0 rgba(255,255,255,0.35) inset,
@@ -162,7 +162,7 @@
       0 3px 6px rgba(0,0,0,0.25);
   }
   .btn-primary:hover:not(:disabled) {
-    background: linear-gradient(180deg, #f2d878 0%, #dfaf47 50%, #c4952c 100%);
+    background: linear-gradient(180deg, #fbe289 0%, #ecb64a 50%, #cd9930 100%);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.4) inset,
       0 -1px 0 rgba(0,0,0,0.12) inset,

@@ -28,7 +28,7 @@ export async function createDemoCard(uid: string) {
     ],
     birthday: '1990-05-15',
     bio: 'Passionate product designer with 10+ years of experience building digital products that people love.',
-    accentColor: '#d4a34a',
+    accentColor: '#f5b940',
     isPublic: true,
     viewCount: 0,
     saveCount: 0,

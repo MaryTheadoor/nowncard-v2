@@ -77,8 +77,8 @@ export default function LandingPage() {
       <main>
       {/* Hero */}
       <section className="relative overflow-x-clip text-center px-6 pt-16 pb-12 max-w-2xl mx-auto">
-        <div aria-hidden className="pointer-events-none absolute -z-10 -inset-x-24 -top-24 h-[28rem] bg-[radial-gradient(ellipse_at_top,rgba(212,163,74,0.14),transparent_60%)]" />
-        <div aria-hidden className="pointer-events-none absolute -z-10 -inset-x-24 top-32 h-[28rem] bg-[radial-gradient(ellipse_at_top,rgba(74,144,217,0.10),transparent_60%)]" />
+        <div aria-hidden className="pointer-events-none absolute -z-10 -inset-x-24 -top-24 h-[28rem] bg-[radial-gradient(ellipse_at_top,rgba(245,185,64,0.20),transparent_60%)]" />
+        <div aria-hidden className="pointer-events-none absolute -z-10 -inset-x-24 top-32 h-[28rem] bg-[radial-gradient(ellipse_at_top,rgba(116,184,255,0.14),transparent_60%)]" />
         <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-tile border border-line rounded-full text-accent text-xs font-bold uppercase tracking-wider mb-8">
           Your card. Your brand. Anywhere.
         </div>

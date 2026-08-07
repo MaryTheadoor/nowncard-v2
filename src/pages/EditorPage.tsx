@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 const defaultCard: Omit<Card, 'id' | 'ownerUid' | 'createdAt' | 'updatedAt'> = {
   slug: '', firstName: '', lastName: '', jobTitle: '', company: '',
   phones: [], emails: [], websites: [], addresses: [], socialLinks: [], paymentLinks: [], industry: '',
-  accentColor: '#d4a34a', cardTheme: 'light', isPublic: true,
+  accentColor: '#f5b940', cardTheme: 'light', isPublic: true,
   viewCount: 0, saveCount: 0, bio: '', nameLayout: 'personal',
 };
 
@@ -44,9 +44,9 @@ export default function EditorPage() {
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
   const [showDates, setShowDates] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const [accentHex, setAccentHex] = useState(card.accentColor || '#d4a34a');
+  const [accentHex, setAccentHex] = useState(card.accentColor || '#f5b940');
   const [cardBgHex, setCardBgHex] = useState(card.cardBgColor || '#f4f1ec');
-  const [pageBgHex, setPageBgHex] = useState(card.pageBgColor || '#0a0e1a');
+  const [pageBgHex, setPageBgHex] = useState(card.pageBgColor || '#391681');
   const [textHex, setTextHex] = useState(card.textColor || '#1a1612');
   const slugManuallySet = useRef(false);
   const slugDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -98,9 +98,9 @@ export default function EditorPage() {
         const isTeamOwner = data?.teamOwnerUid === user.uid || data?.teamOwnerId === user.uid;
         if (snap.exists() && (isOwner || isTeamOwner)) {
           setCard(data as Card);
-          setAccentHex((data as Card).accentColor || '#d4a34a');
+          setAccentHex((data as Card).accentColor || '#f5b940');
           setCardBgHex((data as Card).cardBgColor || '#f4f1ec');
-          setPageBgHex((data as Card).pageBgColor || '#0a0e1a');
+          setPageBgHex((data as Card).pageBgColor || '#391681');
           setTextHex((data as Card).textColor || '#1a1612');
           if (data?.birthday || data?.anniversary) setShowDates(true);
         } else {
@@ -627,7 +627,7 @@ export default function EditorPage() {
               {/* Accent */}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-ink-muted">Accent</span>
-                <input type="color" value={card.accentColor || '#d4a34a'} onChange={(e) => { updateField('accentColor', e.target.value); setAccentHex(e.target.value); }} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
+                <input type="color" value={card.accentColor || '#f5b940'} onChange={(e) => { updateField('accentColor', e.target.value); setAccentHex(e.target.value); }} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
                 <input
                   type="text"
                   value={accentHex}
@@ -660,7 +660,7 @@ export default function EditorPage() {
               {/* Page BG */}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-ink-muted">Page BG</span>
-                <input type="color" value={card.pageBgColor || '#0a0e1a'} onChange={(e) => { updateField('pageBgColor', e.target.value); setPageBgHex(e.target.value); }} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
+                <input type="color" value={card.pageBgColor || '#391681'} onChange={(e) => { updateField('pageBgColor', e.target.value); setPageBgHex(e.target.value); }} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
                 <input
                   type="text"
                   value={pageBgHex}
@@ -1169,7 +1169,7 @@ export default function EditorPage() {
                       onPositionChange={(pos) => updateField('bgPosition', pos)}
                       onZoomChange={(z) => updateField('bgZoom', z === 100 ? undefined : z)}
                       onRotationChange={(r) => updateField('bgRotation', r)}
-                      accentColor={card.accentColor || '#d4a34a'}
+                      accentColor={card.accentColor || '#f5b940'}
                     />
                   )}
                 </div>
@@ -1207,7 +1207,7 @@ export default function EditorPage() {
                   onPositionChange={(pos) => updateField('backBgPosition', pos)}
                   onZoomChange={(z) => updateField('backBgZoom', z === 100 ? undefined : z)}
                   onRotationChange={(r) => updateField('backBgRotation', r)}
-                  accentColor={card.accentColor || '#d4a34a'}
+                  accentColor={card.accentColor || '#f5b940'}
                 />
               )}
             </div>

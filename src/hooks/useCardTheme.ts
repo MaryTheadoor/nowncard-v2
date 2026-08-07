@@ -46,7 +46,7 @@ export function useCardTheme({ card, forceDark, forceLight }: CardThemeParams): 
       : hasCustomBg ? !isLightBg(card.cardBgColor!)
       : card.cardTheme === 'dark';
 
-    const accent = card.accentColor || '#d4a34a';
+    const accent = card.accentColor || '#f5b940';
     const customBg = card.cardBgColor || undefined;
     const primaryTextColor = card.textColor || (isDark ? '#f4f1ec' : '#1a1612');
     const textColorStyle = card.textColor ? { color: card.textColor } : undefined;

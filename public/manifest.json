@@ -4,8 +4,8 @@
   "description": "Create beautiful digital business cards. Share via NFC, QR code, link, or vCard.",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#0a0e1a",
-  "theme_color": "#0a0e1a",
+  "background_color": "#391681",
+  "theme_color": "#391681",
   "orientation": "portrait",
   "scope": "/",
   "icons": [

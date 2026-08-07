@@ -138,7 +138,7 @@ async function renderPreview(card: { [key: string]: unknown } | null): Promise<B
   const org = truncate(orgLine(card), 64);
   const bio = truncate(typeof card?.bio === 'string' ? card.bio : '', 140);
   const slug = typeof card?.slug === 'string' ? card.slug : 'card';
-  const accent = typeof card?.accentColor === 'string' && card.accentColor ? card.accentColor : '#e8a628';
+  const accent = typeof card?.accentColor === 'string' && card.accentColor ? card.accentColor : '#f5b940';
   const brandName = fullName(card) ? name : 'NownCard';
   const tagline = fullName(card) ? 'Digital business card' : 'Digital Business Cards';
 
@@ -325,7 +325,7 @@ async function renderCardImage(card: { [key: string]: unknown } | null): Promise
   const org = truncate(orgLine(card), 70);
   const bio = truncate(typeof card?.bio === 'string' ? card.bio : '', 220);
   const slug = typeof card?.slug === 'string' ? card.slug : 'card';
-  const accent = typeof card?.accentColor === 'string' && card.accentColor ? card.accentColor : '#e8a628';
+  const accent = typeof card?.accentColor === 'string' && card.accentColor ? card.accentColor : '#f5b940';
   const brandName = fullName(card) ? name : 'NownCard';
 
   const profileSrc = await loadProfileImage(card);
