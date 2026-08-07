@@ -47,7 +47,7 @@ export default function RolodexPage() {
   const [cards, setCards] = useState<PublicCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(() => typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('search') || '' : '');
   const [activeIndustry, setActiveIndustry] = useState('All');
   const [sortMode, setSortMode] = useState<SortMode>('az');
   const [showFilters, setShowFilters] = useState(false);

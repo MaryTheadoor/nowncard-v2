@@ -167,7 +167,7 @@ export default function CardViewerPage() {
     try {
       const safe = (name || card.slug || 'card').replace(/[^a-z0-9_-]/gi, '_');
       const a = document.createElement('a');
-      a.href = `/og-images/${encodeURIComponent(card.slug)}.png`;
+      a.href = `/card-images/${encodeURIComponent(card.slug)}.png`;
       a.download = `${safe}-nowncard.png`;
       document.body.appendChild(a);
       a.click();
@@ -308,12 +308,12 @@ export default function CardViewerPage() {
                 <div className="mb-4">
                   {card.nameLayout === 'business' && card.company ? (
                     <>
-                      <div className={`font-extrabold leading-tight tracking-tight ${tc.textPrimary}`} style={{ color: primaryTextColor, fontSize: sfs(22) }}>{card.company}</div>
+                      <h1 className={`font-extrabold leading-tight tracking-tight m-0 ${tc.textPrimary}`} style={{ color: primaryTextColor, fontSize: sfs(22) }}>{card.company}</h1>
                       {name && <div className={`font-semibold mt-1 ${tc.textSecondary}`} style={{ ...textColorStyle, fontSize: sfs(13) }}>{name}{card.jobTitle ? ` · ${card.jobTitle}` : ''}</div>}
                     </>
                   ) : (
                     <>
-                      <div className={`font-extrabold leading-tight tracking-tight ${tc.textPrimary}`} style={{ color: primaryTextColor, fontSize: sfs(22) }}>{name || 'Anonymous'}</div>
+                      <h1 className={`font-extrabold leading-tight tracking-tight m-0 ${tc.textPrimary}`} style={{ color: primaryTextColor, fontSize: sfs(22) }}>{name || 'Anonymous'}</h1>
                       {org && <div className={`font-semibold mt-1 ${tc.textSecondary}`} style={{ ...textColorStyle, fontSize: sfs(13) }}>{org}</div>}
                     </>
                   )}

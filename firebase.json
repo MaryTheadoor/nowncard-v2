@@ -32,6 +32,20 @@
           }
         },
         {
+          "source": "/card-images/**",
+          "run": {
+            "serviceId": "cardogimage",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/sitemap.xml",
+          "run": {
+            "serviceId": "cardpage",
+            "region": "us-central1"
+          }
+        },
+        {
           "source": "**",
           "destination": "/index.html"
         }
@@ -111,6 +125,20 @@
           "source": "/og-images/**",
           "run": {
             "serviceId": "cardogimage",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/card-images/**",
+          "run": {
+            "serviceId": "cardogimage",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/sitemap.xml",
+          "run": {
+            "serviceId": "cardpage",
             "region": "us-central1"
           }
         },

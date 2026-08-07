@@ -4,6 +4,42 @@
 
 ---
 
+## 2026-08-06 — Vertical card image + SEO / AI-search optimization
+
+### Vertical card image ("Save Image")
+- New endpoint `/card-images/<slug>.png` — a **1080×1890 portrait** card rendered with
+  satori+resvg: profile photo (or initials), name, job/company, bio, and contact chips
+  (phone, email, website, address) + socials, in the dark premium brand style.
+  CardViewer "Save Image" now downloads this instead of the landscape OG preview.
+- `cardOgImage` serves both `/og-images/` (1200×630) and `/card-images/` (portrait);
+  hosting rewrite `/card-images/**` → `cardogimage`. Verified 1080×1890 PNG.
+
+### SEO / AI-search optimization
+- **Per-card canonical** — `cardPage` now rewrites `<link rel="canonical">` to the card
+  URL (was pointing every card at the homepage).
+- **Person JSON-LD** — injected per card: name/givenName/familyName, jobTitle,
+  worksFor (company), url, image (profile photo), telephone, email, description,
+  sameAs (socials), address. `</` escaped for safe embedding.
+- **`og:image:alt` / `twitter:image:alt`** added (homepage + per card).
+- **Dynamic `/sitemap.xml`** — `cardPage` serves a sitemap built from static routes +
+  every public card slug (admin SDK query, 1h cache). Static `public/sitemap.xml` removed
+  (Firebase Hosting serves static files ahead of rewrites); hosting rewrite
+  `/sitemap.xml` → `cardpage`. Verified: 13 card URLs.
+- **Semantic H1 on card pages** — the person's name/company is now an `<h1>` in
+  `CardViewerPage` (Google renders JS, so it indexes). Verified exactly one rendered H1.
+- **Rolodex `?search=` support** — `RolodexPage` seeds its search box from the URL
+  param, making the existing `SearchAction` JSON-LD valid.
+- Homepage already had: title, meta description, og/twitter, canonical, robots,
+  WebSite + Organization JSON-LD. All pages have a single H1 (verified).
+
+### Verified (headless + HTTP)
+- `/card-images/amir-drissi.png` → 1080×1890 PNG.
+- `/sitemap.xml` → 13 card entries, `max-age=3600`.
+- Card page HTML: correct canonical, Person JSON-LD, og:image:alt.
+- Rendered DOM: exactly one H1 ("Amir Drissi"); Save Image downloads the portrait.
+
+---
+
 ## 2026-08-06 — Save-to-Contacts refinements, Save Image fix, Appointment booking v2
 
 ### Save to Contacts (device feedback round)

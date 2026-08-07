@@ -13,6 +13,15 @@
 **Agent focus:** Security hardening, UI unification, cleanup round, documentation refresh, share previews
 
 ### What Got Done
+0. **Vertical card image + SEO/AI optimization**:
+   - New `/card-images/<slug>.png` — **1080×1890 portrait** card image (photo/initials,
+     name, job/company, bio, contact chips phone/email/web/address + socials). "Save
+     Image" now downloads this (was the landscape OG preview).
+   - SEO: per-card canonical, **Person JSON-LD** (name/jobTitle/worksFor/telephone/email/
+     sameAs/address), og:image:alt + twitter:image:alt, **dynamic sitemap.xml** (static
+     routes + all public card slugs; static file removed since Hosting serves files ahead
+     of rewrites), semantic `<h1>` for the card name (rendered by SPA), Rolodex now reads
+     `?search=` (validates the SearchAction schema).
 0. **Save refinements + Save Image fix + Appointment booking v2**:
    - Android save: replaced unreliable `intent://` with `.vcf` download + **import
      dialog** (`ImportVCardModal`). iOS: "Download .vcf" is now a visible backup button.
@@ -128,6 +137,13 @@
 - [x] `/card/:slug` served with server-injected `og:*`/`twitter:*` meta (works in WhatsApp, iMessage, Facebook, LinkedIn, Discord, Slack, X — no JS required)
 - [x] Generated 1200×630 branded thumbnail at `/og-images/<slug>.png` (accent color, profile photo or initials, name, job/company, bio, NownCard mark)
 - [x] `og:image` cache-busted by `updatedAt`; fallback to homepage meta for unknown/private slugs
+
+### SEO / AI-search
+- [x] Per-card canonical, meta description, og/twitter (incl. image alt)
+- [x] Person JSON-LD per card (name, jobTitle, worksFor, telephone, email, sameAs, address, image)
+- [x] Dynamic `/sitemap.xml` — static routes + all public card slugs (function-served, 1h cache)
+- [x] Semantic H1 on card pages (SPA-rendered name); single H1 on all other pages
+- [x] Homepage: title/description, WebSite + Organization JSON-LD, robots.txt, canonical
 
 ### Other Pages
 - [x] Analytics (/analytics/:id), NFC (/nfc/:slug), QR Poster (/poster/:slug), Rolodex (/rolodex)
