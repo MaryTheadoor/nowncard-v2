@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { collection, query, where, limit, getDocs, doc, updateDoc, increment, setDoc, serverTimestamp, addDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { downloadVCard, generateVCard } from '@/lib/vcard';
+import { downloadVCard, generateVCard, saveToContacts } from '@/lib/vcard';
 import { escHtml, initials, fullName, orgLine, formatAddress, shareNative, detectDevice, PLAT, PAYMENT_PLAT } from '@/lib/utils';
 import { captureElementAsPNG } from '@/lib/image-export';
 import { useAuth } from '@/hooks/auth-context';
@@ -22,6 +22,8 @@ const IconDownload = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentC
 const IconSend = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-10z"/></svg>;
 const IconCamera = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-[18px] h-[18px]"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/></svg>;
 
+const isMobileUA = typeof navigator !== 'undefined' && /Android|iP(hone|od|ad)/i.test(navigator.userAgent);
+
 export default function CardViewerPage() {
   const { slug } = useParams<{ slug: string }>();
   const { user, signInEmail, signUpEmail, signInGoogle, linkGoogle, error: authError } = useAuth();
@@ -36,6 +38,7 @@ export default function CardViewerPage() {
   const [authOpen, setAuthOpen] = useState(false);
   const [appointmentOpen, setAppointmentOpen] = useState(false);
   const [flipped, setFlipped] = useState(false);
+  const [savingImage, setSavingImage] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const trackedMeta = useRef(false);
   const startTime = useRef(0);
@@ -159,9 +162,17 @@ export default function CardViewerPage() {
 
   const handleSaveImage = async () => {
     if (!cardRef.current || !card) return;
-    const safe = (name || card.slug || 'card').replace(/[^a-z0-9_-]/gi, '_');
-    await captureElementAsPNG(cardRef.current, `${safe}-nowncard.png`);
-    track('image');
+    setSavingImage(true);
+    try {
+      const safe = (name || card.slug || 'card').replace(/[^a-z0-9_-]/gi, '_');
+      await captureElementAsPNG(cardRef.current, `${safe}-nowncard.png`);
+      track('image');
+    } catch (err) {
+      console.error('[CardViewer] Save image failed:', err);
+      toast.error('Could not save the image. Please try again.');
+    } finally {
+      setSavingImage(false);
+    }
   };
 
   const handleSendMessage = async () => {
@@ -385,7 +396,7 @@ export default function CardViewerPage() {
                   <QRCodeSVG value={card.qrMode === 'vcard' ? generateVCard(card, cardUrl) : cardUrl} size={150} level="M" includeMargin={false} />
                 </div>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  <button onClick={(e) => { e.stopPropagation(); downloadVCard(card, undefined, cardUrl); track('save'); if (cardsDocId) { try { updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } } try { setDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }, { merge: true }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }} className="btn btn-primary btn-md">
+                  <button onClick={(e) => { e.stopPropagation(); saveToContacts(card, cardUrl); track('save'); if (cardsDocId) { try { updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } } try { setDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }, { merge: true }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }} className="btn btn-primary btn-md">
                     Save Contact
                   </button>
                   <button onClick={(e) => { e.stopPropagation(); const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); } else { promise.then(() => track('share')).catch(() => setShareOpen(true)); } }} className="btn btn-secondary btn-md">
@@ -407,7 +418,7 @@ export default function CardViewerPage() {
               <Pencil className="w-4 h-4" /> Edit Card
             </Link>
           )}
-          <button onClick={async () => { downloadVCard(card, undefined, cardUrl); track('save'); if (cardsDocId) { try { await updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } } try { await setDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }, { merge: true }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }} className="btn btn-primary btn-lg">
+          <button onClick={async () => { saveToContacts(card, cardUrl); track('save'); if (cardsDocId) { try { await updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } } try { await setDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }, { merge: true }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }} className="btn btn-primary btn-lg">
             <IconDownload /> Save to Contacts
           </button>
           {card.appointmentsEnabled && (
@@ -421,10 +432,19 @@ export default function CardViewerPage() {
           <button onClick={() => { const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); return; } promise.then(() => track('share')).catch(() => setShareOpen(true)); }} className="btn btn-secondary btn-lg">
             Share
           </button>
-          <button onClick={handleSaveImage} className="btn btn-secondary btn-lg">
-            <IconCamera /> Save Image
+          <button onClick={handleSaveImage} disabled={savingImage} className="btn btn-secondary btn-lg">
+            <IconCamera /> {savingImage ? 'Generating…' : 'Save Image'}
           </button>
         </div>
+
+        {isMobileUA && (
+          <p className="text-center text-xs text-ink-faint -mt-3">
+            Need a .vcf file instead?{' '}
+            <button onClick={() => downloadVCard(card, undefined, cardUrl)} className="text-accent hover:text-accent/80 underline underline-offset-2 cursor-pointer">
+              Download .vcf
+            </button>
+          </p>
+        )}
 
         {/* Messaging */}
         <div className="w-full">

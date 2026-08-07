@@ -4,6 +4,57 @@
 
 ---
 
+## 2026-08-06 — Save-to-Contacts flow + Save Image fix
+
+### Analysis
+- **Save to Contacts** downloaded a `.vcf` that the user had to import manually
+  (open file → add contact → save). Researched web platform capabilities:
+  - W3C **Contact Picker API** (`navigator.contacts`) is read-only (selects the
+    user's contacts, can't write) and is not Baseline — not usable for saving.
+  - **Android** has no "add to contacts" web API, but Chrome-family browsers
+    support `intent://` URLs: `android.intent.action.INSERT` with MIME
+    `vnd.android.cursor.dir/contact` and extras `name`/`phone`/`email`/`company`/
+    `job_title`/`notes` opens the native contact editor pre-filled → user taps
+    Save (1 tap).
+  - **iOS** has no write API either; best available is opening the vCard so
+    Safari presents its native contact sheet (or downloads the `.vcf`).
+- **Save Image** failed silently. Root cause confirmed live: Firebase Storage
+  images returned **no CORS header**, so `html2canvas` couldn't read their pixels
+  → `canvas.toDataURL()` threw a SecurityError (unhandled). Google-avatar images
+  (`lh3.googleusercontent.com`) do send CORS, hence the intermittent behavior.
+
+### Changes
+- **Storage CORS** (`functions/src/preview.ts`): idempotent `ensureStorageCors()`
+  on module load sets `Access-Control-Allow-Origin: *` (GET/HEAD) on the
+  `vcard-studio-314.firebasestorage.app` bucket via `@google-cloud/storage`.
+  Verified live — storage images now return `Access-Control-Allow-Origin: *`.
+- **`src/lib/vcard.ts`**: added `saveToContacts()` — platform-smart save:
+  Android (non-Firefox) → `intent://` contact INSERT with first phone/email +
+  company + job title + bio note; iOS → opens vCard in a new tab (native contact
+  sheet); everything else → `.vcf` download. `openAndroidContactEditor()` helper.
+- **`src/pages/CardViewerPage.tsx`**: both save buttons use `saveToContacts()`
+  (still increment saveCount). Added a mobile-only "Download .vcf" fallback link.
+  `handleSaveImage` now has `savingImage` state (Generating…), try/catch + toast
+  on failure, and no longer swallows errors.
+- **`src/lib/image-export.ts`**: append anchor to DOM before click (iOS Safari
+  requirement), `imageTimeout`, disabled logging.
+
+### Verified (headless Chrome vs deployed site)
+- Desktop: "Save to Contacts" downloads a valid `amir-drissi.vcf`; fallback link
+  hidden.
+- Android UA: `intent://` INSERT URL fires; fallback link visible.
+- iOS UA: vCard opens in a new tab; fallback link visible.
+- Storage bucket now sends `Access-Control-Allow-Origin: *`.
+
+### Notes
+- Android intent opens the contact editor with the **primary** phone/email only
+  (the `INSERT` intent supports single values). Multiple numbers/addresses still
+  come through via the `.vcf` download.
+- iOS Safari behavior (contact sheet vs download) should be confirmed on a
+  physical iPhone.
+
+---
+
 ## 2026-08-06 — Dynamic Card Share Previews (OG images + meta injection)
 
 ### Problem

@@ -13,6 +13,25 @@ function db(): admin.firestore.Firestore {
   return admin.firestore();
 }
 
+// The card image bucket must send CORS headers so the browser (html2canvas in
+// "Save Image") can read photo pixels cross-origin. Idempotent, runs on cold start.
+let corsChecked = false;
+async function ensureStorageCors(): Promise<void> {
+  if (corsChecked) return;
+  corsChecked = true;
+  try {
+    const bucket = admin.storage().bucket('vcard-studio-314.firebasestorage.app');
+    const [metadata] = await bucket.getMetadata();
+    const cors = metadata.cors as Array<{ origin?: string[] }> | undefined;
+    if (cors?.some((c) => c.origin?.includes('*'))) return;
+    await bucket.setCorsConfiguration([{ origin: ['*'], method: ['GET', 'HEAD'], responseHeader: ['*'], maxAgeSeconds: 3600 }]);
+    console.log('[storage] CORS enabled on card image bucket');
+  } catch (err) {
+    console.warn('[storage] Failed to configure bucket CORS:', err);
+  }
+}
+void ensureStorageCors();
+
 // ---------------------------------------------------------------------------
 // Fonts (Inter via @fontsource — satori supports ttf/otf/woff)
 // ---------------------------------------------------------------------------

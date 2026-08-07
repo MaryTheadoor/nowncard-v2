@@ -13,6 +13,18 @@
 **Agent focus:** Security hardening, UI unification, cleanup round, documentation refresh, share previews
 
 ### What Got Done
+1. **Save-to-Contacts + Save Image** (new):
+   - Storage bucket CORS enabled (via `ensureStorageCors()` in `preview.ts`, idempotent
+     on cold start) — **fixes "Save Image"**, which silently failed because html2canvas
+     couldn't read Firebase Storage photos (no CORS header → tainted canvas →
+     `toDataURL()` SecurityError). Verified `Access-Control-Allow-Origin: *` live.
+   - `saveToContacts()` (`src/lib/vcard.ts`): Android Chrome-family → `intent://`
+     `android.intent.action.INSERT` contact editor pre-filled (1 tap to Save);
+     iOS → opens vCard in new tab (native contact sheet); desktop → `.vcf` download.
+   - `CardViewerPage`: both save buttons use the smart flow; mobile-only
+     "Download .vcf" fallback link; Save Image has Generating… state + error toast.
+    - **Research:** Contact Picker API is read-only (can't write contacts), so
+      intent/`vCard` is the practical minimum-tap path per platform.
 0. **Dynamic share previews** (new) — card pages now render real link previews:
    - `cardPage` Cloud Function serves `/card/:slug` with per-card `og:*`/`twitter:*` meta
      injected into `index.html` (crawlers don't run JS, so JS-set meta was invisible to them).
@@ -21,7 +33,7 @@
      profile photo (or initials), name, job/company, bio blurb, NownCard mark. Cached 1h,
      cache-busted by `updatedAt`.
    - Hosting rewrites: `/card/**` → `cardpage`, `/og-images/**` → `cardogimage`.
-1. **Security rework** (`1d3c5ae`) — server-authoritative plan/admin:
+2. **Security rework** (`1d3c5ae`) — server-authoritative plan/admin:
    - Plan activation moved to a server callable `applyPendingUpgrade` (only applies when the HMAC-verified webhook set `paymentCompleted: true`). Removed the exploitable client-side transaction in `src/lib/payments.ts`.
    - Admin elevation via `bootstrapAdmin` callable checking a server-side allowlist (`ADMIN_UIDS` in `functions/src/index.ts`). Client can no longer self-grant `isAdmin` or `plan`.
    - Locked Firestore rules: `users` create blocks `isAdmin`/`plan`, self-update blocks sensitive fields, self-delete admin-only; `pendingUpgrades` create blocked; `upgrades` admin-only writes; analytics `hasAny` → `hasOnly`.
@@ -30,8 +42,8 @@
    - Blocked SVG uploads in `storage.rules` (script risk).
    - FCM push only sent when card owner matches recipient (anti-spam).
    - **CSP fix** (`b9c4b9a`): added `apis.google.com`/gstatic to `script-src`, authDomain to `frame-src` — unblocked Google sign-in popup.
-2. **Medium patch round** (`bb325a8`) — editor hex color sync, favorite refresh via `refreshUserData()`, origin-relative QR poster URL, surfaced silent load failures (Admin stats, Rolodex, payment details).
-3. **Cleanup round** (`c2883d1`) — removed dead code (`CardPreview.tsx`, `captureElementAsJPEG`, `signInAnon`, `normalizeCardContacts`, `UserData`/`Plan` types, dead CSS). Unified editor segmented toggles onto the `btn` system (`btn-selected`). FAQ pricing now reads from dynamic `config/pricing`.
+3. **Medium patch round** (`bb325a8`) — editor hex color sync, favorite refresh via `refreshUserData()`, origin-relative QR poster URL, surfaced silent load failures (Admin stats, Rolodex, payment details).
+4. **Cleanup round** (`c2883d1`) — removed dead code (`CardPreview.tsx`, `captureElementAsJPEG`, `signInAnon`, `normalizeCardContacts`, `UserData`/`Plan` types, dead CSS). Unified editor segmented toggles onto the `btn` system (`btn-selected`). FAQ pricing now reads from dynamic `config/pricing`.
 
 ### Build Status
 - `npm run build` ✅
@@ -123,6 +135,8 @@
 ## Known Issues / Debt
 
 - [ ] **FCM end-to-end delivery unverified** — `notifyOnMessage` deployed; send a real message + confirm notification on a device.
+- [ ] **Android intent save = primary phone/email only** — `INSERT` intent supports single values; multi-field import needs the `.vcf` download.
+- [ ] **iOS vCard contact sheet needs device check** — should confirm Safari presents the native sheet (vs plain download) on a physical iPhone.
 - [ ] **OG preview renderer is a branded tile** — does NOT use the card's background photo; only accent color + profile pic. Could be upgraded to use the card's real bg.
 - [ ] **OG previews only regenerate on new `?v=`** — after editing a card, existing previews in messaging apps refresh on re-scrape only.
 - [ ] **Live checkout E2E unverified after security rework** — do a real Pro/Business purchase to confirm the success-page apply path.
