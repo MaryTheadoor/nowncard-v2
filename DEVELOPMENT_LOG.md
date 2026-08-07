@@ -4,6 +4,29 @@
 
 ---
 
+## 2026-08-07 — Health-check remediation (items 1–7 of HEALTH_CHECK.md)
+
+Systematically addressed the health-check backlog in priority order. All deployed.
+
+1. **SSRF** — `loadProfileImage` fetch allowlisted to Firebase Storage / Google avatars
+   + 8MB cap; slug decoding wrapped in try/catch.
+2. **Refunds** — webhook handles `refund.created/updated`: COMPLETED + full-amount →
+   downgrade plan to free (only if still on that plan), audit-logged to `refunds`.
+3. **Bundle** — LandingPage lazy-loaded; entry 740KB→574KB raw (228→175KB gzip, ~23%).
+4. **Slug registry** — `slugs/{slug}` claimed atomically in the editor-save transaction;
+   backfilled 12 existing cards (one-shot function, then removed); deletes free the slug.
+5. **A11y** — `ModalShell` (dialog semantics, focus trap, Escape, focus restore) on 4 modals;
+   form labels; WCAG-AA contrast (`.btn-secondary`, `--ink-faint`); nav drawer inert/aria.
+6. **Admin callables** — `adminMutation` re-checks isAdmin server-side; AdminPage writes
+   route through it.
+7. **Dead code/rules** — removed `cards/{id}/analytics` + `customers/*` rule blocks;
+   deleted unused `cards(updatedAt)` indexes; purged `publicCards` (5 docs).
+
+Automated E2E checks pass (callables reachable, messaging SW + notifyOn* deployed).
+Manual remaining: a real purchase and a real FCM push (user action items).
+
+---
+
 ## 2026-08-07 — Site-wide health check + critical fixes (see HEALTH_CHECK.md)
 
 Ran a four-agent read-only audit (security, code quality, data model/rules, performance/a11y)

@@ -130,11 +130,53 @@ The health check surfaced **four live bugs** (three Critical/one High) plus ~10 
 
 ## 4. Recommended Next Steps (priority order)
 
-1. **SSRF allowlist + byte cap** on `loadProfileImage` (security, quick).
-2. **Refund/chargeback → plan downgrade** (revenue integrity).
-3. **Bundle split** — dynamic-import `firebase/auth`, lazy `LandingPage` (biggest performance win).
-4. **Slug registry transaction** for true slug uniqueness.
-5. **Modal a11y pass** (`role="dialog"`, focus trap, Escape) + form labels + contrast tokens.
-6. **Move admin mutations to callables** (defense in depth).
-7. **Purge `publicCards`**, remove dead rule blocks, prune unused indexes.
-8. **Re-verify a real purchase end-to-end** now that CSP is fixed, and send a real FCM message to confirm push delivery.
+> **Progress 2026-08-07:** items 1–7 below are **implemented and deployed** (commits
+> `e5e5207` → `d7a5502`). Item 8's automated checks pass; the manual E2E steps are
+> listed as user actions.
+
+1. ✅ **SSRF allowlist + byte cap** on `loadProfileImage` — fetch restricted to
+   `firebasestorage.googleapis.com` / `storage.googleapis.com` / `googleusercontent.com`,
+   capped at 8 MB; slug path parsing wrapped in try/catch.
+2. ✅ **Refund/chargeback → plan downgrade** — webhook now handles
+   `refund.created/updated` (COMPLETED, full-amount) and downgrades the plan;
+   audit-logged to `refunds`.
+3. ✅ **Bundle split** — LandingPage lazy-loaded; entry cut from ~740KB raw/228KB gzip
+   to 574KB/175KB (~23%) for anonymous card viewers.
+4. ✅ **Slug registry transaction** — `slugs/{slug}` claimed atomically in the editor
+   save transaction; backfilled all 12 existing cards; Dashboard/Admin deletes free the slug.
+5. ✅ **A11y** — `ModalShell` (role=dialog, focus trap, Escape, focus restore) on all four
+   modals; form labels on Auth/Appointment modals; WCAG-AA contrast (`.btn-secondary`,
+   `--ink-faint`); mobile nav drawer `inert`/`aria-expanded`.
+6. ✅ **Admin mutations → callables** — `adminMutation` re-checks isAdmin server-side;
+   AdminPage writes route through it (reads stay client-side).
+7. ✅ **Dead code/rules/indexes** — removed `cards/{id}/analytics` + `customers/*` rule
+   blocks; deleted unused `cards(updatedAt)` indexes; purged `publicCards` (5 docs).
+8. 🔄 **Purchase + FCM E2E** — automated checks pass (all callables reachable, messaging
+   SW + notifyOn* deployed). Remaining is manual (see below).
+
+### User action items (manual E2E)
+- **Real purchase test** — complete a Pro/Business checkout end-to-end (pay → success →
+  plan applied). The CSP callable block is fixed and verified reachable, but a real
+  purchase is the only way to confirm the full flow.
+- **FCM push test** — send a real message/appointment from one device and confirm the
+  notification arrives on the owner's device (push delivery was never E2E-verified).
+
+## 5. Remaining backlog (not yet addressed)
+
+- Plan card-limit enforcement is client-only (rules/callable, or documented risk).
+- `reviews` leak reviewer email to anonymous visitors when featured.
+- `messages` sender/recipient not rule-bound to the auth token / card owner (inbox spam).
+- `appointments` create uses `hasAll` + no auth (unauthenticated spam → owner push spam).
+- `CardRow` defined inside `DashboardPage` — remounts the list on every keystroke.
+- `LiveCardPreview` ignores `backBgPosition/Zoom/Rotation` (editor back-bg tuning has no live effect).
+- Appointment overlap compares wall-clock across timezones.
+- Admin "Load More" duplicates rows while a slug search is active.
+- Dashboard swallows `applyPendingUpgrades` errors; `createDemoCard` bypasses plan limits.
+- Legacy `address` string field missing from vCard / card image / JSON-LD.
+- `cardCount` phantom field; editing a featured review un-features it; NfcPage/QrPoster can't open owner's private card.
+- Deeper perf: firebase/auth still in the entry (dynamic-import); editor re-render on keystroke; Rolodex loads 300 photos w/o lazy/pagination.
+- PWA: sw.js caches card navigations forever; manifest `start_url` is `/dashboard`; messaging SW pins Firebase v11.
+- A11y: full form-label pass across Editor/Dashboard; appointment calendar day `aria-label`s; route-loader `role=status`.
+- App Check disabled; no automated tests.
+
+## 3. Verified Healthy ⚪

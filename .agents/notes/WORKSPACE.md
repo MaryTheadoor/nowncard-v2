@@ -161,26 +161,23 @@
 
 ## Known Issues / Debt
 
-> Full audit + remaining backlog: **`HEALTH_CHECK.md`** (2026-08-07).
+> Full audit + backlog: **`HEALTH_CHECK.md`**. Health-check items 1–7 (SSRF allowlist,
+> refund→downgrade, bundle split, slug registry, a11y, admin callables, dead-code purge)
+> completed 2026-08-07.
 
-- [ ] **SSRF in `loadProfileImage`** (preview.ts) — restrict server fetches to Storage origins + byte cap.
-- [ ] **Refund/chargeback handling** — refund after payment keeps paid plan active; needs webhook `refund.*` → plan downgrade.
-- [ ] **Bundle split** — ~228KB gzip initial JS; dynamic-import firebase/auth + lazy LandingPage.
-- [ ] **Slug uniqueness not transactional** — needs `slugs/{slug}` registry (client block added 2026-08-07).
-- [ ] **Modal a11y** (role=dialog/focus trap/Escape), **form labels**, **contrast** (`--ink-faint` 2.7:1, `.btn-secondary` 3.3:1).
 - [ ] **Plan card-limit client-only** — rules/callable enforcement or documented risk.
 - [ ] **`reviews` leak reviewer email** to anonymous (featured docs) — stop storing email or split fields.
 - [ ] **`messages` sender/recipient not rule-bound** — spoofable inbox spam.
 - [ ] **Appointments unauthenticated spam** — `hasAll` not `hasOnly`; add caps/rate-limit.
-- [ ] **Admin mutations are direct client writes** — move to callables (defense in depth).
 - [ ] **`CardRow` remounts in Dashboard** on every keystroke (defined inside render).
 - [ ] **LiveCardPreview ignores `backBg*` controls** — editor back-background tuning has no live effect.
-- [ ] **FCM end-to-end delivery unverified** — `notifyOnMessage` deployed; send a real message + confirm on a device.
-- [ ] **Live checkout E2E** — re-verify a real purchase now that the CSP callable block is fixed.
+- [ ] **Appointment overlap uses wall-clock across timezones** — convert to UTC instants.
+- [ ] **FCM end-to-end delivery unverified** — send a real message + confirm on a device.
+- [ ] **Live checkout E2E** — real Pro/Business purchase now that CSP callable block is fixed.
 - [ ] **iOS vCard contact sheet needs device check** — Safari native sheet vs plain download.
 - [ ] **Appointment availability is visitor-local time** — no owner-timezone model yet.
 - [ ] **No Google Calendar API (OAuth) sync** — deferred phase; visitors get Add-to-Calendar links.
-- [ ] **No automated tests**; **App Check disabled**; **`publicCards` to purge**; **dead rule blocks/indexes to prune**.
+- [ ] **No automated tests**; **App Check disabled**.
 
 ---
 
