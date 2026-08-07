@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  collection, query, where, getDocs, doc, updateDoc, deleteDoc,
-  serverTimestamp, limit, getDoc, setDoc, orderBy, startAfter,
+  collection, query, where, getDocs, doc, limit, getDoc, orderBy, startAfter,
   getCountFromServer,
 } from 'firebase/firestore';
 import type { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/auth-context';
-import { getPaymentDetails, getPricing, updatePricing } from '@/lib/payments';
+import { getPaymentDetails, getPricing } from '@/lib/payments';
+import { adminMutation } from '@/lib/admin';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import Navbar from '@/components/Navbar';
 import {
@@ -180,7 +180,7 @@ export default function AdminPage() {
 
   const toggleFeaturedReview = async (userId: string, featured: boolean) => {
     try {
-      await updateDoc(doc(db, 'reviews', userId), { featured: !featured });
+      await adminMutation('toggleFeaturedReview', { userId, featured });
       toast.success('Review updated');
       loadReviews();
     } catch { toast.error('Failed to update review'); }
@@ -189,7 +189,7 @@ export default function AdminPage() {
   const deleteReview = async (userId: string) => {
     if (!confirm('Delete this review permanently?')) return;
     try {
-      await deleteDoc(doc(db, 'reviews', userId));
+      await adminMutation('deleteReview', { userId });
       toast.success('Review deleted');
       loadReviews();
     } catch { toast.error('Failed to delete review'); }
@@ -259,15 +259,7 @@ export default function AdminPage() {
   const approveUpgrade = async (upgradeId: string, uid: string, plan: string, price: number) => {
     setLoadingAction(upgradeId);
     try {
-      const pendingDoc = pending.find((p) => p.id === upgradeId);
-      await updateDoc(doc(db, 'users', uid), { plan, planUpdatedAt: serverTimestamp() });
-      await setDoc(doc(collection(db, 'upgrades')), {
-        uid, plan, price,
-        orderId: pendingDoc?.orderId || null,
-        source: 'admin_manual',
-        appliedAt: serverTimestamp(),
-      });
-      await deleteDoc(doc(db, 'pendingUpgrades', upgradeId));
+      await adminMutation('approveUpgrade', { upgradeId, uid, plan, price });
       toast.success(`Approved ${plan}`);
       loadPending();
       loadStats();
@@ -284,7 +276,7 @@ export default function AdminPage() {
     }
     setSavingPricing(true);
     try {
-      await updatePricing({ proPrice: pro, businessPrice: biz });
+      await adminMutation('updatePricing', { proPrice: pro, businessPrice: biz });
       toast.success('Pricing updated');
     } catch { toast.error('Failed to save'); }
     setSavingPricing(false);
@@ -293,7 +285,7 @@ export default function AdminPage() {
   const rejectUpgrade = async (upgradeId: string) => {
     setLoadingAction(upgradeId);
     try {
-      await deleteDoc(doc(db, 'pendingUpgrades', upgradeId));
+      await adminMutation('rejectUpgrade', { upgradeId });
       toast.success('Rejected');
       loadPending();
     } catch { toast.error('Failed to reject'); }
@@ -302,7 +294,7 @@ export default function AdminPage() {
 
   const setPlan = async (uid: string, plan: string) => {
     try {
-      await updateDoc(doc(db, 'users', uid), { plan, planUpdatedAt: serverTimestamp() });
+      await adminMutation('setPlan', { uid, plan });
       toast.success(`Plan → ${plan}`);
       searchUsers();
     } catch { toast.error('Failed to update plan'); }
@@ -310,7 +302,7 @@ export default function AdminPage() {
 
   const togglePublicCard = async (cardId: string, current: boolean) => {
     try {
-      await updateDoc(doc(db, 'cards', cardId), { isPublic: !current });
+      await adminMutation('toggleCardPublic', { cardId, current });
       toast.success(`Card ${!current ? 'public' : 'private'}`);
       searchCards();
     } catch { toast.error('Failed to toggle'); }
@@ -319,10 +311,7 @@ export default function AdminPage() {
   const deleteCard = async (cardId: string) => {
     if (!confirm('Delete this card permanently?')) return;
     try {
-      const snap = await getDoc(doc(db, 'cards', cardId));
-      const slug = snap.data()?.slug as string | undefined;
-      await deleteDoc(doc(db, 'cards', cardId));
-      if (slug) { try { await deleteDoc(doc(db, 'slugs', slug)); } catch (err) { console.error('[Admin] slug cleanup failed:', err); } }
+      await adminMutation('deleteCard', { cardId });
       toast.success('Card deleted');
       searchCards();
       loadStats();

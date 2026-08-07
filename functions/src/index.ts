@@ -896,6 +896,115 @@ export const getBookedSlots = onCall(async (request) => {
 });
 
 // ---------------------------------------------------------------------------
+// adminMutation (callable) — all admin writes go through here so admin status
+// is re-checked server-side (defense in depth on top of the rules).
+// ---------------------------------------------------------------------------
+export const adminMutation = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError('unauthenticated', 'Sign in required');
+  const adminSnap = await db.collection('users').doc(request.auth.uid).get();
+  if (!adminSnap.exists || adminSnap.data()?.isAdmin !== true) {
+    throw new HttpsError('permission-denied', 'Admin only');
+  }
+
+  const { op, data } = request.data as { op?: string; data?: Record<string, unknown> };
+
+  switch (op) {
+    case 'setPlan': {
+      const uid = typeof data?.uid === 'string' ? data.uid : '';
+      const plan = typeof data?.plan === 'string' ? data.plan : '';
+      if (!uid || !['free', 'pro', 'business'].includes(plan)) throw new HttpsError('invalid-argument', 'Invalid plan');
+      await db.collection('users').doc(uid).update({ plan, planUpdatedAt: admin.firestore.FieldValue.serverTimestamp() });
+      return { ok: true };
+    }
+
+    case 'approveUpgrade': {
+      const upgradeId = typeof data?.upgradeId === 'string' ? data.upgradeId : '';
+      const uid = typeof data?.uid === 'string' ? data.uid : '';
+      const plan = typeof data?.plan === 'string' ? data.plan : '';
+      const price = Number(data?.price ?? 0);
+      if (!upgradeId || !uid || !['pro', 'business'].includes(plan)) throw new HttpsError('invalid-argument', 'Invalid upgrade');
+      const pendingRef = db.collection('pendingUpgrades').doc(upgradeId);
+      const pendingSnap = await pendingRef.get();
+      const orderId = pendingSnap.exists ? (pendingSnap.data()?.orderId || null) : null;
+      await db.runTransaction(async (tx) => {
+        tx.update(db.collection('users').doc(uid), {
+          plan,
+          planUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          activeCheckout: null,
+        });
+        tx.set(db.collection('upgrades').doc(), {
+          uid,
+          plan,
+          price,
+          orderId,
+          source: 'admin_manual',
+          appliedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        tx.delete(pendingRef);
+      });
+      return { ok: true };
+    }
+
+    case 'rejectUpgrade': {
+      const upgradeId = typeof data?.upgradeId === 'string' ? data.upgradeId : '';
+      if (!upgradeId) throw new HttpsError('invalid-argument', 'Invalid upgrade');
+      await db.collection('pendingUpgrades').doc(upgradeId).delete();
+      return { ok: true };
+    }
+
+    case 'updatePricing': {
+      const proPrice = Number(data?.proPrice ?? 0);
+      const businessPrice = Number(data?.businessPrice ?? 0);
+      if (!Number.isFinite(proPrice) || !Number.isFinite(businessPrice) || proPrice < 1 || businessPrice < 1) {
+        throw new HttpsError('invalid-argument', 'Invalid prices');
+      }
+      await db.collection('config').doc('pricing').set(
+        { proPrice, businessPrice, updatedAt: admin.firestore.FieldValue.serverTimestamp() },
+        { merge: true },
+      );
+      return { ok: true };
+    }
+
+    case 'toggleCardPublic': {
+      const cardId = typeof data?.cardId === 'string' ? data.cardId : '';
+      if (!cardId) throw new HttpsError('invalid-argument', 'Invalid cardId');
+      const current = data?.current === true;
+      await db.collection('cards').doc(cardId).update({ isPublic: !current });
+      return { ok: true };
+    }
+
+    case 'deleteCard': {
+      const cardId = typeof data?.cardId === 'string' ? data.cardId : '';
+      if (!cardId) throw new HttpsError('invalid-argument', 'Invalid cardId');
+      const cardRef = db.collection('cards').doc(cardId);
+      const snap = await cardRef.get();
+      const slug = snap.exists ? (snap.data()?.slug as string | undefined) : undefined;
+      await cardRef.delete();
+      if (slug) await db.collection('slugs').doc(slug).delete().catch(() => undefined);
+      return { ok: true };
+    }
+
+    case 'toggleFeaturedReview': {
+      const userId = typeof data?.userId === 'string' ? data.userId : '';
+      if (!userId) throw new HttpsError('invalid-argument', 'Invalid userId');
+      const featured = data?.featured === true;
+      await db.collection('reviews').doc(userId).update({ featured: !featured });
+      return { ok: true };
+    }
+
+    case 'deleteReview': {
+      const userId = typeof data?.userId === 'string' ? data.userId : '';
+      if (!userId) throw new HttpsError('invalid-argument', 'Invalid userId');
+      await db.collection('reviews').doc(userId).delete();
+      return { ok: true };
+    }
+
+    default:
+      throw new HttpsError('invalid-argument', `Unknown op: ${op}`);
+  }
+});
+
+// ---------------------------------------------------------------------------
 // Card share previews — cardOgImage (/og-images/<slug>.png) generates a
 // branded 1200x630 thumbnail; cardPage (/card/<slug>) injects per-card
 // meta tags into index.html so link previews render without JS.
