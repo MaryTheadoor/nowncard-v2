@@ -4,6 +4,37 @@
 
 ---
 
+## 2026-08-07 — NFC analysis + copy alignment
+
+Analyzed the deployed NFC functionality against the site copy.
+
+**Reality:**
+- `NfcPage` writes NDEF records via Web NFC (`NDEFReader`) — **Android Chrome 89+ only**
+  (iOS/desktop can't write from a browser). Two modes: **Card URL** (universal — every
+  NFC phone, iPhone included, opens it on tap) and **vCard** (best-effort — iOS won't
+  reliably auto-import a vCard from an NFC mime record, and Android handling varies).
+- Reading/tapping a programmed URL tag works on any NFC-enabled phone.
+- Dashboard links to `/nfc/:slug`; the page is auth-gated.
+
+**Fixed:**
+- **Private-card bug**: `NfcPage` only loaded `isPublic == true` cards, so an owner
+  couldn't program a tag for their own private card. Added an owner fallback
+  (`slug + ownerUid` query, uses the existing composite index).
+- **Copy alignment**:
+  - NfcPage: URL mode note now says "any NFC phone (iPhone or Android)"; vCard mode now
+    warns some phones (esp. iPhone) won't auto-import and recommends Card URL mode; added
+    an "Android Chrome 89+ required" hint on the write screen.
+  - Landing "NFC Ready" feature card: clarifies tapping is universal and programming
+    happens from Android Chrome.
+  - Landing FAQ: added the Android-Chrome writer requirement.
+- Meta/og copy ("Share via link, QR code, or NFC tap") is recipient-facing and accurate —
+  left unchanged.
+
+**Known limitation (unchanged):** `QrPosterPage` still only loads public cards (no owner
+fallback) — tracked in HEALTH_CHECK.md backlog.
+
+---
+
 ## 2026-08-07 — Health-check remediation (items 1–7 of HEALTH_CHECK.md)
 
 Systematically addressed the health-check backlog in priority order. All deployed.

@@ -39,7 +39,7 @@ export default function LandingPage() {
     },
     {
       q: 'How does the QR code and NFC work?',
-      a: 'Every card automatically gets a QR code that links directly to your card page. For NFC, you can program a physical NFC tag to open your card when tapped — great for keychains, stickers, or business card blanks.',
+      a: 'Every card automatically gets a QR code that links directly to your card page. For NFC, you can program a physical NFC tag to open your card when tapped — great for keychains, stickers, or business card blanks. Writing tags works from Android Chrome (Web NFC); any NFC-enabled phone can then tap the tag to open the card.',
     },
     {
       q: 'Is there a free plan?',
@@ -145,7 +145,7 @@ export default function LandingPage() {
               { icon: <QrCode className="w-5 h-5" />, title: 'QR Code', desc: 'Instant QR for every card. Print it on flyers, posters, or your phone wallpaper.', chip: 'text-sky-400 bg-sky-500/10 border border-sky-500/25' },
               { icon: <Download className="w-5 h-5" />, title: 'vCard Export', desc: 'One tap adds your contact to any phone. Works with Apple, Android, and Outlook.', chip: 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/25' },
               { icon: <Palette className="w-5 h-5" />, title: 'Custom Design', desc: 'Choose your theme, accent color, fonts, and layout. Make it unmistakably yours.', chip: 'text-violet-400 bg-violet-500/10 border border-violet-500/25' },
-              { icon: <Smartphone className="w-5 h-5" />, title: 'NFC Ready', desc: 'Tap-to-share with any NFC-enabled phone. Program physical tags to share instantly.', chip: 'text-teal-400 bg-teal-500/10 border border-teal-500/25' },
+              { icon: <Smartphone className="w-5 h-5" />, title: 'NFC Ready', desc: 'Tap any programmed tag with an NFC-enabled phone to open your card instantly. Program tags right from Android Chrome.', chip: 'text-teal-400 bg-teal-500/10 border border-teal-500/25' },
               { icon: <Leaf className="w-5 h-5" />, title: 'Eco Friendly', desc: 'Skip the paper waste. Every digital card saves resources compared to printed cards that often end up in the trash.', chip: 'text-lime-400 bg-lime-500/10 border border-lime-500/25' },
             ].map((f) => (
               <div key={f.title} className="bg-tile border border-line rounded-2xl p-5 text-left hover:-translate-y-1 hover:shadow-surface transition">

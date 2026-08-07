@@ -44,19 +44,24 @@ export default function NfcPage() {
     (async () => {
       if (!slug) { setLoading(false); return; }
       try {
-        const cardsSnap = await getDocs(query(collection(db, 'cards'), where('slug', '==', slug), where('isPublic', '==', true), limit(1)));
-        if (!cardsSnap.empty) {
-          setCard({ id: cardsSnap.docs[0].id, ...cardsSnap.docs[0].data() } as Card);
-        } else {
-          toast.error('Card not found');
+        let found: Card | null = null;
+        const publicSnap = await getDocs(query(collection(db, 'cards'), where('slug', '==', slug), where('isPublic', '==', true), limit(1)));
+        if (!publicSnap.empty) {
+          found = { id: publicSnap.docs[0].id, ...publicSnap.docs[0].data() } as Card;
+        } else if (user) {
+          // Owners can program a tag for their own private card too.
+          const ownerSnap = await getDocs(query(collection(db, 'cards'), where('slug', '==', slug), where('ownerUid', '==', user.uid), limit(1)));
+          if (!ownerSnap.empty) found = { id: ownerSnap.docs[0].id, ...ownerSnap.docs[0].data() } as Card;
         }
+        if (found) setCard(found);
+        else toast.error('Card not found');
       } catch {
         toast.error('Failed to load card');
       } finally {
         setLoading(false);
       }
     })();
-  }, [slug]);
+  }, [slug, user]);
 
   const [showPreview, setShowPreview] = useState(false);
 
@@ -192,8 +197,12 @@ export default function NfcPage() {
 
           <p className="text-xs text-ink-faint mt-4">
             {mode === 'url'
-              ? 'Anyone tapping this tag will open your card page.'
-              : 'Anyone tapping this tag will receive your contact as a vCard.'}
+              ? 'Anyone tapping this tag will open your card page on any NFC phone (iPhone or Android).'
+              : 'Tapping this tag attempts to deliver your contact as a vCard. Some phones (especially iPhone) won\u2019t auto-import it \u2014 Card URL mode works on every phone.'}
+          </p>
+
+          <p className="text-[11px] text-ink-faint mt-2">
+            Writing tags requires Android Chrome 89+ (Web NFC).
           </p>
 
           <button
