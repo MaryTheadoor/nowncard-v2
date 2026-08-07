@@ -4,8 +4,10 @@ import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { AuthProvider } from '@/hooks/useAuth';
 
-// Eager-load landing page for fastest first paint
-import LandingPage from '@/pages/LandingPage';
+// Lazy-load all routes (including the landing page) so anonymous card viewers
+// and first-time visitors don't download heavy chunks (QR encoder, payments)
+// they don't need on entry.
+const LandingPage = lazy(() => import('@/pages/LandingPage'));
 
 // Lazy-load all other pages for code-splitting
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
