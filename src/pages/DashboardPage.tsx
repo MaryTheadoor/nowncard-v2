@@ -443,7 +443,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 mb-6 border-b border-line">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 mb-6 border-b border-line md:flex md:items-center">
           {[
             { key: 'cards', label: 'My Cards', badge: null },
             { key: 'inquiries', label: 'Inquiries', badge: messages.filter((m) => !m.read).length || null },
@@ -454,7 +454,7 @@ export default function DashboardPage() {
             <button
               key={t.key}
               onClick={() => { setActiveTab(t.key as typeof activeTab); if (t.key === 'billing') setHistoryLoading(true); }}
-              className={`px-4 py-2.5 text-sm font-bold border-b-2 transition ${activeTab === t.key ? 'border-accent text-accent' : 'border-transparent text-ink-muted hover:text-ink'}`}
+              className={`px-4 py-2.5 text-sm font-bold whitespace-nowrap border-b-2 transition ${activeTab === t.key ? 'border-accent text-accent' : 'border-transparent text-ink-muted hover:text-ink'}`}
             >
               {t.label}
               {t.badge !== null && (
