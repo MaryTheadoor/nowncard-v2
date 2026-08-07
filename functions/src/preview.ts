@@ -415,6 +415,9 @@ async function renderCardImage(card: { [key: string]: unknown } | null): Promise
                 'div',
                 {
                   style: {
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     padding: '10px 20px',
                     borderRadius: 999,
                     backgroundColor: 'rgba(255,255,255,0.05)',

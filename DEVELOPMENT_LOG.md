@@ -4,6 +4,22 @@
 
 ---
 
+## 2026-08-07 — Fix card-image render error for cards with social links
+
+- `/card-images/<slug>.png` failed with 500 for cards that had social links
+  (e.g. `marynown`, `cleanwindows`, `linda-westman`): satori threw
+  `Expected <div> to have explicit "display: flex" ... if it has more than one child node`.
+- Root cause: the social-chip `<div>` wrapped a single nested `<div>` (the styled
+  text) without an explicit `display`, which satori rejects. Contact chips already
+  had `display: flex`.
+- Fix: added `display: flex; align-items: center; justify-content: center` to the
+  social chip in `renderCardImage`.
+- Verified: all 10 public cards now render the portrait (0 failures), the in-browser
+  Save Image download works on a previously-failing card, and the 1200×630 OG
+  previews are unaffected.
+
+---
+
 ## 2026-08-06 — Vertical card image + SEO / AI-search optimization
 
 ### Vertical card image ("Save Image")
