@@ -295,6 +295,82 @@ webhookApp.post('/', async (req, res) => {
         return;
       }
 
+      case 'refund.created':
+      case 'refund.updated': {
+        const refund = event.data?.object?.refund as
+          | { id?: string; status?: string; order_id?: string | null; payment_id?: string | null; amount_money?: { amount?: number } }
+          | undefined;
+        if (!refund) {
+          res.status(200).send('No refund data');
+          return;
+        }
+        // Only COMPLETED refunds have returned money to the buyer.
+        if (refund.status !== 'COMPLETED') {
+          console.log(`Refund ${refund.id} status ${refund.status} — no downgrade`);
+          res.status(200).send('Refund not completed');
+          return;
+        }
+
+        const orderId = refund.order_id || null;
+        const paymentId = refund.payment_id || null;
+        let upgradeSnap;
+        if (orderId) {
+          upgradeSnap = await db.collection('upgrades').where('orderId', '==', orderId).limit(1).get();
+        }
+        if ((!upgradeSnap || upgradeSnap.empty) && paymentId) {
+          upgradeSnap = await db.collection('upgrades').where('paymentId', '==', paymentId).limit(1).get();
+        }
+        if (!upgradeSnap || upgradeSnap.empty) {
+          console.log(`No upgrade found for refund order=${orderId} payment=${paymentId}`);
+          res.status(200).send('No upgrade to downgrade');
+          return;
+        }
+
+        const upgradeDoc = upgradeSnap.docs[0];
+        const upgrade = upgradeDoc.data();
+        const uid: string = upgrade.uid;
+
+        // Guard against partial refunds: only revoke the plan when the refunded
+        // amount covers the originally paid price.
+        const refundedCents = refund.amount_money?.amount ?? Math.round((upgrade.price ?? 0) * 100);
+        const paidCents = upgrade.price != null ? Math.round(upgrade.price * 100) : refundedCents;
+        if (refundedCents < paidCents) {
+          console.log(`Partial refund ${refund.id} of ${refundedCents}¢ < ${paidCents}¢ — keeping plan for ${uid}`);
+          res.status(200).send('Partial refund — plan kept');
+          return;
+        }
+
+        const userSnap = await db.collection('users').doc(uid).get();
+        // Only downgrade when the user is still on the plan that was refunded —
+        // if they re-upgraded since, don't clobber the newer purchase.
+        if (userSnap.exists && userSnap.data()?.plan === upgrade.plan) {
+          await db.collection('users').doc(uid).update({
+            plan: 'free',
+            planUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            activeCheckout: null,
+            downgradeReason: `refunded ${upgrade.plan} (${refund.id})`,
+          });
+          console.log(`⬇️ Downgraded ${uid} from ${upgrade.plan} to free (refund ${refund.id})`);
+        } else {
+          console.log(`User ${uid} on ${userSnap.exists ? userSnap.data()?.plan : '?'} (refunded was ${upgrade.plan}) — no downgrade`);
+        }
+
+        await db.collection('refunds').add({
+          refundId: refund.id || null,
+          paymentId: paymentId || null,
+          orderId,
+          upgradeId: upgradeDoc.id,
+          uid,
+          plan: upgrade.plan,
+          amountCents: refundedCents,
+          status: refund.status,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        res.status(200).send('OK');
+        return;
+      }
+
       default:
         console.log(`Unhandled Square event: ${eventType}`);
         res.status(200).send('Unhandled');

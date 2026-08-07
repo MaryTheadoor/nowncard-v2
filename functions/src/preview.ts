@@ -97,13 +97,31 @@ function escapeHtml(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
+// Profile images come from Firebase Storage (uploads) or Google user avatars.
+// Server-side fetching must be restricted to these hosts to prevent SSRF.
+const ALLOWED_IMAGE_HOSTS = ['firebasestorage.googleapis.com', 'storage.googleapis.com', 'googleusercontent.com'];
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+
+function isAllowedImageUrl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    return u.protocol === 'https:' && ALLOWED_IMAGE_HOSTS.some((h) => u.hostname === h || u.hostname.endsWith('.' + h));
+  } catch {
+    return false;
+  }
+}
+
 async function loadProfileImage(card: { [key: string]: unknown } | null): Promise<string | null> {
   const url = typeof card?.profileImage === 'string' ? card.profileImage : '';
-  if (!url) return null;
+  if (!url || !isAllowedImageUrl(url)) return null;
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
     if (!res.ok) return null;
     const buf = Buffer.from(await res.arrayBuffer());
+    if (buf.length > MAX_IMAGE_BYTES) {
+      console.warn('[preview] profile image too large, skipping:', buf.length);
+      return null;
+    }
     const mime = res.headers.get('content-type') || 'image/jpeg';
     return `data:${mime};base64,${buf.toString('base64')}`;
   } catch (err) {
@@ -649,12 +667,20 @@ async function serveSitemap(res: { set: (k: string, v: string) => void; send: (b
 // ---------------------------------------------------------------------------
 // Path parsing
 // ---------------------------------------------------------------------------
+function safeDecode(s: string): string | null {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return null;
+  }
+}
+
 function parseImageSlug(p: string): string | null {
   const m = p.match(/^\/(?:og-images|card-images)\/([^/?#]+?)(?:\.png)?$/);
-  return m ? decodeURIComponent(m[1]) : null;
+  return m ? safeDecode(m[1]) : null;
 }
 
 function parseCardSlug(p: string): string | null {
   const m = p.match(/^\/card\/([^/?#]+)/);
-  return m ? decodeURIComponent(m[1]) : null;
+  return m ? safeDecode(m[1]) : null;
 }

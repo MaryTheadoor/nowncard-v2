@@ -108,6 +108,12 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    // Refunds: audit log written by the Square webhook (Admin SDK); admin-only reads.
+    match /refunds/{refundId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
     // Stripe subscriptions (managed by Firebase Extension)
     match /customers/{uid}/subscriptions/{subId} {
       allow read: if request.auth != null && request.auth.uid == uid;
