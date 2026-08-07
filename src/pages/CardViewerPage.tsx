@@ -82,7 +82,7 @@ export default function CardViewerPage() {
           setCardsDocId(cardsDocId);
           const cardTitle = `${fullName(data) || 'Contact'} — NownCard`;
           const cardDesc = data.bio || `Digital business card for ${fullName(data) || 'Contact'}`;
-          const cardImage = data.profileImage || 'https://nowncard.com/nowncard-logo.png';
+          const cardImage = `${window.location.origin}/og-images/${encodeURIComponent(slug)}.png`;
           document.title = cardTitle;
           const setMeta = (selector: string, content: string) => {
             const el = document.querySelector(selector) as HTMLMetaElement | null;

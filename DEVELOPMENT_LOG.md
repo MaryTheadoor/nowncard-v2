@@ -4,6 +4,46 @@
 
 ---
 
+## 2026-08-06 — Dynamic Card Share Previews (OG images + meta injection)
+
+### Problem
+Link previews for `/card/:slug` always showed the static NownCard logo. The app set
+`og:*` tags via JS in `CardViewerPage`, but crawlers (WhatsApp, iMessage, Facebook,
+LinkedIn, Discord, Slack) don't run JS — they only read the raw HTML served by
+`index.html`.
+
+### Changes
+- **`functions/src/preview.ts` (new)**:
+  - `cardOgImage` — GET `/og-images/<slug>.png` renders a branded 1200×630 PNG via
+    `satori` + `@resvg/resvg-js` (Inter font via `@fontsource/inter`): card accent color,
+    profile photo (or initials fallback), name, job · department · company, 2-line bio,
+    NownCard brand mark. Card lookup is public-only. Cache `max-age=3600`.
+  - `cardPage` — GET `/card/<slug>` serves `index.html` (fetched from hosting, 60s TTL)
+    with per-card `og:title`/`og:description`/`og:image`/`og:url`/`twitter:*` injected.
+    `og:image` is cache-busted by `updatedAt`. Uses `x-forwarded-host` so the preview
+    URLs point at the requesting host (nowncard.com vs staging).
+- **`firebase.json`** — hosting rewrites (both sites, before the `**` catch-all):
+  `/card/**` → `cardpage`, `/og-images/**` → `cardogimage` (us-central1).
+- **`src/pages/CardViewerPage.tsx`** — JS-set `og:image` now uses the generated
+  `/og-images/<slug>.png` URL for JS-capable crawlers.
+- **`functions` deps** — added `satori`, `@resvg/resvg-js`, `@fontsource/inter`, `react`.
+
+### Verified
+- `https://nowncard.com/card/<slug>` raw HTML has correct per-card og/twitter tags
+  (1200×630, correct host, `?v=` cache-buster).
+- `https://nowncard.com/og-images/<slug>.png` returns `image/png` (145–170KB).
+- Nonexistent card falls back to homepage meta. Staging uses its own host.
+
+### Deployed
+- Functions (`cardPage`, `cardOgImage`), hosting (both sites). Pushed to `master`.
+
+### Note
+Existing cached previews (Facebook/WhatsApp/LinkedIn) won't refresh until re-scraped:
+use FB Sharing Debugger, LinkedIn Post Inspector, or `?slack-bot=1`. Also note the
+renderer is a clean branded tile — it does NOT use the card's background photo yet.
+
+---
+
 ## 2026-08-06 — Live Debugging Round (User-Reported Issues)
 
 ### Problems Reported

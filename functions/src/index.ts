@@ -782,3 +782,10 @@ export const cleanupPendingUpgrades = onSchedule('every 6 hours', async () => {
 
   console.log(`🧹 Cleaned up ${snap.size} expired pending upgrades`);
 });
+
+// ---------------------------------------------------------------------------
+// Card share previews — cardOgImage (/og-images/<slug>.png) generates a
+// branded 1200x630 thumbnail; cardPage (/card/<slug>) injects per-card
+// meta tags into index.html so link previews render without JS.
+// ---------------------------------------------------------------------------
+export { cardPage, cardOgImage } from './preview';

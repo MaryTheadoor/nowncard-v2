@@ -18,6 +18,20 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
+          "source": "/card/**",
+          "run": {
+            "serviceId": "cardpage",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/og-images/**",
+          "run": {
+            "serviceId": "cardogimage",
+            "region": "us-central1"
+          }
+        },
+        {
           "source": "**",
           "destination": "/index.html"
         }
@@ -86,6 +100,20 @@
       "public": "dist",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
+        {
+          "source": "/card/**",
+          "run": {
+            "serviceId": "cardpage",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/og-images/**",
+          "run": {
+            "serviceId": "cardogimage",
+            "region": "us-central1"
+          }
+        },
         {
           "source": "**",
           "destination": "/index.html"

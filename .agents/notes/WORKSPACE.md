@@ -10,9 +10,17 @@
 ## Last Session
 
 **Date:** 2026-08-06
-**Agent focus:** Security hardening, UI unification, cleanup round, documentation refresh
+**Agent focus:** Security hardening, UI unification, cleanup round, documentation refresh, share previews
 
 ### What Got Done
+0. **Dynamic share previews** (new) — card pages now render real link previews:
+   - `cardPage` Cloud Function serves `/card/:slug` with per-card `og:*`/`twitter:*` meta
+     injected into `index.html` (crawlers don't run JS, so JS-set meta was invisible to them).
+   - `cardOgImage` Cloud Function renders a branded 1200×630 thumbnail at
+     `/og-images/<slug>.png` (satori + @resvg/resvg-js + @fontsource/inter): accent color,
+     profile photo (or initials), name, job/company, bio blurb, NownCard mark. Cached 1h,
+     cache-busted by `updatedAt`.
+   - Hosting rewrites: `/card/**` → `cardpage`, `/og-images/**` → `cardogimage`.
 1. **Security rework** (`1d3c5ae`) — server-authoritative plan/admin:
    - Plan activation moved to a server callable `applyPendingUpgrade` (only applies when the HMAC-verified webhook set `paymentCompleted: true`). Removed the exploitable client-side transaction in `src/lib/payments.ts`.
    - Admin elevation via `bootstrapAdmin` callable checking a server-side allowlist (`ADMIN_UIDS` in `functions/src/index.ts`). Client can no longer self-grant `isAdmin` or `plan`.
@@ -21,6 +29,7 @@
    - Added CSP + Permissions-Policy headers, `sw.js`/`firebase-messaging-sw.js` → `no-cache`.
    - Blocked SVG uploads in `storage.rules` (script risk).
    - FCM push only sent when card owner matches recipient (anti-spam).
+   - **CSP fix** (`b9c4b9a`): added `apis.google.com`/gstatic to `script-src`, authDomain to `frame-src` — unblocked Google sign-in popup.
 2. **Medium patch round** (`bb325a8`) — editor hex color sync, favorite refresh via `refreshUserData()`, origin-relative QR poster URL, surfaced silent load failures (Admin stats, Rolodex, payment details).
 3. **Cleanup round** (`c2883d1`) — removed dead code (`CardPreview.tsx`, `captureElementAsJPEG`, `signInAnon`, `normalizeCardContacts`, `UserData`/`Plan` types, dead CSS). Unified editor segmented toggles onto the `btn` system (`btn-selected`). FAQ pricing now reads from dynamic `config/pricing`.
 
@@ -46,9 +55,10 @@
 - Payments client: `src/lib/payments.ts` (calls `createCheckout`, `applyPendingUpgrade`, `getPaymentHistory`, `getPaymentDetails` callables).
 
 ### Backend (`functions/`)
-- Node 22, Firebase Functions v2. Entry: `functions/src/index.ts`.
+- Node 22, Firebase Functions v2. Entry: `functions/src/index.ts` (+ `src/preview.ts`).
 - Callables: `createCheckout`, `applyPendingUpgrade`, `bootstrapAdmin`, `getPaymentHistory`, `getPaymentDetails`.
 - Triggers: `squareWebhook` (HMAC-verified), `notifyOnMessage`, `notifyOnAppointment`, `cleanupPendingUpgrades` (6h schedule).
+- **Preview functions** (HTTP, `src/preview.ts`): `cardPage` (`/card/**` — index.html + injected og/twitter meta), `cardOgImage` (`/og-images/<slug>.png` — satori+resvg branded 1200×630 PNG). Cloud Run services `cardpage` / `cardogimage`, us-central1.
 - Secrets: `SQUARE_ACCESS_TOKEN`, `SQUARE_WEBHOOK_SIGNATURE_KEY` (v3, set via Node stdin — PowerShell pipe corrupts with CRLF).
 - Params (non-secret) in `functions/.env`: `SQUARE_ENVIRONMENT`, `SQUARE_LOCATION_ID`, `SQUARE_WEBHOOK_URL` (pinned to `https://squarewebhook-bms24k7cqa-uc.a.run.app`).
 - **Important:** secrets must NOT be in `functions/.env` (Cloud Run rejects overlap). Emulator secrets in gitignored `functions/.env.local`.
@@ -88,8 +98,13 @@
 - [x] Load by slug (cards + publicCards fallback), view-count increment
 - [x] 3D flip, front/back faces, QR, vCard export, save image
 - [x] Owner "Edit Card" button, appointment booking (if enabled), inquiry messaging
-- [x] Featured links (link tree), theme/font rendering, dynamic OG tags
+- [x] Featured links (link tree), theme/font rendering
 - [x] Analytics tracking (views, taps, time-on-page, device, referrer)
+
+### Share Previews (link unfurling)
+- [x] `/card/:slug` served with server-injected `og:*`/`twitter:*` meta (works in WhatsApp, iMessage, Facebook, LinkedIn, Discord, Slack, X — no JS required)
+- [x] Generated 1200×630 branded thumbnail at `/og-images/<slug>.png` (accent color, profile photo or initials, name, job/company, bio, NownCard mark)
+- [x] `og:image` cache-busted by `updatedAt`; fallback to homepage meta for unknown/private slugs
 
 ### Other Pages
 - [x] Analytics (/analytics/:id), NFC (/nfc/:slug), QR Poster (/poster/:slug), Rolodex (/rolodex)
@@ -108,6 +123,8 @@
 ## Known Issues / Debt
 
 - [ ] **FCM end-to-end delivery unverified** — `notifyOnMessage` deployed; send a real message + confirm notification on a device.
+- [ ] **OG preview renderer is a branded tile** — does NOT use the card's background photo; only accent color + profile pic. Could be upgraded to use the card's real bg.
+- [ ] **OG previews only regenerate on new `?v=`** — after editing a card, existing previews in messaging apps refresh on re-scrape only.
 - [ ] **Live checkout E2E unverified after security rework** — do a real Pro/Business purchase to confirm the success-page apply path.
 - [ ] **No automated tests** — no unit/e2e suite (manual verification only).
 - [ ] **App Check disabled** — optional hardening (would require reCAPTCHA).
