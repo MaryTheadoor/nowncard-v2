@@ -319,7 +319,10 @@ export default function AdminPage() {
   const deleteCard = async (cardId: string) => {
     if (!confirm('Delete this card permanently?')) return;
     try {
+      const snap = await getDoc(doc(db, 'cards', cardId));
+      const slug = snap.data()?.slug as string | undefined;
       await deleteDoc(doc(db, 'cards', cardId));
+      if (slug) { try { await deleteDoc(doc(db, 'slugs', slug)); } catch (err) { console.error('[Admin] slug cleanup failed:', err); } }
       toast.success('Card deleted');
       searchCards();
       loadStats();

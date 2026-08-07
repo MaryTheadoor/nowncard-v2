@@ -196,6 +196,10 @@ export default function DashboardPage() {
     try {
       const deletedCard = [...personalCards, ...teamCards].find((c) => c.id === cardId);
       await deleteDoc(doc(db, 'cards', cardId));
+      // Release the slug registry entry so the slug can be reused.
+      if (deletedCard?.slug) {
+        try { await deleteDoc(doc(db, 'slugs', deletedCard.slug)); } catch (err) { console.error('[Dashboard] slug registry cleanup failed:', err); }
+      }
       setPersonalCards(personalCards.filter((c) => c.id !== cardId));
       setTeamCards(teamCards.filter((c) => c.id !== cardId));
       // Clear favorite slots if this was a favorite card

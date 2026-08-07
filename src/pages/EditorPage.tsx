@@ -5,7 +5,7 @@ import LivePagePreview from '@/components/LivePagePreview';
 import Navbar from '@/components/Navbar';
 import BackLink from '@/components/BackLink';
 import ShareModal from '@/components/ShareModal';
-import { doc, getDoc, setDoc, updateDoc, deleteField, serverTimestamp, collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { doc, getDoc, deleteField, serverTimestamp, collection, query, where, getDocs, limit, runTransaction } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { useAuth } from '@/hooks/auth-context';
@@ -214,10 +214,26 @@ export default function EditorPage() {
       if (slugStatus === 'taken') { toast.error('That slug is taken'); setSaving(false); return; }
 
       if (id) {
-        // Legacy cards may only have ownerId — converge them onto ownerUid so the
-        // dual-field fallback debt eventually goes away.
-        if (!card.ownerUid && card.ownerId === user.uid) data.ownerUid = user.uid;
-        await updateDoc(doc(db, 'cards', id), data);
+        // Slug uniqueness is enforced atomically via the slugs/{slug} registry
+        // (see firestore.rules) inside a transaction — this closes the
+        // check-then-act race between two users claiming the same slug.
+        await runTransaction(db, async (tx) => {
+          const slugRef = doc(db, 'slugs', slug);
+          const slugSnap = await tx.get(slugRef);
+          if (slugSnap.exists() && slugSnap.data()?.cardId !== id) throw new Error('That slug is taken');
+          // If the card's slug changed, release the old registry entry.
+          const oldSlug = typeof card.slug === 'string' && card.slug !== slug ? card.slug : null;
+          if (oldSlug) {
+            const oldRef = doc(db, 'slugs', oldSlug);
+            const oldSnap = await tx.get(oldRef);
+            if (oldSnap.exists() && oldSnap.data()?.cardId === id) tx.delete(oldRef);
+          }
+          // Legacy cards may only have ownerId — converge them onto ownerUid so the
+          // dual-field fallback debt eventually goes away.
+          if (!card.ownerUid && card.ownerId === user.uid) data.ownerUid = user.uid;
+          tx.update(doc(db, 'cards', id), data);
+          tx.set(slugRef, { cardId: id, ownerUid: user.uid, updatedAt: serverTimestamp() }, { merge: true });
+        });
         toast.success('Card saved');
       } else {
         if (!data.isTeamCard) {
@@ -239,10 +255,16 @@ export default function EditorPage() {
         }
         data.ownerUid = user.uid;
         data.createdAt = serverTimestamp();
-        const ref = doc(collection(db, 'cards'));
-        await setDoc(ref, data);
+        const cardRef = doc(collection(db, 'cards'));
+        await runTransaction(db, async (tx) => {
+          const slugRef = doc(db, 'slugs', slug);
+          const slugSnap = await tx.get(slugRef);
+          if (slugSnap.exists()) throw new Error('That slug is taken');
+          tx.set(cardRef, data);
+          tx.set(slugRef, { cardId: cardRef.id, ownerUid: user.uid, updatedAt: serverTimestamp() });
+        });
         toast.success('Card saved');
-        navigate(`/editor/${ref.id}`);
+        navigate(`/editor/${cardRef.id}`);
       }
     } catch (err: unknown) {
       console.error('Save error:', err);
