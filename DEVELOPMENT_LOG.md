@@ -4,6 +4,50 @@
 
 ---
 
+## 2026-08-06 — Save-to-Contacts refinements, Save Image fix, Appointment booking v2
+
+### Save to Contacts (device feedback round)
+- **Android**: the `intent://` INSERT approach was unreliable on devices (unresolved
+  intent fell back to the card URL, or triggered a file-save prompt). Replaced with a
+  reliable `.vcf` download **plus** an instructional dialog (new `ImportVCardModal`)
+  telling the user to open the downloaded file to import it into Contacts.
+- **iOS**: "Download .vcf" is now a visible secondary button (backup option), which
+  downloads + shows the same import dialog. Primary "Save to Contacts" still opens the
+  vCard in a new tab (native contact sheet).
+- `saveToContacts()` now returns `'ios' | 'download-import'` so callers know when to
+  show the dialog.
+
+### Save Image (still failing)
+- Root cause: **not CORS anymore** — `html2canvas` can't parse Tailwind v4's
+  `oklab()`/`oklch()` color functions ("Attempting to parse an unsupported color
+  function 'oklab'"). html2canvas is effectively unmaintained.
+- **Fix**: CardViewer "Save Image" now downloads the server-generated preview
+  (`/og-images/<slug>.png`) — reliable, matches the link preview. `html-to-image`
+  replaced html2canvas for the QR poster export (handles modern CSS); html2canvas
+  removed from deps. Verified both headlessly.
+
+### Appointment booking v2 (`AppointmentModal` + Editor + types)
+- **Availability model** (`Card.appointmentSettings`): `durationMinutes` + `weeklyHours`
+  (per-day start/end). Editor now has a weekly availability editor (day toggles +
+  start/end times) and a meeting-length selector. Defaults Mon–Fri 9–5, 30 min.
+- **Booking UI**: month calendar grid (available vs unavailable days, past dates
+  disabled) → select a day → time-slot buttons (disabled for past/overlapping slots,
+  based on existing pending/confirmed appointments for that card).
+- **Post-booking**: success screen with Add to Google Calendar, Add to Outlook (new
+  `outlookCalendarUrl`), and Download .ics (Apple). ICS/Google/Outlook links honor
+  `durationMinutes`.
+- Appointment docs now store `durationMinutes`. Existing fields unchanged
+  (Dashboard + `notifyOnAppointment` work as before).
+
+### Verified (headless Chrome vs deployed site)
+- Save Image downloads the preview PNG; poster export works via html-to-image.
+- Android: `.vcf` downloads + import dialog shows; iOS: `.vcf` backup button shows +
+  downloads + dialog.
+- Appointment modal on a live card (`allhair`): calendar grid renders, 18 available
+  days, 16 time slots on a selected day, no errors.
+
+---
+
 ## 2026-08-06 — Save-to-Contacts flow + Save Image fix
 
 ### Analysis

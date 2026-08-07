@@ -13,18 +13,23 @@
 **Agent focus:** Security hardening, UI unification, cleanup round, documentation refresh, share previews
 
 ### What Got Done
-1. **Save-to-Contacts + Save Image** (new):
+0. **Save refinements + Save Image fix + Appointment booking v2**:
+   - Android save: replaced unreliable `intent://` with `.vcf` download + **import
+     dialog** (`ImportVCardModal`). iOS: "Download .vcf" is now a visible backup button.
+   - Save Image: html2canvas can't parse Tailwind v4 `oklab()` colors → CardViewer now
+     downloads the OG preview (`/og-images/<slug>.png`); QR poster uses `html-to-image`
+     (html2canvas removed from deps).
+   - **Appointment v2**: `Card.appointmentSettings` (`durationMinutes` + `weeklyHours`)
+     with an Editor availability editor; `AppointmentModal` is now a month calendar grid
+     → day → time slots (past/overlapping slots disabled from existing bookings); success
+     screen offers Add to Google Calendar / Outlook / Download .ics.
+   - Appointment docs store `durationMinutes`. `notifyOnAppointment` unchanged.
+1. **Save-to-Contacts + Save Image** (prior round):
    - Storage bucket CORS enabled (via `ensureStorageCors()` in `preview.ts`, idempotent
-     on cold start) — **fixes "Save Image"**, which silently failed because html2canvas
-     couldn't read Firebase Storage photos (no CORS header → tainted canvas →
-     `toDataURL()` SecurityError). Verified `Access-Control-Allow-Origin: *` live.
-   - `saveToContacts()` (`src/lib/vcard.ts`): Android Chrome-family → `intent://`
-     `android.intent.action.INSERT` contact editor pre-filled (1 tap to Save);
-     iOS → opens vCard in new tab (native contact sheet); desktop → `.vcf` download.
-   - `CardViewerPage`: both save buttons use the smart flow; mobile-only
-     "Download .vcf" fallback link; Save Image has Generating… state + error toast.
-    - **Research:** Contact Picker API is read-only (can't write contacts), so
-      intent/`vCard` is the practical minimum-tap path per platform.
+     on cold start) — fixed the tainted-canvas SecurityError from missing CORS.
+   - `saveToContacts()` (`src/lib/vcard.ts`): platform-smart save.
+   - **Research:** Contact Picker API is read-only (can't write contacts), so
+     intent/`vCard` is the practical minimum-tap path per platform.
 0. **Dynamic share previews** (new) — card pages now render real link previews:
    - `cardPage` Cloud Function serves `/card/:slug` with per-card `og:*`/`twitter:*` meta
      injected into `index.html` (crawlers don't run JS, so JS-set meta was invisible to them).
@@ -104,6 +109,12 @@
 - [x] Heart/star favorites (write + refresh `userData`)
 - [x] Tabs: My Cards / Inquiries / Appointments / Feedback / Billing
 - [x] Inquiries inbox (mark read, delete), appointments (confirm/cancel/delete), reviews (star rating), billing (Square payment history)
+
+### Appointments (booking)
+- [x] Editor: enable + meeting length + weekly availability editor (day toggles + start/end times)
+- [x] Visitor UI: month calendar grid → day → time slots (past/overlapping slots disabled from existing bookings)
+- [x] Post-booking: Add to Google Calendar / Outlook / Download .ics (Apple) — respects `durationMinutes`
+- [x] Owner: Dashboard Appointments tab (confirm/cancel/delete) + FCM `notifyOnAppointment`
 - [x] Demo card creation, notifications (FCM) opt-in
 
 ### Public Card (/card/:slug)
@@ -135,8 +146,9 @@
 ## Known Issues / Debt
 
 - [ ] **FCM end-to-end delivery unverified** — `notifyOnMessage` deployed; send a real message + confirm notification on a device.
-- [ ] **Android intent save = primary phone/email only** — `INSERT` intent supports single values; multi-field import needs the `.vcf` download.
 - [ ] **iOS vCard contact sheet needs device check** — should confirm Safari presents the native sheet (vs plain download) on a physical iPhone.
+- [ ] **Appointment availability is in the visitor's local time** — no owner-timezone model yet; weeklyHours are interpreted in the booking visitor's tz.
+- [ ] **No Google Calendar API (OAuth) sync** — owner-side auto-push of confirmed appointments is a deferred phase; visitors currently get Add-to-Calendar links (Google/Outlook/ics).
 - [ ] **OG preview renderer is a branded tile** — does NOT use the card's background photo; only accent color + profile pic. Could be upgraded to use the card's real bg.
 - [ ] **OG previews only regenerate on new `?v=`** — after editing a card, existing previews in messaging apps refresh on re-scrape only.
 - [ ] **Live checkout E2E unverified after security rework** — do a real Pro/Business purchase to confirm the success-page apply path.

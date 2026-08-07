@@ -1,5 +1,4 @@
 import type { Card } from '@/types';
-import { fullName } from './utils';
 
 function escVCard(val: string): string {
   return val.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,');
@@ -96,59 +95,31 @@ export function downloadVCard(card: Card | Partial<Card>, filename?: string, car
 // "Save to Contacts" — minimize taps between button press and the contact
 // landing in the phone's address book.
 //
-// Android (Chromium browsers): fire an android.intent.action.INSERT intent so
-//   the native contact editor opens pre-filled — the user only taps "Save".
 // iOS: open the vCard in a new tab — Safari presents its native contact sheet
-//   (or downloads the .vcf, still fewer steps than an explicit file import).
-// Everything else: download the .vcf (previous behavior).
+//   (or downloads the .vcf). Returns 'ios'.
+// Android / desktop: download the .vcf. Returns 'download-import' so the caller
+//   can show import instructions.
 // ---------------------------------------------------------------------------
 function vcardFilename(card: Card | Partial<Card>): string {
   return `${card.slug || 'contact'}.vcf`;
 }
 
-export function saveToContacts(card: Card | Partial<Card>, cardPageUrl?: string): void {
-  const ua = navigator.userAgent;
-  const isAndroid = /Android/i.test(ua);
-  const isIOS = /iP(hone|od|ad)/i.test(ua);
+export type SaveContactAction = 'ios' | 'download-import';
 
-  if (isAndroid && !/Firefox/i.test(ua)) {
-    openAndroidContactEditor(card, cardPageUrl);
-    return;
-  }
-
-  if (isIOS) {
+export function saveToContacts(card: Card | Partial<Card>, cardPageUrl?: string): SaveContactAction {
+  if (/iP(hone|od|ad)/i.test(navigator.userAgent)) {
     const vcard = generateVCard(card, cardPageUrl);
     const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const opened = window.open(url, '_blank');
-    if (!opened) downloadVCard(card, vcardFilename(card), cardPageUrl);
+    if (!opened) {
+      downloadVCard(card, vcardFilename(card), cardPageUrl);
+      return 'download-import';
+    }
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    return;
+    return 'ios';
   }
 
   downloadVCard(card, vcardFilename(card), cardPageUrl);
-}
-
-function openAndroidContactEditor(card: Card | Partial<Card>, cardPageUrl?: string): void {
-  const name = fullName(card) || 'Contact';
-  const phone = card.phones?.[0]?.number || card.phone || '';
-  const email = card.emails?.[0]?.address || card.email || '';
-  const company = card.company || '';
-  const jobTitle = card.jobTitle || '';
-  const notes = [card.bio, cardPageUrl ? `Shared via NownCard: ${cardPageUrl}` : ''].filter(Boolean).join('\n');
-
-  const extras = [
-    `S.name=${encodeURIComponent(name)}`,
-    phone ? `S.phone=${encodeURIComponent(phone)}` : '',
-    email ? `S.email=${encodeURIComponent(email)}` : '',
-    company ? `S.company=${encodeURIComponent(company)}` : '',
-    jobTitle ? `S.job_title=${encodeURIComponent(jobTitle)}` : '',
-    notes ? `S.notes=${encodeURIComponent(notes)}` : '',
-    cardPageUrl ? `S.browser_fallback_url=${encodeURIComponent(cardPageUrl)}` : '',
-  ].filter(Boolean).join(';');
-
-  const intentUrl = `intent://contact#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/contact;${extras};end`;
-  const a = document.createElement('a');
-  a.href = intentUrl;
-  a.click();
+  return 'download-import';
 }

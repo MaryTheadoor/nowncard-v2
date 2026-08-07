@@ -30,6 +30,8 @@ function scaleFromPt(pt: number): number {
   return Math.max(0.3, Math.min(3, pt / 16.5));
 }
 
+const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
 export default function EditorPage() {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
@@ -278,6 +280,15 @@ export default function EditorPage() {
 
   const updateField = <K extends keyof Card>(key: K, value: Card[K]) => {
     setCard((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const updateAppointmentSettings = (settings: NonNullable<Card['appointmentSettings']>) => {
+    setCard((prev) => ({ ...prev, appointmentSettings: settings }));
+  };
+
+  const updateWeeklyHour = (day: number, key: 'start' | 'end', value: string) => {
+    const hours = (card.appointmentSettings?.weeklyHours || []).map((h) => h.day === day ? { ...h, [key]: value } : h);
+    updateAppointmentSettings({ ...(card.appointmentSettings || {}), weeklyHours: hours });
   };
 
   // Auto-populate handlers
@@ -935,11 +946,63 @@ export default function EditorPage() {
           {/* Appointments */}
           <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
             <h2 className="text-lg font-bold mb-1">Appointments</h2>
-            <p className="text-xs text-ink-faint mb-4">Visitors can request a meeting from your card page. Requests appear in Dashboard → Appointments, where you can confirm or cancel them.</p>
-            <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
+            <p className="text-xs text-ink-faint mb-4">Visitors pick a date and time from the days you're available. Requests appear in Dashboard → Appointments, where you can confirm or cancel them.</p>
+            <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer mb-4">
               <input type="checkbox" checked={card.appointmentsEnabled ?? false} onChange={(e) => updateField('appointmentsEnabled', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
               Allow appointment requests on this card
             </label>
+
+            {card.appointmentsEnabled && (
+              <>
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-ink mb-1.5">Meeting length</label>
+                  <select
+                    value={card.appointmentSettings?.durationMinutes ?? 30}
+                    onChange={(e) => updateAppointmentSettings({ ...(card.appointmentSettings || {}), durationMinutes: Number(e.target.value) })}
+                    className="px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent"
+                  >
+                    <option value={15}>15 minutes</option>
+                    <option value={30}>30 minutes</option>
+                    <option value={45}>45 minutes</option>
+                    <option value={60}>60 minutes</option>
+                  </select>
+                </div>
+
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="text-sm font-semibold text-ink">Weekly availability</label>
+                  <span className="text-[11px] text-ink-faint">Times are shown in each visitor's local time</span>
+                </div>
+                <div className="space-y-1.5 mt-2">
+                  {DAYS_OF_WEEK.map((label, dayIndex) => {
+                    const hour = (card.appointmentSettings?.weeklyHours || []).find((h) => h.day === dayIndex);
+                    return (
+                      <div key={dayIndex} className="flex items-center gap-2">
+                        <label className="flex items-center gap-2 text-sm text-ink w-24 flex-shrink-0 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!!hour}
+                            onChange={(e) => {
+                              const hours = [...(card.appointmentSettings?.weeklyHours || [])].filter((h) => h.day !== dayIndex);
+                              if (e.target.checked) hours.push({ day: dayIndex, start: '09:00', end: '17:00' });
+                              updateAppointmentSettings({ ...(card.appointmentSettings || {}), weeklyHours: hours });
+                            }}
+                            className="w-4 h-4 accent-accent rounded"
+                          />
+                          {label}
+                        </label>
+                        {hour && (
+                          <div className="flex items-center gap-1.5">
+                            <input type="time" value={hour.start} onChange={(e) => updateWeeklyHour(dayIndex, 'start', e.target.value)} className="px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                            <span className="text-ink-faint text-sm">to</span>
+                            <input type="time" value={hour.end} onChange={(e) => updateWeeklyHour(dayIndex, 'end', e.target.value)} className="px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Link List — Pro, full-width links below the card */}

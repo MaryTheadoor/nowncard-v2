@@ -4,7 +4,6 @@ import { collection, query, where, limit, getDocs, doc, updateDoc, increment, se
 import { db } from '@/lib/firebase';
 import { downloadVCard, generateVCard, saveToContacts } from '@/lib/vcard';
 import { escHtml, initials, fullName, orgLine, formatAddress, shareNative, detectDevice, PLAT, PAYMENT_PLAT } from '@/lib/utils';
-import { captureElementAsPNG } from '@/lib/image-export';
 import { useAuth } from '@/hooks/auth-context';
 import { useCardTheme } from '@/hooks/useCardTheme';
 import Navbar from '@/components/Navbar';
@@ -12,6 +11,7 @@ import Footer from '@/components/Footer';
 import AuthModal from '@/components/AuthModal';
 import ShareModal from '@/components/ShareModal';
 import AppointmentModal from '@/components/AppointmentModal';
+import ImportVCardModal from '@/components/ImportVCardModal';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import type { Card } from '@/types';
@@ -22,7 +22,8 @@ const IconDownload = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentC
 const IconSend = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-10z"/></svg>;
 const IconCamera = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-[18px] h-[18px]"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/></svg>;
 
-const isMobileUA = typeof navigator !== 'undefined' && /Android|iP(hone|od|ad)/i.test(navigator.userAgent);
+const isIOSUA = typeof navigator !== 'undefined' && /iP(hone|od|ad)/i.test(navigator.userAgent);
+const isAndroidUA = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
 
 export default function CardViewerPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -39,7 +40,7 @@ export default function CardViewerPage() {
   const [appointmentOpen, setAppointmentOpen] = useState(false);
   const [flipped, setFlipped] = useState(false);
   const [savingImage, setSavingImage] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const [vcfHelpOpen, setVcfHelpOpen] = useState(false);
   const trackedMeta = useRef(false);
   const startTime = useRef(0);
   useEffect(() => { startTime.current = Date.now(); }, []);
@@ -161,18 +162,33 @@ export default function CardViewerPage() {
   };
 
   const handleSaveImage = async () => {
-    if (!cardRef.current || !card) return;
+    if (!card) return;
     setSavingImage(true);
     try {
       const safe = (name || card.slug || 'card').replace(/[^a-z0-9_-]/gi, '_');
-      await captureElementAsPNG(cardRef.current, `${safe}-nowncard.png`);
+      const a = document.createElement('a');
+      a.href = `/og-images/${encodeURIComponent(card.slug)}.png`;
+      a.download = `${safe}-nowncard.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
       track('image');
+      toast.success('Image saved');
     } catch (err) {
       console.error('[CardViewer] Save image failed:', err);
       toast.error('Could not save the image. Please try again.');
     } finally {
       setSavingImage(false);
     }
+  };
+
+  const handleSaveContact = () => {
+    if (!card) return;
+    const action = saveToContacts(card, cardUrl);
+    if (action === 'download-import') setVcfHelpOpen(true);
+    track('save');
+    if (cardsDocId) { try { updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }
+    try { setDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }, { merge: true }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); }
   };
 
   const handleSendMessage = async () => {
@@ -264,7 +280,7 @@ export default function CardViewerPage() {
 
       {/* Card stage — stacked on mobile, side-by-side on desktop */}
       <div className={`flex-1 flex flex-col lg:flex-row lg:justify-center lg:gap-12 items-center px-5 pb-8 ${card.hideNavbar ? 'pt-8' : 'pt-2'}`}>
-        <div className="w-full max-w-[380px] aspect-[2/3.5] perspective-1200 relative" ref={cardRef}>
+        <div className="w-full max-w-[380px] aspect-[2/3.5] perspective-1200 relative">
           <div className={`w-full h-full preserve-3d transition-transform duration-[800ms] ${flipped ? 'rotate-y-180' : ''}`} style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }} onClick={handleFlip} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFlip(); } }} role="button" aria-label="Flip card" tabIndex={0}>
             {/* Front */}
             <div className={`card-face flex flex-col ${!card.cardBgColor && !isDark ? 'bg-card-bg' : ''}`} style={{ backgroundColor: tc.faceBg, boxShadow: tc.faceShadow }}>
@@ -396,7 +412,7 @@ export default function CardViewerPage() {
                   <QRCodeSVG value={card.qrMode === 'vcard' ? generateVCard(card, cardUrl) : cardUrl} size={150} level="M" includeMargin={false} />
                 </div>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  <button onClick={(e) => { e.stopPropagation(); saveToContacts(card, cardUrl); track('save'); if (cardsDocId) { try { updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } } try { setDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }, { merge: true }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }} className="btn btn-primary btn-md">
+                  <button onClick={(e) => { e.stopPropagation(); handleSaveContact(); }} className="btn btn-primary btn-md">
                     Save Contact
                   </button>
                   <button onClick={(e) => { e.stopPropagation(); const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); } else { promise.then(() => track('share')).catch(() => setShareOpen(true)); } }} className="btn btn-secondary btn-md">
@@ -418,9 +434,14 @@ export default function CardViewerPage() {
               <Pencil className="w-4 h-4" /> Edit Card
             </Link>
           )}
-          <button onClick={async () => { saveToContacts(card, cardUrl); track('save'); if (cardsDocId) { try { await updateDoc(doc(db, 'cards', cardsDocId), { saveCount: increment(1) }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } } try { await setDoc(doc(db, 'publicCards', card.slug), { saveCount: increment(1) }, { merge: true }); } catch (err) { console.error('[CardViewer] saveCount update failed:', err); } }} className="btn btn-primary btn-lg">
+          <button onClick={handleSaveContact} className="btn btn-primary btn-lg">
             <IconDownload /> Save to Contacts
           </button>
+          {isIOSUA && (
+            <button onClick={() => { downloadVCard(card, undefined, cardUrl); setVcfHelpOpen(true); }} className="btn btn-secondary btn-lg" title="Download the .vcf contact file to import manually">
+              <IconDownload /> Download .vcf
+            </button>
+          )}
           {card.appointmentsEnabled && (
             <button onClick={() => setAppointmentOpen(true)} className="btn btn-secondary btn-lg">
               <Calendar className="w-4 h-4" /> Book
@@ -436,15 +457,6 @@ export default function CardViewerPage() {
             <IconCamera /> {savingImage ? 'Generating…' : 'Save Image'}
           </button>
         </div>
-
-        {isMobileUA && (
-          <p className="text-center text-xs text-ink-faint -mt-3">
-            Need a .vcf file instead?{' '}
-            <button onClick={() => downloadVCard(card, undefined, cardUrl)} className="text-accent hover:text-accent/80 underline underline-offset-2 cursor-pointer">
-              Download .vcf
-            </button>
-          </p>
-        )}
 
         {/* Messaging */}
         <div className="w-full">
@@ -529,6 +541,12 @@ export default function CardViewerPage() {
           card={card}
         />
       )}
+
+      <ImportVCardModal
+        open={vcfHelpOpen}
+        onClose={() => setVcfHelpOpen(false)}
+        platform={isAndroidUA ? 'android' : 'ios'}
+      />
     </div>
   );
 }

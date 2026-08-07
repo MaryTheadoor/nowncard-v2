@@ -96,7 +96,17 @@ export interface Card {
   textColor?: string;
   qrMode?: 'url' | 'vcard';
   appointmentsEnabled?: boolean;
+  appointmentSettings?: {
+    durationMinutes?: number;
+    weeklyHours?: AppointmentWeeklyHour[];
+  };
   featuredLinksEnabled?: boolean;
+}
+
+export interface AppointmentWeeklyHour {
+  day: number; // 0 = Sunday ... 6 = Saturday (Date.getDay() convention)
+  start: string; // 'HH:MM' 24-hour, local
+  end: string; // 'HH:MM' 24-hour, local
 }
 
 export interface Message {
@@ -123,6 +133,7 @@ export interface Appointment {
   requestedDate: string;
   requestedTime: string;
   timezone: string;
+  durationMinutes?: number;
   notes?: string;
   status: 'pending' | 'confirmed' | 'cancelled';
   createdAt: unknown;

@@ -39,7 +39,7 @@ function formatICSStamp(d: Date): string {
 
 export function generateICS(appointment: Appointment, card: Card): string {
   const startDate = toUTCDate(appointment.requestedDate, appointment.requestedTime, appointment.timezone);
-  const endDate = new Date(startDate.getTime() + 30 * 60 * 1000);
+  const endDate = new Date(startDate.getTime() + (appointment.durationMinutes || 30) * 60 * 1000);
   const name = `${card.firstName || ''} ${card.lastName || ''}`.trim() || card.slug || 'Contact';
   const summary = `Appointment with ${name}`;
   // ICS encodes line breaks inside property values as the two characters \n
@@ -81,7 +81,7 @@ function escapeICS(value: string): string {
 export function googleCalendarUrl(appointment: Appointment, card: Card): string {
   const name = `${card.firstName || ''} ${card.lastName || ''}`.trim() || card.slug || 'Contact';
   const startDate = toUTCDate(appointment.requestedDate, appointment.requestedTime, appointment.timezone);
-  const endDate = new Date(startDate.getTime() + 30 * 60 * 1000);
+  const endDate = new Date(startDate.getTime() + (appointment.durationMinutes || 30) * 60 * 1000);
 
   const params = new URLSearchParams({
     action: 'TEMPLATE',
@@ -95,6 +95,27 @@ export function googleCalendarUrl(appointment: Appointment, card: Card): string 
   }
 
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+export function outlookCalendarUrl(appointment: Appointment, card: Card): string {
+  const name = `${card.firstName || ''} ${card.lastName || ''}`.trim() || card.slug || 'Contact';
+  const startDate = toUTCDate(appointment.requestedDate, appointment.requestedTime, appointment.timezone);
+  const endDate = new Date(startDate.getTime() + (appointment.durationMinutes || 30) * 60 * 1000);
+
+  const params = new URLSearchParams({
+    path: '/calendar/action/compose',
+    rru: 'addevent',
+    subject: `Appointment with ${name}`,
+    startdt: startDate.toISOString(),
+    enddt: endDate.toISOString(),
+    body: `Appointment requested via NownCard for ${name}${appointment.notes ? `\n\nNotes: ${appointment.notes}` : ''}`,
+  });
+
+  if (card.emails?.[0]?.address) {
+    params.set('add', card.emails[0].address);
+  }
+
+  return `https://outlook.live.com/calendar/0/deeplink/compose?${params.toString()}`;
 }
 
 export function downloadICS(appointment: Appointment, card: Card, filename?: string): void {
