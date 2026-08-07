@@ -3,6 +3,7 @@ import { X, Calendar, Clock, Mail, User, Phone, FileText, ChevronLeft, ChevronRi
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { downloadICS, googleCalendarUrl, outlookCalendarUrl } from '@/lib/appointments';
+import ModalShell from './ModalShell';
 import { toast } from 'sonner';
 import type { Appointment, AppointmentWeeklyHour, Card } from '@/types';
 
@@ -197,16 +198,14 @@ export default function AppointmentModal({ open, onClose, card }: AppointmentMod
   const ownerFirstName = card.firstName || card.lastName || card.slug || 'Contact';
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { onClose(); reset(); }} />
-      <div className="relative bg-tile border border-line rounded-2xl p-6 w-full max-w-[480px] shadow-surface max-h-[92vh] overflow-y-auto">
-        <button onClick={() => { onClose(); reset(); }} className="absolute top-4 right-4 text-ink-muted hover:text-ink cursor-pointer"><X className="w-5 h-5" /></button>
+    <ModalShell open={open} onClose={() => { onClose(); reset(); }} labelledBy="appointment-modal-title" panelClassName="relative bg-tile border border-line rounded-2xl p-6 w-full max-w-[480px] shadow-surface max-h-[92vh] overflow-y-auto">
+      <button onClick={() => { onClose(); reset(); }} aria-label="Close" className="absolute top-4 right-4 text-ink-muted hover:text-ink cursor-pointer"><X className="w-5 h-5" /></button>
 
-        {submitted ? (
-          <>
-            <div className="flex flex-col items-center text-center py-4">
-              <div className="w-14 h-14 rounded-full bg-emerald-500/15 text-emerald-500 flex items-center justify-center mb-3"><CheckCircle2 className="w-8 h-8" /></div>
-              <h2 className="text-xl font-extrabold mb-1">Request sent!</h2>
+      {submitted ? (
+        <>
+          <div className="flex flex-col items-center text-center py-4">
+            <div className="w-14 h-14 rounded-full bg-emerald-500/15 text-emerald-500 flex items-center justify-center mb-3"><CheckCircle2 className="w-8 h-8" /></div>
+            <h2 id="appointment-modal-title" className="text-xl font-extrabold mb-1">Request sent!</h2>
               <p className="text-sm text-ink-muted mb-6">
                 {ownerFirstName} has been notified. Add the appointment to your calendar:
               </p>
@@ -220,7 +219,7 @@ export default function AppointmentModal({ open, onClose, card }: AppointmentMod
           </>
         ) : (
           <>
-            <h2 className="text-xl font-extrabold mb-1">Book an Appointment</h2>
+            <h2 id="appointment-modal-title" className="text-xl font-extrabold mb-1">Book an Appointment</h2>
             <p className="text-sm text-ink-muted mb-5">Choose a time to meet with {ownerFirstName}.</p>
 
             <form onSubmit={handleSubmit}>
@@ -290,21 +289,21 @@ export default function AppointmentModal({ open, onClose, card }: AppointmentMod
               <div className="space-y-3 border-t border-line pt-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="flex items-center gap-1.5 text-sm font-semibold text-ink mb-1.5"><User className="w-3.5 h-3.5 text-ink-faint" /> Your name</label>
-                    <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Doe" required className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                    <label htmlFor="appt-name" className="flex items-center gap-1.5 text-sm font-semibold text-ink mb-1.5"><User className="w-3.5 h-3.5 text-ink-faint" /> Your name</label>
+                    <input id="appt-name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Doe" required className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
                   </div>
                   <div>
-                    <label className="flex items-center gap-1.5 text-sm font-semibold text-ink mb-1.5"><Mail className="w-3.5 h-3.5 text-ink-faint" /> Email</label>
-                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jane@example.com" required className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                    <label htmlFor="appt-email" className="flex items-center gap-1.5 text-sm font-semibold text-ink mb-1.5"><Mail className="w-3.5 h-3.5 text-ink-faint" /> Email</label>
+                    <input id="appt-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jane@example.com" required className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
                   </div>
                 </div>
                 <div>
-                  <label className="flex items-center gap-1.5 text-sm font-semibold text-ink mb-1.5"><Phone className="w-3.5 h-3.5 text-ink-faint" /> Phone <span className="text-ink-faint font-normal">(optional)</span></label>
-                  <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 123 4567" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                  <label htmlFor="appt-phone" className="flex items-center gap-1.5 text-sm font-semibold text-ink mb-1.5"><Phone className="w-3.5 h-3.5 text-ink-faint" /> Phone <span className="text-ink-faint font-normal">(optional)</span></label>
+                  <input id="appt-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 123 4567" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
                 </div>
                 <div>
-                  <label className="flex items-center gap-1.5 text-sm font-semibold text-ink mb-1.5"><FileText className="w-3.5 h-3.5 text-ink-faint" /> Notes <span className="text-ink-faint font-normal">(optional)</span></label>
-                  <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="What would you like to discuss?" rows={2} className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                  <label htmlFor="appt-notes" className="flex items-center gap-1.5 text-sm font-semibold text-ink mb-1.5"><FileText className="w-3.5 h-3.5 text-ink-faint" /> Notes <span className="text-ink-faint font-normal">(optional)</span></label>
+                  <textarea id="appt-notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="What would you like to discuss?" rows={2} className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
                 </div>
 
                 {selectedDate && selectedTime && (
@@ -322,7 +321,6 @@ export default function AppointmentModal({ open, onClose, card }: AppointmentMod
             </form>
           </>
         )}
-      </div>
-    </div>
+    </ModalShell>
   );
 }

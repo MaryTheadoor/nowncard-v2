@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
+import ModalShell from './ModalShell';
 
 interface ShareModalProps {
   open: boolean;
@@ -96,18 +97,19 @@ export default function ShareModal({ open, onClose, url, title }: ShareModalProp
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={handleClose}>
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      <div
-        className="relative w-full sm:w-[420px] bg-tile border border-line rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between mb-5">
-          <h3 className="text-lg font-bold text-ink">Share this card</h3>
-          <button onClick={handleClose} className="p-1.5 rounded-lg hover:bg-tile-soft text-ink-muted hover:text-ink transition cursor-pointer">
-            <IconX />
-          </button>
-        </div>
+    <ModalShell
+      open={open}
+      onClose={handleClose}
+      labelledBy="share-modal-title"
+      containerClassName="items-end sm:items-center"
+      panelClassName="relative w-full sm:w-[420px] bg-tile border border-line rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl"
+    >
+      <div className="flex items-center justify-between mb-5">
+        <h3 id="share-modal-title" className="text-lg font-bold text-ink">Share this card</h3>
+        <button onClick={handleClose} aria-label="Close" className="p-1.5 rounded-lg hover:bg-tile-soft text-ink-muted hover:text-ink transition cursor-pointer">
+          <IconX />
+        </button>
+      </div>
 
         {/* URL + Copy */}
         <div className="flex items-center gap-2 mb-5">
@@ -139,7 +141,6 @@ export default function ShareModal({ open, onClose, url, title }: ShareModalProp
             </a>
           ))}
         </div>
-      </div>
-    </div>
+    </ModalShell>
   );
 }

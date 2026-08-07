@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Eye, EyeOff } from 'lucide-react';
+import ModalShell from './ModalShell';
 
 interface AuthModalProps {
   open: boolean;
@@ -44,11 +45,9 @@ export default function AuthModal({ open, onClose, onSignInEmail, onSignUpEmail,
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center px-6 opacity-100 pointer-events-auto">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-tile border border-line rounded-2xl p-8 w-full max-w-[420px] shadow-surface">
-        <button onClick={onClose} className="absolute top-4 right-4 text-ink-muted hover:text-ink cursor-pointer"><X className="w-5 h-5" /></button>
-        <h2 className="text-xl font-extrabold mb-1">{mode === 'signin' ? 'Welcome Back' : 'Create Account'}</h2>
+    <ModalShell open={open} onClose={onClose} labelledBy="auth-modal-title" panelClassName="relative bg-tile border border-line rounded-2xl p-8 w-full max-w-[420px] shadow-surface">
+      <button onClick={onClose} aria-label="Close" className="absolute top-4 right-4 text-ink-muted hover:text-ink cursor-pointer"><X className="w-5 h-5" /></button>
+      <h2 id="auth-modal-title" className="text-xl font-extrabold mb-1">{mode === 'signin' ? 'Welcome Back' : 'Create Account'}</h2>
         <p className="text-sm text-ink-muted mb-6">{mode === 'signin' ? 'Sign in to manage your cards.' : 'Get started with NownCard.'}</p>
 
         <button
@@ -67,9 +66,9 @@ export default function AuthModal({ open, onClose, onSignInEmail, onSignUpEmail,
         <div className="text-center text-xs text-ink-faint mb-4">Or use email</div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20" />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" aria-label="Email" required className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20" />
           <div className="relative">
-            <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" required className="w-full px-3.5 py-2.5 pr-10 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20" />
+            <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" aria-label="Password" required className="w-full px-3.5 py-2.5 pr-10 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20" />
             <button type="button" onClick={() => setShowPassword((s) => !s)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink cursor-pointer p-1" aria-label={showPassword ? 'Hide password' : 'Show password'}>
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -88,13 +87,12 @@ export default function AuthModal({ open, onClose, onSignInEmail, onSignUpEmail,
           )}
         </div>
 
-        <p className="mt-4 text-[11px] text-ink-faint text-center">
-          By signing in, you agree to our{' '}
-          <a href="/terms" className="text-ink-muted hover:text-ink underline underline-offset-2">Terms</a>{' '}
-          and{' '}
-          <a href="/privacy" className="text-ink-muted hover:text-ink underline underline-offset-2">Privacy Policy</a>.
-        </p>
-      </div>
-    </div>
+          <p className="mt-4 text-[11px] text-ink-faint text-center">
+            By signing in, you agree to our{' '}
+            <a href="/terms" className="text-ink-muted hover:text-ink underline underline-offset-2">Terms</a>{' '}
+            and{' '}
+            <a href="/privacy" className="text-ink-muted hover:text-ink underline underline-offset-2">Privacy Policy</a>.
+          </p>
+    </ModalShell>
   );
 }

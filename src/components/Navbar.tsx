@@ -129,7 +129,7 @@ export default function Navbar({ onAuthClick, messageCount = 0 }: NavbarProps) {
             >
               <Star className="w-5 h-5" fill={secondaryCardSlug ? 'currentColor' : 'none'} />
             </button>
-            <button className="p-2 rounded-lg hover:bg-tile-soft transition" onClick={() => setOpen(!open)} aria-label="Menu">
+            <button className="p-2 rounded-lg hover:bg-tile-soft transition" onClick={() => setOpen(!open)} aria-label="Menu" aria-expanded={open} aria-controls="mobile-nav">
               {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
@@ -137,10 +137,10 @@ export default function Navbar({ onAuthClick, messageCount = 0 }: NavbarProps) {
       </header>
 
       {/* Mobile drawer */}
-      <div className={cn('md:hidden fixed inset-0 z-50 transition-opacity', open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none')}>
+      <div id="mobile-nav" className={cn('md:hidden fixed inset-0 z-50 transition-opacity', open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none')} aria-hidden={!open} inert={!open}>
         <div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
         <div className={cn('absolute right-0 top-0 bottom-0 w-[280px] max-w-[80vw] bg-tile border-l border-line p-6 pt-16 transition-transform', open ? 'translate-x-0' : 'translate-x-full')}>
-          <button className="absolute top-4 right-4 p-2 text-ink-muted" onClick={() => setOpen(false)}><X className="w-5 h-5" /></button>
+          <button aria-label="Close menu" className="absolute top-4 right-4 p-2 text-ink-muted" onClick={() => setOpen(false)}><X className="w-5 h-5" /></button>
 
           <div className="flex flex-col gap-3 h-full">
             <div className="flex flex-col gap-3">

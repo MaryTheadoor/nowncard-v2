@@ -52,7 +52,7 @@
   --tile-soft: #1a2235;
   --ink: #f8f9fc;
   --ink-muted: #8a93a5;
-  --ink-faint: #525b70;
+  --ink-faint: #7d89a1;
   --accent: #d4a34a;
   --accent-hover: #e0b55a;
   --secondary: #5da0e8;
@@ -177,9 +177,9 @@
       0 2px 0 #8a6216;
   }
 
-  /* ── Secondary: tactile blue ── */
+  /* ── Secondary: tactile blue (darkened stops for WCAG AA white-on-blue) ── */
   .btn-secondary {
-    background: linear-gradient(180deg, #82bdf2 0%, #4a90d9 50%, #3578b8 100%);
+    background: linear-gradient(180deg, #3578b8 0%, #2f6ba5 50%, #26598e 100%);
     color: #ffffff;
     box-shadow:
       0 1px 0 rgba(255,255,255,0.3) inset,
@@ -188,7 +188,7 @@
       0 3px 6px rgba(0,0,0,0.22);
   }
   .btn-secondary:hover:not(:disabled) {
-    background: linear-gradient(180deg, #92c6f5 0%, #5da0e8 50%, #4a90d9 100%);
+    background: linear-gradient(180deg, #3d86c8 0%, #3578b8 50%, #2f6ba5 100%);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.35) inset,
       0 -1px 0 rgba(0,0,0,0.1) inset,
