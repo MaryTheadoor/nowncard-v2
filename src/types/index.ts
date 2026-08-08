@@ -40,6 +40,7 @@ export interface MenuItem {
 
 export interface MenuCategory {
   name: string;
+  image?: string;
   items: MenuItem[];
 }
 

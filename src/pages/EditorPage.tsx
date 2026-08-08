@@ -175,9 +175,15 @@ export default function EditorPage() {
       if (Array.isArray(rest.socialLinks)) rest.socialLinks = rest.socialLinks.filter((s: unknown) => (s as { url?: string }).url?.trim());
       if (Array.isArray(rest.paymentLinks)) rest.paymentLinks = rest.paymentLinks.filter((s: unknown) => (s as { url?: string }).url?.trim());
       if (Array.isArray(rest.menu)) {
+        // Keep every category that has at least one named item — never silently
+        // drop a category (and its items) just because its name is empty; fall
+        // back to a generic label so the user's work is preserved.
         rest.menu = (rest.menu as MenuCategory[])
-          .map((cat) => ({ ...cat, items: cat.items.filter((it) => it.name?.trim()) }))
-          .filter((cat) => cat.name?.trim() && cat.items.length > 0);
+          .map((cat) => {
+            const items = cat.items.filter((it) => it.name?.trim());
+            return { ...cat, name: (cat.name || '').trim() || 'Menu', items };
+          })
+          .filter((cat) => cat.items.length > 0);
         if ((rest.menu as MenuCategory[]).length === 0) rest.menu = [];
       }
 
@@ -302,7 +308,10 @@ export default function EditorPage() {
 
   const handleUpload = async (field: 'profileImage' | 'backgroundImage' | 'backBackgroundImage', file: File) => {
     if (!user) return;
-    if (file.size > 5 * 1024 * 1024) { toast.error('Image must be under 5MB'); return; }
+    // Accept large phone photos — they're compressed client-side (1200px/85%)
+    // before upload, so the stored file is small. 25MB source ceiling is
+    // generous for typical phone camera output.
+    if (file.size > 25 * 1024 * 1024) { toast.error('Image must be under 25MB'); return; }
     try {
       const compressed = await compressImage(file, 1200, 0.85);
       const ext = file.type === 'image/png' ? 'png' : 'jpg';
@@ -321,6 +330,22 @@ export default function EditorPage() {
 
   const updateField = <K extends keyof Card>(key: K, value: Card[K]) => {
     setCard((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const uploadMenuImage = async (file: File, ci: number): Promise<string | null> => {
+    if (!user) return null;
+    try {
+      const compressed = await compressImage(file, 800, 0.85);
+      const ext = file.type === 'image/png' ? 'png' : 'jpg';
+      const pathPrefix = id || card.slug?.trim() || `draft-${Date.now()}`;
+      const ref = storageRef(storage, `users/${user.uid}/cards/${pathPrefix}/menu-${ci}.${ext}`);
+      await uploadBytes(ref, compressed);
+      return getDownloadURL(ref);
+    } catch (err) {
+      console.error('[Menu upload] Failed:', err);
+      toast.error('Menu image upload failed — please try again');
+      return null;
+    }
   };
 
   const updateAppointmentSettings = (settings: NonNullable<Card['appointmentSettings']>) => {
@@ -1081,7 +1106,7 @@ export default function EditorPage() {
             <h2 className="text-lg font-bold mb-1">Menu</h2>
             <p className="text-xs text-ink-faint mb-4">Add a simple menu for your food truck or venue. Items appear on your card page with a toggle to expand the full list.</p>
             {userData?.plan === 'business' ? (
-              <MenuEditor value={card.menu || []} onChange={(menu) => updateField('menu', menu)} />
+              <MenuEditor value={card.menu || []} onChange={(menu) => updateField('menu', menu)} onUploadImage={uploadMenuImage} />
             ) : (
               <div className="flex items-center gap-2 text-sm text-ink-faint">
                 <UtensilsCrossed className="w-4 h-4" />

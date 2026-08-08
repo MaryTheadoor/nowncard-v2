@@ -70,7 +70,10 @@ export default function LivePagePreview({ card, className = '', layout = 'stack'
               <div className="text-[10px] font-bold text-ink-muted uppercase tracking-wider text-center mb-1.5">Menu</div>
               {menu.map((cat, ci) => (
                 <div key={ci} className={ci > 0 ? 'mt-2 pt-2 border-t border-line' : ''}>
-                  <div className="text-xs font-bold text-ink mb-1">{cat.name}</div>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    {cat.image ? <img src={cat.image} alt="" className="w-5 h-5 rounded object-cover border border-line" /> : null}
+                    <div className="text-xs font-bold text-ink">{cat.name}</div>
+                  </div>
                   {cat.items.slice(0, 4).map((item, ii) => (
                     <div key={ii} className="flex items-baseline justify-between gap-2 py-0.5 text-xs">
                       <span className="text-ink">{item.name}</span>

@@ -4,6 +4,28 @@
 
 ---
 
+## 2026-08-07 — Menu fixes: save bug, description field, category images, bigger uploads
+
+Debugged the menu feature after feedback:
+
+- **Save bug**: `handleSave` dropped a whole category (and its items) when the category
+  **name was empty**, silently losing work. Now every category with ≥1 named item is kept
+  (empty name falls back to "Menu"). Items are never dropped for a missing category name.
+- **Missing description input**: added an optional per-item description field in
+  `MenuEditor` (the type/card page already supported it).
+- **Category images (new)**: `MenuCategory.image`; the editor has an "add photo" control
+  per category (uploads to `users/{uid}/cards/{prefix}/menu-{i}.jpg`, compressed 800px).
+  The card page and editor live-preview render a small thumbnail next to the category name.
+- **Image upload limit**: the client rejected source files >5MB **before** compressing, so
+  typical phone photos (6–12MB) were refused even though the stored file would be tiny.
+  Raised the source ceiling to **25MB** (still compressed client-side to ~1200px/85%) and
+  bumped the storage rules cap for card images to 8MB.
+
+### Verified
+- lint + typecheck clean; card-page regression clean (no errors).
+
+---
+
 ## 2026-08-07 — Menu feature (Business plan) for food trucks / small venues
 
 - **Data model**: `Card.menu?: MenuCategory[]` where `MenuCategory = { name, items: MenuItem[] }`

@@ -538,7 +538,10 @@ export default function CardViewerPage() {
             <div className="bg-tile border border-line rounded-2xl p-5">
               {visibleMenu.map((cat, ci) => (
                 <div key={`mc-${ci}`} className={ci > 0 ? 'mt-4 pt-4 border-t border-line' : ''}>
-                  <h2 className="text-sm font-bold text-ink mb-2">{cat.name}</h2>
+                  <div className="flex items-center gap-2 mb-2">
+                    {cat.image ? <img src={cat.image} alt="" className="w-9 h-9 rounded-lg object-cover border border-line flex-shrink-0" /> : null}
+                    <h2 className="text-sm font-bold text-ink">{cat.name}</h2>
+                  </div>
                   <div className="flex flex-col">
                     {cat.items.map((item, ii) => (
                       <div key={`mi-${ci}-${ii}`} className="flex items-baseline justify-between gap-3 py-1.5">
