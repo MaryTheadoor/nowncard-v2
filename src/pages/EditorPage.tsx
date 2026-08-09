@@ -177,10 +177,17 @@ export default function EditorPage() {
       if (Array.isArray(rest.menu)) {
         // Keep every category that has at least one named item — never silently
         // drop a category (and its items) just because its name is empty; fall
-        // back to a generic label so the user's work is preserved.
+        // back to a generic label so the user's work is preserved. Empty optional
+        // fields (price/description) are dropped so stored docs stay clean.
         rest.menu = (rest.menu as MenuCategory[])
           .map((cat) => {
-            const items = cat.items.filter((it) => it.name?.trim());
+            const items = cat.items
+              .filter((it) => it.name?.trim())
+              .map((it) => ({
+                name: it.name.trim(),
+                price: it.price?.trim() || undefined,
+                description: it.description?.trim() || undefined,
+              }));
             return { ...cat, name: (cat.name || '').trim() || 'Menu', items };
           })
           .filter((cat) => cat.items.length > 0);

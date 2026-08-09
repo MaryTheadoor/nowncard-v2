@@ -5,6 +5,7 @@ import { onRequest } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 import satori, { type Font } from 'satori';
 import { Resvg } from '@resvg/resvg-js';
+import QRCode from 'qrcode';
 
 const h = React.createElement;
 
@@ -128,6 +129,81 @@ async function loadProfileImage(card: { [key: string]: unknown } | null): Promis
     console.warn('[preview] profile image fetch failed:', err);
     return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// QR helpers — the QR payload respects the card's qrMode: 'url' encodes the
+// card page link, 'vcard' encodes the contact as a vCard.
+// ---------------------------------------------------------------------------
+function qrValueFor(card: { [key: string]: unknown } | null): string {
+  const slug = typeof card?.slug === 'string' ? card.slug : '';
+  const url = `https://nowncard.com/card/${slug}`;
+  if (card && card.qrMode === 'vcard') {
+    try {
+      return generateVCardServer(card, url);
+    } catch (err) {
+      console.warn('[preview] vCard QR generation failed, falling back to URL:', err);
+    }
+  }
+  return url;
+}
+
+async function renderQrPng(card: { [key: string]: unknown } | null): Promise<Buffer> {
+  return QRCode.toBuffer(qrValueFor(card), {
+    width: 512,
+    margin: 2,
+    errorCorrectionLevel: 'M',
+    color: { dark: '#0b1220', light: '#ffffff' },
+  });
+}
+
+// Mirror of src/lib/vcard.ts generateVCard so the vcard-mode QR payload matches
+// what recipients would save from the card page.
+function escVCard(val: string): string {
+  return val.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,');
+}
+
+function generateVCardServer(card: { [key: string]: unknown }, cardPageUrl?: string): string {
+  const parts: string[] = ['BEGIN:VCARD', 'VERSION:3.0'];
+  const s = (k: string): string => (typeof card[k] === 'string' ? card[k] as string : '');
+  const name = [s('lastName'), s('firstName'), s('middleName'), s('prefix'), s('suffix')].map(escVCard).join(';');
+  parts.push(`N:${name}`);
+  const fn = [s('prefix'), s('firstName'), s('middleName'), s('lastName'), s('suffix')].filter(Boolean).map(escVCard).join(' ');
+  if (fn) parts.push(`FN:${fn}`);
+  if (s('nickname')) parts.push(`NICKNAME:${escVCard(s('nickname'))}`);
+  if (s('jobTitle')) parts.push(`TITLE:${escVCard(s('jobTitle'))}`);
+  if (s('company')) parts.push(`ORG:${escVCard(s('company'))}${s('department') ? `;${escVCard(s('department'))}` : ''}`);
+  if (s('bio')) parts.push(`NOTE:${escVCard(s('bio')).replace(/\n/g, '\\n')}`);
+  const phones = Array.isArray(card.phones) ? card.phones : [];
+  phones.forEach((p) => {
+    const num = (p as { number?: unknown })?.number;
+    const type = (p as { type?: unknown })?.type;
+    if (typeof num === 'string' && num) parts.push(`TEL;TYPE=${(type && typeof type === 'string' ? type : 'CELL').toUpperCase()}:${num}`);
+  });
+  if (phones.length === 0 && s('phone')) parts.push(`TEL;TYPE=CELL:${s('phone')}`);
+  const emails = Array.isArray(card.emails) ? card.emails : [];
+  emails.forEach((e) => {
+    const addr = (e as { address?: unknown })?.address;
+    const type = (e as { type?: unknown })?.type;
+    if (typeof addr === 'string' && addr) parts.push(`EMAIL;TYPE=${(type && typeof type === 'string' ? type : 'WORK').toUpperCase()}:${addr}`);
+  });
+  if (emails.length === 0 && s('email')) parts.push(`EMAIL;TYPE=WORK:${s('email')}`);
+  const websites = Array.isArray(card.websites) ? card.websites : [];
+  websites.forEach((w) => {
+    const u = (w as { url?: unknown })?.url;
+    if (typeof u === 'string' && u) parts.push(`URL:${u.startsWith('http') ? u : `https://${u}`}`);
+  });
+  if (websites.length === 0 && s('website')) parts.push(`URL:${s('website').startsWith('http') ? s('website') : `https://${s('website')}`}`);
+  const addresses = Array.isArray(card.addresses) ? card.addresses : [];
+  addresses.forEach((a) => {
+    const ad = a as { street?: unknown; city?: unknown; state?: unknown; zip?: unknown; country?: unknown; type?: unknown };
+    const type = ad.type && typeof ad.type === 'string' ? ad.type : 'WORK';
+    parts.push(`ADR;TYPE=${type.toUpperCase()}:;;${escVCard(String(ad.street || ''))};${escVCard(String(ad.city || ''))};${escVCard(String(ad.state || ''))};${escVCard(String(ad.zip || ''))};${escVCard(String(ad.country || ''))}`);
+  });
+  if (s('birthday')) parts.push(`BDAY:${s('birthday')}`);
+  if (cardPageUrl) parts.push(`URL:${cardPageUrl}`);
+  parts.push('END:VCARD');
+  return parts.join('\r\n');
 }
 
 // ---------------------------------------------------------------------------
@@ -320,7 +396,7 @@ function socialList(card: { [key: string]: unknown } | null): string[] {
     .slice(0, 4);
 }
 
-async function renderCardImage(card: { [key: string]: unknown } | null): Promise<Buffer> {
+async function renderCardImage(card: { [key: string]: unknown } | null, includeQR = false): Promise<Buffer> {
   const name = truncate(fullName(card) || 'NownCard', 40);
   const org = truncate(orgLine(card), 70);
   const bio = truncate(typeof card?.bio === 'string' ? card.bio : '', 220);
@@ -331,6 +407,7 @@ async function renderCardImage(card: { [key: string]: unknown } | null): Promise
   const profileSrc = await loadProfileImage(card);
   const rows = contactRows(card);
   const socials = socialList(card);
+  const qrDataUrl = includeQR ? await QRCode.toDataURL(qrValueFor(card), { width: 220, margin: 1, errorCorrectionLevel: 'M' }) : null;
 
   const photo = profileSrc
     ? h('img', { src: profileSrc, style: { width: 280, height: 280, borderRadius: 48, border: `6px solid ${accent}`, objectFit: 'cover' } })
@@ -447,6 +524,24 @@ async function renderCardImage(card: { [key: string]: unknown } | null): Promise
             ),
           )
         : null,
+      includeQR
+        ? h(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 12,
+                padding: '22px',
+                borderRadius: 24,
+                backgroundColor: '#ffffff',
+              },
+            },
+            h('img', { src: qrDataUrl as string, style: { width: 220, height: 220 } }),
+            h('div', { style: { fontSize: 22, fontWeight: 600, color: '#0B1220' } }, 'Scan to save'),
+          )
+        : null,
     ),
     h(
       'div',
@@ -481,14 +576,16 @@ async function renderCardImage(card: { [key: string]: unknown } | null): Promise
 }
 
 // ---------------------------------------------------------------------------
-// GET /og-images/<slug>.png — the generated share thumbnail (1200x630)
-// GET /card-images/<slug>.png — the vertical card image (1080x1890)
+// GET /og-images/<slug>.png  — share thumbnail (1200x630)
+// GET /card-images/<slug>.png — vertical card image (1080x1890); ?qr=1 adds QR
+// GET /qr-images/<slug>.png   — standalone QR (url or vcard per qrMode)
 // ---------------------------------------------------------------------------
 export const cardOgImage = onRequest(
   { cors: true, memory: '512MiB', timeoutSeconds: 30 },
   async (req, res) => {
     const slug = parseImageSlug(req.path);
     const isCardImage = /^\/card-images\//.test(req.path);
+    const isQr = /^\/qr-images\//.test(req.path);
     let card: { [key: string]: unknown } | null = null;
     if (slug) {
       try {
@@ -500,7 +597,10 @@ export const cardOgImage = onRequest(
       }
     }
     try {
-      const png = isCardImage ? await renderCardImage(card) : await renderPreview(card);
+      let png: Buffer;
+      if (isQr) png = await renderQrPng(card);
+      else if (isCardImage) png = await renderCardImage(card, req.query.qr === '1');
+      else png = await renderPreview(card);
       res.set('Content-Type', 'image/png');
       res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
       res.send(png);
@@ -676,7 +776,7 @@ function safeDecode(s: string): string | null {
 }
 
 function parseImageSlug(p: string): string | null {
-  const m = p.match(/^\/(?:og-images|card-images)\/([^/?#]+?)(?:\.png)?$/);
+  const m = p.match(/^\/(?:og-images|card-images|qr-images)\/([^/?#]+?)(?:\.png)?$/);
   return m ? safeDecode(m[1]) : null;
 }
 

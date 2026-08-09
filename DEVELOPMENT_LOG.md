@@ -4,6 +4,30 @@
 
 ---
 
+## 2026-08-07 — Menu input layout fix + QR on saved image + standalone QR download
+
+- **Menu input bug**: the item/category text inputs combined `w-full` (from the shared
+  input class) with `flex-1`, making the field stretch/overflow the row. Split the input
+  classes: row inputs now use `flex-1 min-w-0`, price `w-20`, description `w-full`.
+- **Menu data processing**: on save, empty optional fields (price/description) are now
+  dropped from items so stored docs stay clean; empty category names still fall back to
+  "Menu" (items are never dropped).
+- **QR on saved card image**: `/card-images/<slug>.png?qr=1` renders the portrait card
+  with a white QR panel (content respects `card.qrMode` — card URL or vCard). The card
+  page has an "Include QR code on image" checkbox that toggles this.
+- **Standalone QR download**: new `/qr-images/<slug>.png` endpoint returns a clean
+  512×512 QR PNG (url or vCard per qrMode). Card page has a "Download QR code" link.
+- Added `qrcode` (+types) to functions; ported a compact vCard generator to `preview.ts`
+  so the vcard-mode QR matches the card page's vCard export.
+- Hosting rewrite `/qr-images/**` → `cardogimage`.
+
+### Verified
+- lint + typecheck clean; standalone QR 512×512 PNG; card image with `?qr=1` larger than
+  plain (QR included); card page shows the checkbox + Download QR; toggling renames the
+  download to `-qr.png`; no errors.
+
+---
+
 ## 2026-08-07 — Menu fixes: save bug, description field, category images, bigger uploads
 
 Debugged the menu feature after feedback:

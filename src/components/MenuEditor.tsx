@@ -15,7 +15,9 @@ function emptyCategory(): MenuCategory {
   return { name: '', items: [emptyItem()] };
 }
 
-const inputCls = 'w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent';
+const inputBase = 'px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent';
+const inputWide = `${inputBase} w-full`;
+const inputRow = `${inputBase} flex-1 min-w-0`;
 
 export default function MenuEditor({ value, onChange, onUploadImage }: MenuEditorProps) {
   const menu = value || [];
@@ -62,7 +64,7 @@ export default function MenuEditor({ value, onChange, onUploadImage }: MenuEdito
               value={cat.name}
               onChange={(e) => updateCategory(ci, { ...cat, name: e.target.value })}
               placeholder="Category (e.g. Tacos, Drinks, Desserts)"
-              className={`${inputCls} flex-1 font-semibold`}
+              className={`${inputRow} font-semibold`}
             />
             <label className="p-2 text-ink-faint hover:text-accent transition cursor-pointer" title="Add a category photo">
               <ImagePlus className="w-4 h-4" />
@@ -81,13 +83,13 @@ export default function MenuEditor({ value, onChange, onUploadImage }: MenuEdito
                     value={item.name}
                     onChange={(e) => updateItem(ci, ii, { name: e.target.value })}
                     placeholder="Item name"
-                    className={`${inputCls} flex-1`}
+                    className={inputRow}
                   />
                   <input
                     value={item.price || ''}
                     onChange={(e) => updateItem(ci, ii, { price: e.target.value })}
                     placeholder="$5"
-                    className={`${inputCls} w-20 flex-shrink-0 text-right`}
+                    className={`${inputBase} w-20 flex-shrink-0 text-right`}
                   />
                   <button onClick={() => removeItem(ci, ii)} aria-label="Remove item" className="p-2 text-ink-faint hover:text-danger transition cursor-pointer">
                     <Trash2 className="w-4 h-4" />
@@ -97,7 +99,7 @@ export default function MenuEditor({ value, onChange, onUploadImage }: MenuEdito
                   value={item.description || ''}
                   onChange={(e) => updateItem(ci, ii, { description: e.target.value })}
                   placeholder="Description (optional)"
-                  className={`${inputCls}`}
+                  className={inputWide}
                 />
               </div>
             ))}

@@ -39,6 +39,13 @@
           }
         },
         {
+          "source": "/qr-images/**",
+          "run": {
+            "serviceId": "cardogimage",
+            "region": "us-central1"
+          }
+        },
+        {
           "source": "/sitemap.xml",
           "run": {
             "serviceId": "cardpage",
@@ -130,6 +137,13 @@
         },
         {
           "source": "/card-images/**",
+          "run": {
+            "serviceId": "cardogimage",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/qr-images/**",
           "run": {
             "serviceId": "cardogimage",
             "region": "us-central1"
