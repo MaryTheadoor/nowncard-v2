@@ -4,6 +4,34 @@
 
 ---
 
+## 2026-08-07 — Reliability/UX bug batch + copy accuracy pass
+
+### Reliability/UX fixes (`49672c2`)
+- Hoisted `CardRow` out of `DashboardPage` render (stable identity) — card list no longer
+  remounts on every keystroke/tab switch.
+- `LiveCardPreview` back face now honors `backBgPosition/Zoom/Rotation` (editor controls
+  have a live effect).
+- Admin card search: Load More hidden + no duplicate appends while a slug search is active.
+- Dashboard surfaces `applyPendingUpgrades` errors (toast) instead of swallowing them.
+- Legacy single-string `address` field now included in vCard export, card-image contact
+  rows, and Person JSON-LD.
+- Review edits no longer un-feature: rules allow self-update to keep `featured` as-is.
+- `createDemoCard` respects the plan card limit.
+
+### Copy accuracy pass (verified against plan gating)
+- **Inaccuracies fixed**: "Custom colors & backgrounds" (Pro) and "Business name layout"
+  (Business) were presented as exclusive, but colors/backgrounds and the business layout
+  toggle are available on every plan. Replaced Pro's bullet with "Link list (link-in-bio)"
+  (genuinely Pro+) and Business's with "Online menu for your venue" (genuinely Business).
+- **Gaps filled**: added feature cards for **Appointment Booking**, **Rich Link Previews**,
+  and **Online Menu** (Business); Free plan now lists "Custom colors & themes" and
+  "Appointment booking". FAQ on branding/customization reworded to be plan-accurate.
+- **Verified accurate**: card limits (1/5/∞), "10 curated fonts" (GOOGLE_FONTS = 10),
+  no-branding = Pro+, team cards/custom font/menu = Business, NFC copy (Android-Chrome
+  writing), recipient-facing meta copy.
+
+---
+
 ## 2026-08-07 — Menu input layout fix + QR on saved image + standalone QR download
 
 - **Menu input bug**: the item/category text inputs combined `w-full` (from the shared

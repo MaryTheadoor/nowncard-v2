@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Link2, QrCode, Download, Palette, Smartphone, Leaf, Star } from 'lucide-react';
+import { Link2, QrCode, Download, Palette, Smartphone, Leaf, Star, CalendarClock, UtensilsCrossed, Eye } from 'lucide-react';
 import DemoCard from '@/components/DemoCard';
 import Navbar from '@/components/Navbar';
 import AuthModal from '@/components/AuthModal';
@@ -35,7 +35,7 @@ export default function LandingPage() {
     },
     {
       q: 'Can I use my own domain or branding?',
-      a: 'Yes. Pro and Business plans let you remove NownCard branding and use custom colors, fonts, and layouts. Business plans support white-label cards with no external branding at all.',
+      a: 'Every plan includes full color and background customization. Pro and Business unlock curated fonts, a link list, and removing NownCard branding from your card page. Business adds white-label cards with no external branding at all.',
     },
     {
       q: 'How does the QR code and NFC work?',
@@ -147,6 +147,9 @@ export default function LandingPage() {
               { icon: <Palette className="w-5 h-5" />, title: 'Custom Design', desc: 'Choose your theme, accent color, fonts, and layout. Make it unmistakably yours.', chip: 'text-violet-400 bg-violet-500/10 border border-violet-500/25' },
               { icon: <Smartphone className="w-5 h-5" />, title: 'NFC Ready', desc: 'Tap any programmed tag with an NFC-enabled phone to open your card instantly. Program tags right from Android Chrome.', chip: 'text-teal-400 bg-teal-500/10 border border-teal-500/25' },
               { icon: <Leaf className="w-5 h-5" />, title: 'Eco Friendly', desc: 'Skip the paper waste. Every digital card saves resources compared to printed cards that often end up in the trash.', chip: 'text-lime-400 bg-lime-500/10 border border-lime-500/25' },
+              { icon: <CalendarClock className="w-5 h-5" />, title: 'Appointment Booking', desc: 'Let visitors pick a date and time from your availability. Appointments land in your dashboard with add-to-calendar options.', chip: 'text-orange-400 bg-orange-500/10 border border-orange-500/25' },
+              { icon: <Eye className="w-5 h-5" />, title: 'Rich Link Previews', desc: 'Share your card link and it unfurls with your name, photo, and a branded preview in WhatsApp, iMessage, Slack, and more.', chip: 'text-pink-400 bg-pink-500/10 border border-pink-500/25' },
+              { icon: <UtensilsCrossed className="w-5 h-5" />, title: 'Online Menu', desc: 'Food trucks and venues can list their menu right on the card with a "view full menu" toggle. Business plan.', chip: 'text-red-400 bg-red-500/10 border border-red-500/25' },
             ].map((f) => (
               <div key={f.title} className="bg-tile border border-line rounded-2xl p-5 text-left hover:-translate-y-1 hover:shadow-surface transition">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${f.chip}`}>{f.icon}</div>
@@ -228,9 +231,9 @@ export default function LandingPage() {
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> 1 digital card</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Shareable link + QR</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> vCard export</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Light &amp; dark themes</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Card directory</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Basic analytics</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Custom colors &amp; themes</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Appointment booking</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Card directory + analytics</li>
               </ul>
               {user ? (
                 <Link to="/editor" className="btn btn-secondary btn-lg block w-full text-center no-underline">Get Started</Link>
@@ -247,8 +250,8 @@ export default function LandingPage() {
               <ul className="space-y-2 text-sm text-ink-muted mb-6">
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Up to 5 cards</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> 10 curated fonts</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Custom colors &amp; backgrounds</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Full analytics dashboard</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Link list (link-in-bio)</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Analytics dashboard</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> NFC + QR + vCard</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> No branding</li>
               </ul>
@@ -267,7 +270,7 @@ export default function LandingPage() {
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Unlimited cards</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Team cards for employees</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Upload your own font</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Business name layout</li>
+                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Online menu for your venue</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> White-label cards</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Priority support</li>
                 <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Everything in Pro</li>
