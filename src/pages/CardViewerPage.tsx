@@ -12,6 +12,7 @@ import AuthModal from '@/components/AuthModal';
 import ShareModal from '@/components/ShareModal';
 import AppointmentModal from '@/components/AppointmentModal';
 import ImportVCardModal from '@/components/ImportVCardModal';
+import SaveImageModal from '@/components/SaveImageModal';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import type { Card } from '@/types';
@@ -40,8 +41,7 @@ export default function CardViewerPage() {
   const [appointmentOpen, setAppointmentOpen] = useState(false);
   const [flipped, setFlipped] = useState(false);
   const [menuExpanded, setMenuExpanded] = useState(false);
-  const [imageIncludeQr, setImageIncludeQr] = useState(false);
-  const [savingImage, setSavingImage] = useState(false);
+  const [saveImageOpen, setSaveImageOpen] = useState(false);
   const [vcfHelpOpen, setVcfHelpOpen] = useState(false);
   const trackedMeta = useRef(false);
   const startTime = useRef(0);
@@ -161,39 +161,6 @@ export default function CardViewerPage() {
   const handleFlip = () => {
     setFlipped((f) => !f);
     track('flip');
-  };
-
-  const handleSaveImage = async () => {
-    if (!card) return;
-    setSavingImage(true);
-    try {
-      const safe = (name || card.slug || 'card').replace(/[^a-z0-9_-]/gi, '_');
-      const a = document.createElement('a');
-      a.href = `/card-images/${encodeURIComponent(card.slug)}.png${imageIncludeQr ? '?qr=1' : ''}`;
-      a.download = `${safe}-nowncard${imageIncludeQr ? '-qr' : ''}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      track('image');
-      toast.success('Image saved');
-    } catch (err) {
-      console.error('[CardViewer] Save image failed:', err);
-      toast.error('Could not save the image. Please try again.');
-    } finally {
-      setSavingImage(false);
-    }
-  };
-
-  const handleDownloadQr = () => {
-    if (!card) return;
-    const a = document.createElement('a');
-    a.href = `/qr-images/${encodeURIComponent(card.slug)}.png`;
-    a.download = `${(name || card.slug || 'card').replace(/[^a-z0-9_-]/gi, '_')}-qr.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    track('qr');
-    toast.success('QR code downloaded');
   };
 
   const handleSaveContact = () => {
@@ -484,26 +451,10 @@ export default function CardViewerPage() {
           <button onClick={() => { const promise = shareNative({ title: name, url: cardUrl }); if (!promise) { setShareOpen(true); return; } promise.then(() => track('share')).catch(() => setShareOpen(true)); }} className="btn btn-secondary btn-lg">
             Share
           </button>
-          <button onClick={handleSaveImage} disabled={savingImage} className="btn btn-secondary btn-lg">
-            <IconCamera /> {savingImage ? 'Generating…' : 'Save Image'}
+          <button onClick={() => setSaveImageOpen(true)} className="btn btn-secondary btn-lg">
+            <IconCamera /> Save Image
           </button>
         </div>
-
-        {/* Image / QR options */}
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 w-full">
-          <label className="flex items-center gap-2 text-xs text-ink-muted cursor-pointer">
-            <input type="checkbox" checked={imageIncludeQr} onChange={(e) => setImageIncludeQr(e.target.checked)} className="w-4 h-4 accent-accent rounded" />
-            Include QR code on image
-          </label>
-          <button onClick={handleDownloadQr} className="text-xs font-semibold text-accent hover:text-accent-hover underline underline-offset-2 cursor-pointer">
-            Download QR code
-          </button>
-        </div>
-        {imageIncludeQr && (
-          <p className="text-[11px] text-ink-faint text-center -mt-3">
-            QR points to {card.qrMode === 'vcard' ? 'your vCard' : 'your card page'}.
-          </p>
-        )}
 
         {/* Messaging */}
         <div className="w-full">
@@ -632,6 +583,14 @@ export default function CardViewerPage() {
         open={vcfHelpOpen}
         onClose={() => setVcfHelpOpen(false)}
         platform={isAndroidUA ? 'android' : 'ios'}
+      />
+
+      <SaveImageModal
+        open={saveImageOpen}
+        onClose={() => setSaveImageOpen(false)}
+        card={card}
+        name={name}
+        onTrack={track}
       />
     </div>
   );
