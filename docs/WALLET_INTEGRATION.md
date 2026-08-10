@@ -76,4 +76,11 @@ be done without an Apple Developer account + certificate, which must be provisio
 ## Current status
 - [x] Google Wallet server code + client button (needs your issuer id + service account key).
 - [ ] Google Wallet: set credentials → test on device.
-- [ ] Apple Wallet: needs Apple Developer account + cert (follow steps above).
+- [x] Apple Wallet backend built (`getApplePass` — signed `.pkpass` via node-forge/fflate) and
+      **flagged inactive** until credentials are set (returns `configured:false`; the card
+      page Wallet modal shows "Apple Wallet … coming soon"). Activate by setting
+      `APPLE_PASS_TYPE_ID` / `APPLE_PASS_TEAM_ID` / `APPLE_PASS_CERT` (base64 .p12) /
+      `APPLE_PASS_CERT_PASSWORD` on the `getApplePass` function, then test on an iPhone.
+- [ ] Apple Wallet: obtain the Apple Developer cert + set credentials + device test.
+      Note: the current `icon.png` is a simple solid-color placeholder — polish with a
+      proper logo before shipping Apple passes.

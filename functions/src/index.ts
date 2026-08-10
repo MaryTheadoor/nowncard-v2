@@ -1062,6 +1062,56 @@ export const getWalletPass = onCall(async (request) => {
 });
 
 // ---------------------------------------------------------------------------
+// getApplePass (callable) — generates a signed .pkpass for a card.
+// INACTIVE until configured: reads APPLE_PASS_TYPE_ID / APPLE_PASS_TEAM_ID /
+// APPLE_PASS_CERT (base64 .p12) / APPLE_PASS_CERT_PASSWORD from the function
+// env. Returns { configured: false } until then so the UI can flag it inactive.
+// ---------------------------------------------------------------------------
+export const getApplePass = onCall(async (request) => {
+  const slug = typeof request.data?.slug === 'string' ? request.data.slug : '';
+  if (!slug) throw new HttpsError('invalid-argument', 'slug is required');
+
+  const passTypeId = process.env.APPLE_PASS_TYPE_ID || '';
+  const teamId = process.env.APPLE_PASS_TEAM_ID || '';
+  const certP12 = process.env.APPLE_PASS_CERT || '';
+  const certPassword = process.env.APPLE_PASS_CERT_PASSWORD || '';
+  if (!passTypeId || !teamId || !certP12) {
+    return { configured: false };
+  }
+
+  const cardSnap = await db.collection('cards').where('slug', '==', slug).limit(1).get();
+  const card = cardSnap.docs[0]?.data();
+  if (!card || card.isPublic !== true) throw new HttpsError('not-found', 'Card not found');
+
+  const cardUrl = `https://nowncard.com/card/${slug}`;
+  const name = [card.firstName, card.lastName].filter(Boolean).join(' ') || card.slug || 'Contact';
+  const firstEmailRaw = Array.isArray(card.emails) ? (card.emails[0] as { address?: unknown })?.address : typeof card.email === 'string' ? card.email : '';
+  const firstPhoneRaw = Array.isArray(card.phones) ? (card.phones[0] as { number?: unknown })?.number : typeof card.phone === 'string' ? card.phone : '';
+  const websiteRaw = Array.isArray(card.websites) ? (card.websites[0] as { url?: unknown })?.url : typeof card.website === 'string' ? card.website : '';
+  const firstEmail = typeof firstEmailRaw === 'string' ? firstEmailRaw : '';
+  const firstPhone = typeof firstPhoneRaw === 'string' ? firstPhoneRaw : '';
+  const website = typeof websiteRaw === 'string' ? websiteRaw : '';
+
+  const { buildApplePass } = await import('./apple-pass');
+  const pkpass = await buildApplePass(
+    {
+      slug,
+      name,
+      company: typeof card.company === 'string' ? card.company : undefined,
+      jobTitle: typeof card.jobTitle === 'string' ? card.jobTitle : undefined,
+      phone: firstPhone || undefined,
+      email: firstEmail || undefined,
+      website: website || undefined,
+      bio: typeof card.bio === 'string' ? card.bio : undefined,
+      cardUrl,
+    },
+    { passTypeId, teamId, certP12Base64: certP12, certPassword },
+  );
+
+  return { configured: true, pkpassBase64: pkpass.toString('base64'), filename: `${slug}.pkpass` };
+});
+
+// ---------------------------------------------------------------------------
 // adminMutation (callable) — all admin writes go through here so admin status
 // is re-checked server-side (defense in depth on top of the rules).
 // ---------------------------------------------------------------------------

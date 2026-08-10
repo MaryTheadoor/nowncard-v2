@@ -13,6 +13,7 @@ import ShareModal from '@/components/ShareModal';
 import AppointmentModal from '@/components/AppointmentModal';
 import ImportVCardModal from '@/components/ImportVCardModal';
 import SaveImageModal from '@/components/SaveImageModal';
+import WalletModal from '@/components/WalletModal';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import type { Card } from '@/types';
@@ -48,6 +49,7 @@ export default function CardViewerPage() {
   const [flipped, setFlipped] = useState(false);
   const [menuExpanded, setMenuExpanded] = useState(false);
   const [saveImageOpen, setSaveImageOpen] = useState(false);
+  const [walletOpen, setWalletOpen] = useState(false);
   const [vcfHelpOpen, setVcfHelpOpen] = useState(false);
   const trackedMeta = useRef(false);
   const startTime = useRef(0);
@@ -204,25 +206,6 @@ export default function CardViewerPage() {
       toast.error('Failed to send message');
     }
     setSendingMessage(false);
-  };
-
-  const handleAddToWallet = async () => {
-    if (!card) return;
-    try {
-      const { getFunctions, httpsCallable } = await import('firebase/functions');
-      const fn = httpsCallable(getFunctions(), 'getWalletPass');
-      const res = await fn({ slug: card.slug });
-      const data = res.data as { configured?: boolean; googleSaveUrl?: string };
-      if (!data.configured || !data.googleSaveUrl) {
-        toast.info('Wallet passes are coming soon.');
-        return;
-      }
-      window.open(data.googleSaveUrl, '_blank');
-      track('wallet');
-    } catch (err) {
-      console.error('[CardViewer] Wallet pass error:', err);
-      toast.error('Could not create a wallet pass.');
-    }
   };
 
   const handleSubmitLead = async () => {
@@ -509,7 +492,7 @@ export default function CardViewerPage() {
           <button onClick={() => setSaveImageOpen(true)} className="btn btn-secondary btn-lg">
             <IconCamera /> Save Image
           </button>
-          <button onClick={handleAddToWallet} className="btn btn-secondary btn-lg" title="Add a digital wallet pass (Google Wallet)">
+          <button onClick={() => setWalletOpen(true)} className="btn btn-secondary btn-lg" title="Add a digital wallet pass (Google / Apple Wallet)">
             <Wallet className="w-4 h-4" /> Wallet
           </button>
         </div>
@@ -687,6 +670,13 @@ export default function CardViewerPage() {
         onClose={() => setSaveImageOpen(false)}
         card={card}
         name={name}
+        onTrack={track}
+      />
+
+      <WalletModal
+        open={walletOpen}
+        onClose={() => setWalletOpen(false)}
+        card={card}
         onTrack={track}
       />
     </div>

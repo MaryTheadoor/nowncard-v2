@@ -4,6 +4,24 @@
 
 ---
 
+## 2026-08-10 — Apple Wallet backend (inactive) + Wallet modal
+
+- **Apple Wallet backend built** (`functions/src/apple-pass.ts` + `getApplePass` callable):
+  generates a signed `.pkpass` (pass.json generic pass with QR of the card URL, contact
+  fields, brand colors; solid-color `icon.png` placeholder via pngjs; `manifest.json` SHA-1;
+  PKCS#7 detached signature via node-forge using the Pass Type ID cert + Apple WWDR
+  intermediate fetched at cold start). **Flagged inactive** — returns `configured:false`
+  until `APPLE_PASS_TYPE_ID` / `APPLE_PASS_TEAM_ID` / `APPLE_PASS_CERT` (base64 .p12) /
+  `APPLE_PASS_CERT_PASSWORD` are set on the function env.
+- **Wallet modal**: card page "Wallet" button now opens a dialog with Google Wallet
+  (opens the Add-to-Google-Wallet link when configured) and Apple Wallet (shows
+  "coming soon" until configured). Client can download the `.pkpass` once active.
+- Verified: `getApplePass` returns configured:false; Wallet modal renders both options.
+- Docs updated (`docs/WALLET_INTEGRATION.md`). Apple activation held until validated with
+  beta users (avoids the $99/yr Apple Developer membership for now).
+
+---
+
 ## 2026-08-10 — Skeuomorphic pass, lead capture, wallet plumbing
 
 ### Skeuomorphic/material texture (`758446a`)
