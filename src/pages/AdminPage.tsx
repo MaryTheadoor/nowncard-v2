@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  collection, query, where, getDocs, doc, limit, getDoc, orderBy, startAfter,
+  collection, query, getDocs, doc, limit, getDoc, orderBy, startAfter,
   getCountFromServer,
 } from 'firebase/firestore';
-import type { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+import type { DocumentData, QueryDocumentSnapshot, QuerySnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/auth-context';
 import { getPaymentDetails, getPricing } from '@/lib/payments';
@@ -33,7 +33,7 @@ interface CompletedUpgrade {
   source?: string; appliedAt: unknown;
 }
 interface AdminUser {
-  id: string; email: string; plan: string; cardCount: number; isAdmin?: boolean;
+  id: string; email: string; displayName?: string; plan: string; cardCount: number; isAdmin?: boolean;
 }
 interface AdminCard {
   id: string; slug: string; firstName?: string; lastName?: string;
@@ -96,12 +96,12 @@ export default function AdminPage() {
   // --- Users ---
   const [userSearch, setUserSearch] = useState('');
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
 
   // --- Cards ---
   const [cardSearch, setCardSearch] = useState('');
   const [adminCards, setAdminCards] = useState<AdminCard[]>([]);
-  const [cardLastDoc, setCardLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
-  const [cardHasMore, setCardHasMore] = useState(false);
+  const [cardsLoading, setCardsLoading] = useState(false);
 
   // --- Reviews ---
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -203,57 +203,88 @@ export default function AdminPage() {
     } catch { toast.error('Failed to load payment details'); }
   };
 
-  // ---------- User Search ----------
-  const searchUsers = async () => {
+  // ---------- Load all users (paginated) + client-side search ----------
+  const loadAllUsers = async () => {
+    setUsersLoading(true);
     try {
-      const s = userSearch.trim();
-      let q;
-      if (s) {
-        q = query(collection(db, 'users'), where('email', '>=', s), where('email', '<=', s + '\uf8ff'), limit(20));
-      } else {
-        q = query(collection(db, 'users'), limit(20));
+      const all: AdminUser[] = [];
+      let last: QueryDocumentSnapshot<DocumentData> | null = null;
+      for (let i = 0; i < 10; i++) {
+        const q = last
+          ? query(collection(db, 'users'), orderBy('email'), startAfter(last), limit(200))
+          : query(collection(db, 'users'), orderBy('email'), limit(200));
+        const snap: QuerySnapshot<DocumentData> = await getDocs(q);
+        if (snap.empty) break;
+        snap.docs.forEach((d) => {
+          const data = d.data();
+          all.push({
+            id: d.id, email: data.email || '-', displayName: data.displayName || '',
+            plan: data.plan || 'free', cardCount: data.cardCount || 0, isAdmin: data.isAdmin || false,
+          });
+        });
+        last = snap.docs[snap.docs.length - 1];
+        if (snap.docs.length < 200) break;
       }
-      const snap = await getDocs(q);
-      const list = snap.docs.map((d) => ({
-        id: d.id, email: d.data().email || '-',
-        plan: d.data().plan || 'free', cardCount: d.data().cardCount || 0,
-        isAdmin: d.data().isAdmin || false,
-      }));
-      list.sort((a, b) => a.email.localeCompare(b.email));
-      setAdminUsers(list);
-    } catch { toast.error('Search failed'); }
+      all.sort((a, b) => a.email.localeCompare(b.email));
+      setAdminUsers(all);
+    } catch { toast.error('Failed to load users'); }
+    setUsersLoading(false);
   };
 
-  // ---------- Card Search ----------
-  const searchCards = async (cursor?: QueryDocumentSnapshot<DocumentData>) => {
+  const filteredUsers = useMemo(() => {
+    const q = userSearch.trim().toLowerCase();
+    if (!q) return adminUsers;
+    return adminUsers.filter((u) =>
+      u.email.toLowerCase().includes(q)
+      || (u.displayName || '').toLowerCase().includes(q)
+      || u.id.toLowerCase().includes(q)
+      || u.plan.toLowerCase().includes(q)
+      || (u.isAdmin ? 'admin' : '').includes(q),
+    );
+  }, [adminUsers, userSearch]);
+
+  // ---------- Load all cards (paginated) + client-side search ----------
+  const loadAllCards = async () => {
+    setCardsLoading(true);
     try {
-      const s = cardSearch.trim().toLowerCase();
-      let q;
-      if (s) {
-        q = query(collection(db, 'cards'), where('slug', '>=', s), where('slug', '<=', s + '\uf8ff'), limit(20));
-      } else {
-        q = query(collection(db, 'cards'), orderBy('createdAt', 'desc'), limit(20));
+      const all: AdminCard[] = [];
+      let last: QueryDocumentSnapshot<DocumentData> | null = null;
+      for (let i = 0; i < 10; i++) {
+        const q = last
+          ? query(collection(db, 'cards'), orderBy('createdAt', 'desc'), startAfter(last), limit(200))
+          : query(collection(db, 'cards'), orderBy('createdAt', 'desc'), limit(200));
+        const snap: QuerySnapshot<DocumentData> = await getDocs(q);
+        if (snap.empty) break;
+        snap.docs.forEach((d) => {
+          const data = d.data();
+          all.push({
+            id: d.id, slug: data.slug || '', firstName: data.firstName,
+            lastName: data.lastName, company: data.company, jobTitle: data.jobTitle,
+            ownerUid: data.ownerUid, isPublic: data.isPublic, viewCount: data.viewCount || 0,
+            createdAt: data.createdAt,
+          } as AdminCard);
+        });
+        last = snap.docs[snap.docs.length - 1];
+        if (snap.docs.length < 200) break;
       }
-      if (cursor && !s) {
-        q = query(collection(db, 'cards'), orderBy('createdAt', 'desc'), startAfter(cursor), limit(20));
-      }
-      const snap = await getDocs(q);
-      const list = snap.docs.map((d) => {
-        const data = d.data();
-        return {
-          id: d.id, slug: data.slug || '', firstName: data.firstName,
-          lastName: data.lastName, company: data.company, jobTitle: data.jobTitle,
-          ownerUid: data.ownerUid, isPublic: data.isPublic, viewCount: data.viewCount || 0,
-          createdAt: data.createdAt,
-        } as AdminCard;
-      });
-      if (cursor && !s) setAdminCards((prev) => [...prev, ...list]);
-      else setAdminCards(list);
-      const last = snap.docs[snap.docs.length - 1] || null;
-      setCardLastDoc(last);
-      setCardHasMore(snap.docs.length === 20);
-    } catch { toast.error('Card search failed'); }
+      setAdminCards(all);
+    } catch { toast.error('Failed to load cards'); }
+    setCardsLoading(false);
   };
+
+  const filteredCards = useMemo(() => {
+    const q = cardSearch.trim().toLowerCase();
+    if (!q) return adminCards;
+    return adminCards.filter((c) =>
+      (c.slug || '').toLowerCase().includes(q)
+      || (c.firstName || '').toLowerCase().includes(q)
+      || (c.lastName || '').toLowerCase().includes(q)
+      || (c.company || '').toLowerCase().includes(q)
+      || (c.jobTitle || '').toLowerCase().includes(q)
+      || (c.ownerUid || '').toLowerCase().includes(q)
+      || String(c.isPublic ? 'public' : 'private').includes(q),
+    );
+  }, [adminCards, cardSearch]);
 
   // ---------- Actions ----------
   const approveUpgrade = async (upgradeId: string, uid: string, plan: string, price: number) => {
@@ -296,7 +327,7 @@ export default function AdminPage() {
     try {
       await adminMutation('setPlan', { uid, plan });
       toast.success(`Plan → ${plan}`);
-      searchUsers();
+      loadAllUsers();
     } catch { toast.error('Failed to update plan'); }
   };
 
@@ -304,7 +335,7 @@ export default function AdminPage() {
     try {
       await adminMutation('toggleCardPublic', { cardId, current });
       toast.success(`Card ${!current ? 'public' : 'private'}`);
-      searchCards();
+      loadAllCards();
     } catch { toast.error('Failed to toggle'); }
   };
 
@@ -313,7 +344,7 @@ export default function AdminPage() {
     try {
       await adminMutation('deleteCard', { cardId });
       toast.success('Card deleted');
-      searchCards();
+      loadAllCards();
       loadStats();
     } catch { toast.error('Failed to delete card'); }
   };
@@ -399,7 +430,7 @@ export default function AdminPage() {
           {TABS.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
-              onClick={() => { setTab(key); if (key === 'pending') loadPending(); if (key === 'overview') loadStats(); if (key === 'pricing') loadPricing(); if (key === 'reviews') loadReviews(); }}
+              onClick={() => { setTab(key); if (key === 'pending') loadPending(); if (key === 'overview') loadStats(); if (key === 'pricing') loadPricing(); if (key === 'reviews') loadReviews(); if (key === 'users') loadAllUsers(); if (key === 'cards') loadAllCards(); }}
               className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-bold whitespace-nowrap border-b-2 transition ${tab === key ? 'border-accent text-accent' : 'border-transparent text-ink-muted hover:text-ink'}`}
             >
               <Icon className="w-4 h-4" /> {label}
@@ -590,27 +621,30 @@ export default function AdminPage() {
         {/* ========================= USERS ========================= */}
         {tab === 'users' && (
           <section className="bg-tile border border-line rounded-2xl p-6">
-            <h2 className="text-lg font-extrabold mb-4 flex items-center gap-2"><Users className="w-5 h-5 text-accent" /> Users</h2>
-            <div className="flex gap-2 mb-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
-                <input value={userSearch} onChange={(e) => setUserSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && searchUsers()}
-                  placeholder="Search by email…" className="w-full pl-9 pr-3 py-2 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-              </div>
-              <button onClick={searchUsers} className="btn btn-primary btn-sm">Search</button>
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <h2 className="text-lg font-extrabold flex items-center gap-2"><Users className="w-5 h-5 text-accent" /> Users</h2>
+              {!usersLoading && <span className="text-xs text-ink-faint">{filteredUsers.length} of {adminUsers.length} loaded</span>}
             </div>
-            {adminUsers.length === 0 ? (
-              <p className="text-sm text-ink-muted">No users found. Try a search.</p>
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
+              <input value={userSearch} onChange={(e) => setUserSearch(e.target.value)}
+                placeholder="Search by email, name, or plan…" className="w-full pl-9 pr-3 py-2 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+            </div>
+            {usersLoading ? (
+              <p className="text-sm text-ink-muted">Loading users…</p>
+            ) : filteredUsers.length === 0 ? (
+              <p className="text-sm text-ink-muted">No users match your search.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="text-ink-faint border-b border-line">
-                    <tr><th className="text-left py-2 pr-4">Email</th><th className="text-left py-2 pr-4">Plan</th><th className="text-left py-2 pr-4">Cards</th><th className="text-left py-2 pr-4">Admin</th><th className="text-left py-2"></th></tr>
+                    <tr><th className="text-left py-2 pr-4">User</th><th className="text-left py-2 pr-4">Email</th><th className="text-left py-2 pr-4">Plan</th><th className="text-left py-2 pr-4">Cards</th><th className="text-left py-2 pr-4">Admin</th><th className="text-left py-2"></th></tr>
                   </thead>
                   <tbody>
-                    {adminUsers.map((u) => (
+                    {filteredUsers.map((u) => (
                       <tr key={u.id} className="border-b border-line-soft">
-                        <td className="py-2 pr-4">{u.email}</td>
+                        <td className="py-2 pr-4 font-semibold">{u.displayName || '-'}</td>
+                        <td className="py-2 pr-4 font-mono text-xs text-ink-muted">{u.email}</td>
                         <td className="py-2 pr-4 capitalize font-semibold">{u.plan}</td>
                         <td className="py-2 pr-4">{u.cardCount}</td>
                         <td className="py-2 pr-4">{u.isAdmin ? <Shield className="w-3.5 h-3.5 text-accent" /> : '-'}</td>
@@ -634,17 +668,19 @@ export default function AdminPage() {
         {/* ========================= CARDS ========================= */}
         {tab === 'cards' && (
           <section className="bg-tile border border-line rounded-2xl p-6">
-            <h2 className="text-lg font-extrabold mb-4 flex items-center gap-2"><FileText className="w-5 h-5 text-accent" /> Cards</h2>
-            <div className="flex gap-2 mb-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
-                <input value={cardSearch} onChange={(e) => setCardSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && searchCards()}
-                  placeholder="Search by slug…" className="w-full pl-9 pr-3 py-2 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-              </div>
-              <button onClick={() => searchCards()} className="btn btn-primary btn-sm">Search</button>
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <h2 className="text-lg font-extrabold flex items-center gap-2"><FileText className="w-5 h-5 text-accent" /> Cards</h2>
+              {!cardsLoading && <span className="text-xs text-ink-faint">{filteredCards.length} of {adminCards.length} loaded</span>}
             </div>
-            {adminCards.length === 0 ? (
-              <p className="text-sm text-ink-muted">No cards found. Try a search.</p>
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
+              <input value={cardSearch} onChange={(e) => setCardSearch(e.target.value)}
+                placeholder="Search by slug, name, company, or owner…" className="w-full pl-9 pr-3 py-2 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+            </div>
+            {cardsLoading ? (
+              <p className="text-sm text-ink-muted">Loading cards…</p>
+            ) : filteredCards.length === 0 ? (
+              <p className="text-sm text-ink-muted">No cards match your search.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -659,7 +695,7 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {adminCards.map((c) => (
+                    {filteredCards.map((c) => (
                       <tr key={c.id} className="border-b border-line-soft">
                         <td className="py-2 pr-4 font-semibold">{[c.firstName, c.lastName].filter(Boolean).join(' ') || c.slug}</td>
                         <td className="py-2 pr-4 font-mono text-xs text-ink-muted">{c.slug}</td>
@@ -686,11 +722,6 @@ export default function AdminPage() {
                   </tbody>
                 </table>
               </div>
-            )}
-            {cardHasMore && !cardSearch.trim() && (
-              <button onClick={() => searchCards(cardLastDoc || undefined)} className="mt-4 w-full py-2 text-sm font-semibold text-ink-muted hover:text-accent border border-line rounded-xl transition">
-                Load More
-              </button>
             )}
           </section>
         )}

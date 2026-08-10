@@ -4,6 +4,21 @@
 
 ---
 
+## 2026-08-07 — Admin console: full user/card lists + robust search
+
+- Users and Cards tabs previously only loaded rows after a server-side prefix query
+  (and the tabs weren't even populated on open). Now they **load all rows on tab open**
+  (paginated batches of 200, capped at 2000) and search is a **live, client-side,
+  case-insensitive substring** filter.
+- Users search matches email, displayName, uid, and plan (and "admin"); cards search
+  matches slug, first/last name, company, job title, owner uid, and public/private.
+- Added a "X of Y loaded" count and loading states; removed the now-obsolete Search
+  button, Enter-to-search, and Load More (all rows are loaded).
+- `useAuth` now stores `displayName` on the user doc so admin can search users by name.
+- AdminUser table adds a Name column.
+
+---
+
 ## 2026-08-07 — Reliability/UX bug batch + copy accuracy pass
 
 ### Reliability/UX fixes (`49672c2`)

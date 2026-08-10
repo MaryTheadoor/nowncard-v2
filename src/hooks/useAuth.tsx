@@ -42,13 +42,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userRef = doc(db, 'users', u.uid);
       getDoc(userRef).then((snap) => {
         if (!snap.exists()) {
-          const data = { plan: 'free', createdAt: serverTimestamp(), lastLogin: serverTimestamp(), email: u.email || null };
+          const data = { plan: 'free', displayName: u.displayName || null, createdAt: serverTimestamp(), lastLogin: serverTimestamp(), email: u.email || null };
           setDoc(userRef, data, { merge: true }).catch((err) => console.error('[useAuth] Failed to create user doc:', err));
           setUserData(data);
         } else {
           const data = snap.data();
           setUserData({ plan: data.plan || 'free', cardCount: data.cardCount || 0, isAdmin: data.isAdmin === true, defaultCardSlug: data.defaultCardSlug || undefined, secondaryCardSlug: data.secondaryCardSlug || undefined });
-          setDoc(userRef, { lastLogin: serverTimestamp(), email: u.email || null }, { merge: true }).catch((err) => console.error('[useAuth] Failed to update lastLogin:', err));
+          setDoc(userRef, { lastLogin: serverTimestamp(), email: u.email || null, displayName: u.displayName || null }, { merge: true }).catch((err) => console.error('[useAuth] Failed to update lastLogin:', err));
         }
       }).catch((err) => {
         console.error('[useAuth] Failed to load user doc:', err);
