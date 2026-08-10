@@ -896,6 +896,83 @@ export const getBookedSlots = onCall(async (request) => {
 });
 
 // ---------------------------------------------------------------------------
+// submitLead (callable, anonymous) — optional full contact/lead form on a card.
+// Writes into the existing `messages` collection (marked isLead) so leads show
+// up in the owner's Dashboard Inquiries and fire the same FCM notify trigger.
+// Basic rate limit per card to curb spam.
+// ---------------------------------------------------------------------------
+export const submitLead = onCall(async (request) => {
+  const data = request.data as {
+    cardId?: string;
+    cardSlug?: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+    company?: string;
+    message?: string;
+  };
+
+  const name = typeof data.name === 'string' ? data.name.trim() : '';
+  const email = typeof data.email === 'string' ? data.email.trim() : '';
+  const message = typeof data.message === 'string' ? data.message.trim() : '';
+  const phone = typeof data.phone === 'string' ? data.phone.trim() : '';
+  const company = typeof data.company === 'string' ? data.company.trim() : '';
+  const cardId = typeof data.cardId === 'string' ? data.cardId : '';
+  const cardSlug = typeof data.cardSlug === 'string' ? data.cardSlug : '';
+
+  if (!cardId) throw new HttpsError('invalid-argument', 'cardId is required');
+  if (!name || !email || !message) throw new HttpsError('invalid-argument', 'Name, email, and message are required');
+  if (name.length > 100 || email.length > 254 || message.length > 2000 || phone.length > 40 || company.length > 120) {
+    throw new HttpsError('invalid-argument', 'One or more fields are too long');
+  }
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new HttpsError('invalid-argument', 'Invalid email');
+
+  const cardSnap = await db.collection('cards').doc(cardId).get();
+  if (!cardSnap.exists) throw new HttpsError('not-found', 'Card not found');
+  const card = cardSnap.data()!;
+  if (card.isPublic !== true) throw new HttpsError('permission-denied', 'Card is not public');
+  const owner = typeof card.ownerUid === 'string' ? card.ownerUid : typeof card.ownerId === 'string' ? card.ownerId : '';
+  if (!owner) throw new HttpsError('internal', 'Card has no owner');
+
+  // Basic spam guard: max 10 leads per card per 10 minutes. Uses a single-field
+  // query (no composite index) and counts client-side so it never blocks on an
+  // index build; on any error we fail open (allow) rather than reject the lead.
+  let recentLeadCount = 0;
+  try {
+    const cutoff = Date.now() - 10 * 60 * 1000;
+    const recent = await db.collection('messages').where('cardId', '==', cardId).limit(100).get();
+    recentLeadCount = recent.docs.filter((d) => {
+      const data = d.data();
+      if (data.isLead !== true) return false;
+      const at = data.createdAt;
+      return at && typeof at.toMillis === 'function' ? at.toMillis() >= cutoff : false;
+    }).length;
+  } catch (err) {
+    console.warn('[submitLead] rate-limit query failed (allowing):', err);
+  }
+  if (recentLeadCount >= 10) {
+    throw new HttpsError('resource-exhausted', 'Too many messages for this card right now. Please try again later.');
+  }
+
+  await db.collection('messages').add({
+    senderUid: '',
+    senderName: name,
+    senderEmail: email,
+    senderPhone: phone || null,
+    senderCompany: company || null,
+    recipientUid: owner,
+    cardId,
+    cardSlug,
+    content: message,
+    isLead: true,
+    read: false,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  return { ok: true };
+});
+
+// ---------------------------------------------------------------------------
 // adminMutation (callable) — all admin writes go through here so admin status
 // is re-checked server-side (defense in depth on top of the rules).
 // ---------------------------------------------------------------------------

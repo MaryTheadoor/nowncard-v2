@@ -37,6 +37,12 @@ export default function CardViewerPage() {
   const [messageText, setMessageText] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
   const [messageSent, setMessageSent] = useState(false);
+  const [leadName, setLeadName] = useState('');
+  const [leadEmail, setLeadEmail] = useState('');
+  const [leadPhone, setLeadPhone] = useState('');
+  const [leadCompany, setLeadCompany] = useState('');
+  const [leadSending, setLeadSending] = useState(false);
+  const [leadSent, setLeadSent] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [appointmentOpen, setAppointmentOpen] = useState(false);
   const [flipped, setFlipped] = useState(false);
@@ -198,6 +204,36 @@ export default function CardViewerPage() {
       toast.error('Failed to send message');
     }
     setSendingMessage(false);
+  };
+
+  const handleSubmitLead = async () => {
+    if (!card) return;
+    if (!leadName.trim() || !leadEmail.trim() || !messageText.trim()) {
+      toast.error('Please fill in your name, email, and a message.');
+      return;
+    }
+    setLeadSending(true);
+    try {
+      const { getFunctions, httpsCallable } = await import('firebase/functions');
+      const fn = httpsCallable(getFunctions(), 'submitLead');
+      await fn({
+        cardId: card.id,
+        cardSlug: card.slug,
+        name: leadName.trim(),
+        email: leadEmail.trim(),
+        phone: leadPhone.trim() || undefined,
+        company: leadCompany.trim() || undefined,
+        message: messageText.trim(),
+      });
+      setLeadSent(true);
+      toast.success('Message sent');
+      track('lead');
+    } catch (err) {
+      console.error('[CardViewer] Lead submit error:', err);
+      toast.error('Failed to send message. Please try again.');
+    } finally {
+      setLeadSending(false);
+    }
   };
 
   // Called before early returns to satisfy React hooks ordering
@@ -456,9 +492,48 @@ export default function CardViewerPage() {
           </button>
         </div>
 
-        {/* Messaging */}
+        {/* Messaging / Lead capture */}
         <div className="w-full">
-          {messageSent ? (
+          {card.leadFormEnabled ? (
+            leadSent ? (
+              <div className="bg-tile border border-emerald-500/30 rounded-2xl p-5 text-center">
+                <p className="text-sm font-semibold text-emerald-400 mb-1">Thanks — message sent!</p>
+                <p className="text-xs text-ink-muted">The card owner will get back to you.</p>
+              </div>
+            ) : (
+              <div className="bg-tile border border-line rounded-2xl p-4">
+                <div className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-3">Contact {name || 'us'}</div>
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <input value={leadName} onChange={(e) => setLeadName(e.target.value)} placeholder="Your name" aria-label="Your name" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                  <input type="email" value={leadEmail} onChange={(e) => setLeadEmail(e.target.value)} placeholder="Email" aria-label="Email" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                </div>
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <input value={leadPhone} onChange={(e) => setLeadPhone(e.target.value)} placeholder="Phone (optional)" aria-label="Phone" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                  <input value={leadCompany} onChange={(e) => setLeadCompany(e.target.value)} placeholder="Company (optional)" aria-label="Company" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                </div>
+                <textarea
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  placeholder="How can we help?"
+                  aria-label="Message"
+                  rows={3}
+                  maxLength={2000}
+                  className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent resize-none mb-3"
+                />
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-ink-faint">{messageText.length}/2000</span>
+                  <button
+                    onClick={handleSubmitLead}
+                    disabled={leadSending || !leadName.trim() || !leadEmail.trim() || !messageText.trim()}
+                    className="btn btn-primary btn-sm"
+                  >
+                    <IconSend />
+                    {leadSending ? 'Sending…' : 'Send'}
+                  </button>
+                </div>
+              </div>
+            )
+          ) : messageSent ? (
             <div className="bg-tile border border-emerald-500/30 rounded-2xl p-5 text-center">
               <p className="text-sm font-semibold text-emerald-400 mb-1">Message sent</p>
               <p className="text-xs text-ink-muted">The card owner will see your inquiry and reply directly.</p>

@@ -1024,7 +1024,6 @@ export default function EditorPage() {
               <input type="checkbox" checked={card.appointmentsEnabled ?? false} onChange={(e) => updateField('appointmentsEnabled', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
               Allow appointment requests on this card
             </label>
-
             {card.appointmentsEnabled && (
               <>
                 <div className="mb-4">
@@ -1076,6 +1075,16 @@ export default function EditorPage() {
                 </div>
               </>
             )}
+          </div>
+
+          {/* Lead Capture */}
+          <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
+            <h2 className="text-lg font-bold mb-1">Lead Capture</h2>
+            <p className="text-xs text-ink-faint mb-4">Show a contact form on your card so visitors can reach out even without signing in. Leads (name, email, phone, company, message) land in your Dashboard → Inquiries and notify you instantly.</p>
+            <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
+              <input type="checkbox" checked={card.leadFormEnabled ?? false} onChange={(e) => updateField('leadFormEnabled', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
+              Enable lead capture form on this card
+            </label>
           </div>
 
           {/* Link List — Pro, full-width links below the card */}

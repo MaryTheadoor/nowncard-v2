@@ -110,6 +110,27 @@
 }
 
 @layer components {
+  /* ── Skeuomorphic/material texture: raised panels ── */
+  /* Tiles get a soft top highlight + bottom shade so they read as tactile,
+     slightly-raised surfaces against the page background. */
+  .bg-tile {
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0) 28%), linear-gradient(0deg, rgba(0,0,0,0.12), rgba(0,0,0,0) 24%);
+  }
+  .bg-tile-soft {
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 32%);
+  }
+  /* Recessed form fields — inputs sit "into" the surface for a tactile feel. */
+  input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  textarea,
+  select {
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.20), inset 0 0 0 1px rgba(0,0,0,0.04);
+  }
+  input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+  textarea:focus,
+  select:focus {
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.08);
+  }
+
   .card-face {
     position: absolute;
     inset: 0;

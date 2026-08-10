@@ -114,6 +114,7 @@ export interface Card {
     weeklyHours?: AppointmentWeeklyHour[];
   };
   featuredLinksEnabled?: boolean;
+  leadFormEnabled?: boolean;
 }
 
 export interface AppointmentWeeklyHour {
@@ -127,12 +128,15 @@ export interface Message {
   senderUid: string;
   senderName: string;
   senderEmail: string;
+  senderPhone?: string;
+  senderCompany?: string;
   recipientUid: string;
   cardId: string;
   cardSlug: string;
   content: string;
   createdAt: unknown;
   read: boolean;
+  isLead?: boolean;
 }
 
 export interface Appointment {

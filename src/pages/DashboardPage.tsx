@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Printer, Users, ClipboardCheck, Heart, Star, Search, X, Bell, MessageCircle, Mail, Check, Calendar, Clock, CreditCard } from 'lucide-react';
+import { Plus, Pencil, Trash2, ExternalLink, Download, Copy, Wand2, Nfc, BarChart3, Printer, Users, ClipboardCheck, Heart, Star, Search, X, Bell, MessageCircle, Mail, Check, Calendar, Clock, CreditCard, Building2, Phone } from 'lucide-react';
 import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc, setDoc, onSnapshot, orderBy, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/auth-context';
@@ -631,8 +631,23 @@ export default function DashboardPage() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-sm">{m.senderName}</span>
+                        {m.isLead && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-amber-950 text-amber-400 border border-amber-800">Lead</span>
+                        )}
                         {!m.read && <span className="w-2 h-2 rounded-full bg-accent" />}
                       </div>
+                      {m.senderCompany && (
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <Building2 className="w-3 h-3 text-ink-faint" />
+                          <span className="text-xs text-ink-muted">{m.senderCompany}</span>
+                        </div>
+                      )}
+                      {m.senderPhone && (
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <Phone className="w-3 h-3 text-ink-faint" />
+                          <a href={`tel:${m.senderPhone}`} className="text-xs text-ink-muted hover:text-accent no-underline">{m.senderPhone}</a>
+                        </div>
+                      )}
                       <div className="flex items-center gap-2 mt-0.5">
                         <Mail className="w-3 h-3 text-ink-faint" />
                         <a
