@@ -161,9 +161,18 @@
 
 ## Known Issues / Debt
 
-> Full audit + backlog: **`HEALTH_CHECK.md`**. Health-check items 1–7 (SSRF allowlist,
-> refund→downgrade, bundle split, slug registry, a11y, admin callables, dead-code purge)
-> completed 2026-08-07.
+> Full audit + backlog: **`HEALTH_CHECK.md`**. Competitive analysis: **`docs/COMPETITOR_ANALYSIS.md`** (2026-08-09).
+> Health-check remediation items 1–7 completed 2026-08-07 (SSRF, refunds, bundle, slug registry, a11y, admin callables, dead-code purge).
+
+### Strategic / competitive backlog (from competitor analysis)
+- [ ] **Apple/Google Wallet Passes** — #1 feature gap; every major competitor has it.
+- [ ] **Lead capture forms** — visitor form that emails the card owner (DBC core value prop).
+- [ ] **Custom domains** (`card.yourdomain.com`) for Pro/Business.
+- [ ] **NFC tag store** — sell pre-programmed tags (we already write tags from Android Chrome).
+- [ ] **Team admin dashboard** — centralized team management for Business.
+- [ ] **CRM integrations** + **AI business-card scanner** + **SOC 2** — later/enterprise.
+
+### Technical debt
 
 - [ ] **Plan card-limit client-only** — rules/callable enforcement or documented risk.
 - [ ] **`reviews` leak reviewer email** to anonymous (featured docs) — stop storing email or split fields.
