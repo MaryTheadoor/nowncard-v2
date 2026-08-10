@@ -247,7 +247,7 @@ export default function AdminPage() {
           createdAt: data.createdAt,
         } as AdminCard;
       });
-      if (cursor) setAdminCards((prev) => [...prev, ...list]);
+      if (cursor && !s) setAdminCards((prev) => [...prev, ...list]);
       else setAdminCards(list);
       const last = snap.docs[snap.docs.length - 1] || null;
       setCardLastDoc(last);
@@ -687,7 +687,7 @@ export default function AdminPage() {
                 </table>
               </div>
             )}
-            {cardHasMore && (
+            {cardHasMore && !cardSearch.trim() && (
               <button onClick={() => searchCards(cardLastDoc || undefined)} className="mt-4 w-full py-2 text-sm font-semibold text-ink-muted hover:text-accent border border-line rounded-xl transition">
                 Load More
               </button>

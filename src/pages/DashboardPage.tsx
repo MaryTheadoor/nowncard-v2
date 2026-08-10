@@ -20,6 +20,97 @@ function fmtMoney(cents: number, currency: string): string {
   return `${symbol}${(cents / 100).toFixed(2)}`;
 }
 
+interface CardRowProps {
+  c: Card;
+  showTeamBadge?: boolean;
+  defaultCardSlug?: string;
+  secondaryCardSlug?: string;
+  onSetDefault: (slug: string) => void;
+  onSetSecondary: (slug: string) => void;
+  onTogglePublic: (c: Card) => void;
+  onDelete: (id: string) => void;
+}
+
+// Hoisted to module scope so the card list doesn't remount on every keystroke.
+function CardRow({ c, showTeamBadge, defaultCardSlug, secondaryCardSlug, onSetDefault, onSetSecondary, onTogglePublic, onDelete }: CardRowProps) {
+  return (
+    <div className="bg-tile border border-line rounded-2xl p-5 hover:-translate-y-1 hover:shadow-surface transition">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-3 min-w-0">
+          {c.profileImage ? (
+            <img src={c.profileImage} alt="" className="w-10 h-10 rounded-full object-cover border border-line flex-shrink-0" />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#64748b] to-[#94a3b8] flex items-center justify-center text-sm font-extrabold text-white flex-shrink-0">
+              {initials(c.firstName, c.lastName)}
+            </div>
+          )}
+          <div className="min-w-0">
+            <h3 className="font-bold text-base truncate">{c.firstName} {c.lastName}</h3>
+            <p className="text-xs text-ink-muted mt-0.5">/card/{c.slug}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            onClick={() => onSetDefault(c.slug)}
+            className={`p-1 rounded transition cursor-pointer ${defaultCardSlug === c.slug ? 'text-accent' : 'text-ink-faint hover:text-accent'}`}
+            title={defaultCardSlug === c.slug ? 'Heart favorite' : 'Set as heart favorite'}
+          >
+            <Heart className="w-3.5 h-3.5" fill={defaultCardSlug === c.slug ? 'currentColor' : 'none'} />
+          </button>
+          <button
+            onClick={() => onSetSecondary(c.slug)}
+            className={`p-1 rounded transition cursor-pointer ${secondaryCardSlug === c.slug ? 'text-blue-400' : 'text-ink-faint hover:text-blue-400'}`}
+            title={secondaryCardSlug === c.slug ? 'Star favorite' : 'Set as star favorite'}
+          >
+            <Star className="w-3.5 h-3.5" fill={secondaryCardSlug === c.slug ? 'currentColor' : 'none'} />
+          </button>
+          {showTeamBadge && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-purple-950 text-purple-400 border border-purple-800">Team</span>
+          )}
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${c.isPublic ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-tile-soft text-ink-faint border border-line'}`}>{c.isPublic ? 'Public' : 'Private'}</span>
+        </div>
+      </div>
+
+      <div className="text-sm text-ink-muted mb-2">
+        {c.jobTitle}{c.jobTitle && c.company ? ' · ' : ''}{c.company}
+      </div>
+      <div className="text-xs text-ink-faint mb-4">
+        {c.viewCount || 0} views · {c.saveCount || 0} saves
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Link to={`/card/${c.slug}`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-xs">
+          <ExternalLink className="w-3 h-3" /> View
+        </Link>
+        <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/card/${c.slug}`); toast.success('Link copied'); }} className="btn btn-secondary btn-xs">
+          <Copy className="w-3 h-3" /> Copy
+        </button>
+        <button onClick={() => onTogglePublic(c)} className="btn btn-secondary btn-xs">
+          {c.isPublic ? 'Make Private' : 'Make Public'}
+        </button>
+        <button onClick={() => downloadVCard(c, undefined, `${window.location.origin}/card/${c.slug}`)} className="btn btn-secondary btn-xs">
+          <Download className="w-3 h-3" /> vCard
+        </button>
+        <Link to={`/nfc/${c.slug}`} className="btn btn-secondary btn-xs">
+          <Nfc className="w-3 h-3" /> NFC
+        </Link>
+        <Link to={`/poster/${c.slug}`} className="btn btn-secondary btn-xs">
+          <Printer className="w-3 h-3" /> Poster
+        </Link>
+        <Link to={`/analytics/${c.id}`} className="btn btn-secondary btn-xs">
+          <BarChart3 className="w-3 h-3" /> Analytics
+        </Link>
+        <Link to={`/editor/${c.id}`} className="btn btn-secondary btn-xs">
+          <Pencil className="w-3 h-3" /> Edit
+        </Link>
+        <button onClick={() => onDelete(c.id!)} className="btn btn-danger btn-xs">
+          <Trash2 className="w-3 h-3" /> Delete
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { user, userData, loading: authLoading, refreshUserData } = useAuth();
   const { subscribed: pushSubscribed, ready: pushReady, enableNotifications } = useFCM(user?.uid);
@@ -89,7 +180,14 @@ export default function DashboardPage() {
 
     (async () => {
       try {
-        applyPendingUpgrades().catch(() => {});
+        applyPendingUpgrades()
+          .then((res) => {
+            if (res && res.applied > 0) toast.success('Plan upgraded');
+          })
+          .catch((err) => {
+            console.error('[Dashboard] applyPendingUpgrades failed:', err);
+            toast.error('We could not apply an upgrade on your account. Contact support if you just paid.');
+          });
         const userSnap = await getDoc(doc(db, 'users', user.uid));
         if (userSnap.exists()) setPlan(userSnap.data().plan || 'free');
 
@@ -178,7 +276,9 @@ export default function DashboardPage() {
         email: user.email || null,
         rating,
         content: reviewText.trim(),
-        featured: false,
+        // Preserve the existing featured state (a featured review must not be
+        // silently un-featured by an edit).
+        featured: myReview?.featured === true,
         createdAt: myReview?.createdAt ?? serverTimestamp(),
       };
       await setDoc(doc(db, 'reviews', user.uid), payload, { merge: true });
@@ -315,82 +415,16 @@ export default function DashboardPage() {
 
   const isBusiness = plan === 'business';
 
-  const CardRow = ({ c, showTeamBadge }: { c: Card; showTeamBadge?: boolean }) => (
-    <div className="bg-tile border border-line rounded-2xl p-5 hover:-translate-y-1 hover:shadow-surface transition">
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3 min-w-0">
-          {c.profileImage ? (
-            <img src={c.profileImage} alt="" className="w-10 h-10 rounded-full object-cover border border-line flex-shrink-0" />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#64748b] to-[#94a3b8] flex items-center justify-center text-sm font-extrabold text-white flex-shrink-0">
-              {initials(c.firstName, c.lastName)}
-            </div>
-          )}
-          <div className="min-w-0">
-            <h3 className="font-bold text-base truncate">{c.firstName} {c.lastName}</h3>
-            <p className="text-xs text-ink-muted mt-0.5">/card/{c.slug}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-1 flex-shrink-0">
-          <button
-            onClick={() => setDefaultCard(c.slug)}
-            className={`p-1 rounded transition cursor-pointer ${userData?.defaultCardSlug === c.slug ? 'text-accent' : 'text-ink-faint hover:text-accent'}`}
-            title={userData?.defaultCardSlug === c.slug ? 'Heart favorite' : 'Set as heart favorite'}
-          >
-            <Heart className="w-3.5 h-3.5" fill={userData?.defaultCardSlug === c.slug ? 'currentColor' : 'none'} />
-          </button>
-          <button
-            onClick={() => setSecondaryCard(c.slug)}
-            className={`p-1 rounded transition cursor-pointer ${userData?.secondaryCardSlug === c.slug ? 'text-blue-400' : 'text-ink-faint hover:text-blue-400'}`}
-            title={userData?.secondaryCardSlug === c.slug ? 'Star favorite' : 'Set as star favorite'}
-          >
-            <Star className="w-3.5 h-3.5" fill={userData?.secondaryCardSlug === c.slug ? 'currentColor' : 'none'} />
-          </button>
-          {showTeamBadge && (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-purple-950 text-purple-400 border border-purple-800">Team</span>
-          )}
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${c.isPublic ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-tile-soft text-ink-faint border border-line'}`}>{c.isPublic ? 'Public' : 'Private'}</span>
-        </div>
-      </div>
-
-      <div className="text-sm text-ink-muted mb-2">
-        {c.jobTitle}{c.jobTitle && c.company ? ' · ' : ''}{c.company}
-      </div>
-      <div className="text-xs text-ink-faint mb-4">
-        {c.viewCount || 0} views · {c.saveCount || 0} saves
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        <Link to={`/card/${c.slug}`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-xs">
-          <ExternalLink className="w-3 h-3" /> View
-        </Link>
-        <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/card/${c.slug}`); toast.success('Link copied'); }} className="btn btn-secondary btn-xs">
-          <Copy className="w-3 h-3" /> Copy
-        </button>
-        <button onClick={() => handleTogglePublic(c)} className="btn btn-secondary btn-xs">
-          {c.isPublic ? 'Make Private' : 'Make Public'}
-        </button>
-        <button onClick={() => downloadVCard(c, undefined, `${window.location.origin}/card/${c.slug}`)} className="btn btn-secondary btn-xs">
-          <Download className="w-3 h-3" /> vCard
-        </button>
-        <Link to={`/nfc/${c.slug}`} className="btn btn-secondary btn-xs">
-          <Nfc className="w-3 h-3" /> NFC
-        </Link>
-        <Link to={`/poster/${c.slug}`} className="btn btn-secondary btn-xs">
-          <Printer className="w-3 h-3" /> Poster
-        </Link>
-        <Link to={`/analytics/${c.id}`} className="btn btn-secondary btn-xs">
-          <BarChart3 className="w-3 h-3" /> Analytics
-        </Link>
-        <Link to={`/editor/${c.id}`} className="btn btn-secondary btn-xs">
-          <Pencil className="w-3 h-3" /> Edit
-        </Link>
-        <button onClick={() => handleDelete(c.id!)} className="btn btn-danger btn-xs">
-          <Trash2 className="w-3 h-3" /> Delete
-        </button>
-      </div>
-    </div>
-  );
+  const cardRowProps = (c: Card, showTeamBadge?: boolean) => ({
+    c,
+    showTeamBadge,
+    defaultCardSlug: userData?.defaultCardSlug,
+    secondaryCardSlug: userData?.secondaryCardSlug,
+    onSetDefault: setDefaultCard,
+    onSetSecondary: setSecondaryCard,
+    onTogglePublic: handleTogglePublic,
+    onDelete: handleDelete,
+  });
 
   return (
     <div className="min-h-screen bg-space">
@@ -422,7 +456,7 @@ export default function DashboardPage() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={async () => { if (!user) return; try { const result = await createDemoCard(user.uid); toast.success('Demo card created'); navigate(`/editor/${result.id}`); } catch { toast.error('Failed to create demo'); } }} className="btn btn-secondary btn-sm">
+            <button onClick={async () => { if (!user) return; try { const limit = getCardLimit(plan); if (personalCards.length >= limit) { toast.error(`Your ${plan} plan allows ${limit === Infinity ? 'unlimited' : limit} personal card${limit === 1 ? '' : 's'}. Upgrade to create more.`); return; } const result = await createDemoCard(user.uid); toast.success('Demo card created'); navigate(`/editor/${result.id}`); } catch { toast.error('Failed to create demo'); } }} className="btn btn-secondary btn-sm">
               <Wand2 className="w-3.5 h-3.5" /> Demo
             </button>
             {plan === 'free' && (
@@ -509,7 +543,7 @@ export default function DashboardPage() {
         ) : (
           <div className="flex flex-col gap-4 mb-8">
             {filteredPersonal.map((c) => (
-              <CardRow key={c.id} c={c} />
+              <CardRow key={c.id} {...cardRowProps(c)} />
             ))}
             {filteredPersonal.length === 0 && search.trim() && (
               <div className="text-center py-8 text-ink-muted text-sm">No cards match your search.</div>
@@ -551,7 +585,7 @@ export default function DashboardPage() {
             ) : (
               <div className="flex flex-col gap-4">
                 {filteredTeam.map((c) => (
-                  <CardRow key={c.id} c={c} showTeamBadge />
+                  <CardRow key={c.id} {...cardRowProps(c, true)} />
                 ))}
                 {filteredTeam.length === 0 && search.trim() && (
                   <div className="text-center py-8 text-ink-muted text-sm">No team cards match your search.</div>

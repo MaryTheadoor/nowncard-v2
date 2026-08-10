@@ -384,6 +384,9 @@ function contactRows(card: { [key: string]: unknown } | null): ContactRow[] {
   if (addr) {
     const parts = [addr.street, [addr.city, addr.state].filter(Boolean).join(', '), addr.zip].filter(Boolean);
     if (parts.length) rows.push({ icon: 'pin', text: parts.join(', ') });
+  } else if (typeof card.address === 'string' && card.address) {
+    // Legacy single-string address fallback
+    rows.push({ icon: 'pin', text: card.address });
   }
   return rows;
 }
@@ -714,6 +717,9 @@ export const cardPage = onRequest({ cors: true }, async (req, res) => {
       ...(typeof addr.zip === 'string' ? { postalCode: addr.zip } : {}),
       ...(typeof addr.country === 'string' ? { addressCountry: addr.country } : {}),
     };
+  } else if (typeof card.address === 'string' && card.address) {
+    // Legacy single-string address fallback
+    personJsonLd.address = { '@type': 'PostalAddress', streetAddress: card.address };
   }
 
   const personScript = `<script type="application/ld+json">${JSON.stringify(personJsonLd).replace(/</g, '\\u003c')}</script>`;

@@ -59,6 +59,9 @@ export function generateVCard(card: Card | Partial<Card>, cardPageUrl?: string):
     card.addresses.forEach((a) => {
       parts.push(`ADR;TYPE=${(a.type || 'WORK').toUpperCase()}:;;${escVCard(a.street || '')};${escVCard(a.city || '')};${escVCard(a.state || '')};${escVCard(a.zip || '')};${escVCard(a.country || '')}`);
     });
+  } else if (card.address) {
+    // Legacy single-string address fallback
+    parts.push(`ADR;TYPE=WORK:;;${escVCard(card.address)};;;;`);
   }
 
   if (card.birthday) parts.push(`BDAY:${card.birthday}`);
