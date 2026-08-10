@@ -14,6 +14,7 @@ import * as admin from 'firebase-admin';
 import { Client, Environment } from 'square';
 import express from 'express';
 import { defineSecret, defineString } from 'firebase-functions/params';
+import jwt from 'jsonwebtoken';
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -970,6 +971,94 @@ export const submitLead = onCall(async (request) => {
   });
 
   return { ok: true };
+});
+
+// ---------------------------------------------------------------------------
+// getWalletPass (callable) — returns an "Add to Google Wallet" link for a card.
+// Requires env vars on this function: GOOGLE_WALLET_ISSUER_ID (the Google Wallet
+// issuer id) and GOOGLE_WALLET_SERVICE_ACCOUNT (JSON service-account key with
+// Wallet access). Until those are set, returns { configured: false } so the UI
+// can show "coming soon". Apple Wallet (.pkpass) needs an Apple Developer cert —
+// see docs/WALLET_INTEGRATION.md.
+// ---------------------------------------------------------------------------
+export const getWalletPass = onCall(async (request) => {
+  const slug = typeof request.data?.slug === 'string' ? request.data.slug : '';
+  if (!slug) throw new HttpsError('invalid-argument', 'slug is required');
+
+  const issuerId = process.env.GOOGLE_WALLET_ISSUER_ID || '';
+  const saJson = process.env.GOOGLE_WALLET_SERVICE_ACCOUNT || '';
+  if (!issuerId || !saJson) {
+    return { configured: false };
+  }
+
+  const cardSnap = await db.collection('cards').where('slug', '==', slug).limit(1).get();
+  const card = cardSnap.docs[0]?.data();
+  if (!card || card.isPublic !== true) throw new HttpsError('not-found', 'Card not found');
+
+  const sa = JSON.parse(saJson) as { client_email?: string; private_key?: string; private_key_id?: string };
+  if (!sa.client_email || !sa.private_key || !sa.private_key_id) {
+    throw new HttpsError('internal', 'Wallet service account is malformed');
+  }
+
+  const cardUrl = `https://nowncard.com/card/${slug}`;
+  const name = [card.firstName, card.lastName].filter(Boolean).join(' ') || card.slug || 'Contact';
+  const firstEmail = Array.isArray(card.emails) ? (card.emails[0] as { address?: unknown })?.address : typeof card.email === 'string' ? card.email : '';
+  const firstPhone = Array.isArray(card.phones) ? (card.phones[0] as { number?: unknown })?.number : typeof card.phone === 'string' ? card.phone : '';
+  const contact = [firstEmail, firstPhone].filter(Boolean).join(' · ') || 'Shared via NownCard';
+
+  const classId = `${issuerId}.nowncard-card`;
+  const objectId = `${issuerId}.${slug}`;
+  const payload = {
+    iss: sa.client_email,
+    aud: 'google',
+    typ: 'savetowallet',
+    iat: Math.floor(Date.now() / 1000),
+    origins: ['https://nowncard.com', 'https://nowncard-v2.web.app', 'http://localhost:5173'],
+    payload: {
+      genericClasses: [
+        {
+          id: classId,
+          issuerName: 'NownCard',
+          logo: { sourceUri: { uri: 'https://nowncard.com/nowncard-logo.png' } },
+          classTemplateInfo: {
+            cardTemplateOverride: {
+              cardRowTemplateInfo: {
+                oneItem: { item: { firstValue: { fields: [{ fieldPath: 'object.firstRow' }] } } },
+              },
+            },
+            listTemplateOverride: {
+              firstRow: { fields: [{ fieldPath: 'object.firstRow' }] },
+              secondRow: { fields: [{ fieldPath: 'object.secondRow' }] },
+            },
+          },
+        },
+      ],
+      genericObjects: [
+        {
+          id: objectId,
+          classId,
+          state: 'ACTIVE',
+          genericType: 'GENERIC_TYPE_UNSPECIFIED',
+          firstRow: { kind: 'uri', uri: cardUrl },
+          secondRow: { kind: 'text', textValue: name },
+          barcode: { type: 'QR_CODE', value: cardUrl },
+          hexBackgroundColor: '#391681',
+          linksModuleData: { uris: [{ kind: 'uri', uri: cardUrl, description: 'View card' }] },
+          textModulesData: [
+            { header: 'Contact', body: contact },
+            ...(typeof card.bio === 'string' && card.bio ? [{ header: 'About', body: card.bio.slice(0, 200) }] : []),
+          ],
+        },
+      ],
+    },
+  };
+
+  const token = jwt.sign(payload, sa.private_key, {
+    algorithm: 'RS256',
+    header: { alg: 'RS256', typ: 'JWT', kid: sa.private_key_id },
+  });
+
+  return { configured: true, googleSaveUrl: `https://pay.google.com/gp/v/save/${token}` };
 });
 
 // ---------------------------------------------------------------------------

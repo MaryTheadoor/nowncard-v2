@@ -4,6 +4,34 @@
 
 ---
 
+## 2026-08-10 — Skeuomorphic pass, lead capture, wallet plumbing
+
+### Skeuomorphic/material texture (`758446a`)
+- Tiles (`.bg-tile`, `.bg-tile-soft`) get a soft top highlight + bottom shade → panels
+  read as raised, tactile surfaces.
+- Form fields (input/textarea/select) get a recessed inset shadow; softened on focus.
+
+### Lead capture (`758446a`)
+- `Card.leadFormEnabled` toggle (Editor "Lead Capture" section).
+- `submitLead` callable (anonymous): validates name/email/message + email format, resolves
+  the card owner, best-effort 10-leads-per-card-per-10-min rate limit (single-field query,
+  fails open), writes into `messages` with `isLead:true` → shows in Dashboard Inquiries and
+  fires the FCM notify trigger.
+- Card page shows a full contact form (name/email/phone/company/message) when enabled —
+  no sign-in required; otherwise the existing inquiry box.
+- Dashboard Inquiries: Lead badge + company + phone/tel link.
+
+### Wallet passes
+- **Google Wallet** (`getWalletPass` callable): builds a signed JWT generic pass
+  (card URL QR, name, contact, brand color) → Add to Google Wallet link. Reads
+  `GOOGLE_WALLET_ISSUER_ID` + `GOOGLE_WALLET_SERVICE_ACCOUNT` env vars; returns
+  `{ configured:false }` until set. Card page "Wallet" button added.
+- **Apple Wallet** documented (needs Apple Developer account + Pass Type ID cert) —
+  see `docs/WALLET_INTEGRATION.md`.
+- Verified: `getWalletPass` returns configured:false without creds; Wallet button renders.
+
+---
+
 ## 2026-08-07 — Admin console: full user/card lists + robust search
 
 - Users and Cards tabs previously only loaded rows after a server-side prefix query
