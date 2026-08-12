@@ -4,6 +4,19 @@
 
 ---
 
+## 2026-08-10 — Wallet paused + front end hidden (resume session ready)
+
+- **Wallet work paused** until the Google Wallet backend is configured (user hit a wrong
+  console URL). Documented the correct console (`https://pay.developers.google.com/wallet`)
+  and full resume steps in `docs/WALLET_INTEGRATION.md`.
+- **Front end:** removed the Wallet button + `WalletModal` from the card page so the feature
+  is hidden until configured. Server code (`getWalletPass`, `getApplePass` inactive) stays
+  deployed; no code changes needed to re-enable.
+- **New `SESSION_STATE.md`** at repo root — a fresh-session resume doc covering current
+  state, wallet resume steps, outstanding manual actions, backlog, and commands.
+
+---
+
 ## 2026-08-10 — Apple Wallet backend (inactive) + Wallet modal
 
 - **Apple Wallet backend built** (`functions/src/apple-pass.ts` + `getApplePass` callable):

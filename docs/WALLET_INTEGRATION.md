@@ -23,8 +23,10 @@ server-side (`getWalletPass` callable) and just needs your credentials to activa
    - Create/select a service account → **Keys** → **Add Key → JSON** → download.
    - (This project's default compute service account may work; a dedicated one is cleaner.)
 3. **Create a Google Wallet issuer**:
-   - https://wallet-console.developers.google.com → set up an issuer account.
-   - You'll get an **Issuer ID** (e.g. `3388000000000000000`) after agreeing to the terms.
+   - https://pay.developers.google.com/wallet → set up an issuer account
+     (this is the Google Pay & Wallet developer console; you may need to accept the
+     Google Wallet API terms first).
+   - You'll get an **Issuer ID** (e.g. `3388000000000000000`).
 4. **Set env vars on the `getWalletPass` function** (Firebase console → Functions →
    `getWalletPass` → Edit → Runtime/Environment variables, or via CLI):
    - `GOOGLE_WALLET_ISSUER_ID` = your issuer id
@@ -74,13 +76,18 @@ be done without an Apple Developer account + certificate, which must be provisio
 ---
 
 ## Current status
-- [x] Google Wallet server code + client button (needs your issuer id + service account key).
-- [ ] Google Wallet: set credentials → test on device.
-- [x] Apple Wallet backend built (`getApplePass` — signed `.pkpass` via node-forge/fflate) and
-      **flagged inactive** until credentials are set (returns `configured:false`; the card
-      page Wallet modal shows "Apple Wallet … coming soon"). Activate by setting
+- ⏸️ **PAUSED (2026-08-10).** The wallet UI is hidden on the front end until the Google
+  Wallet backend credentials are configured (and Apple is re-evaluated after beta).
+  The server code below is complete and deployed — no code changes are needed to resume.
+- [x] Google Wallet server code (`getWalletPass`) + client modal — needs your issuer id +
+      service account key (see Setup above).
+- [ ] Google Wallet: set credentials → re-enable the front-end button → test on device.
+- [x] Apple Wallet backend built (`getApplePass` — signed `.pkpass` via node-forge/fflate)
+      and **flagged inactive** until credentials are set. Activate by setting
       `APPLE_PASS_TYPE_ID` / `APPLE_PASS_TEAM_ID` / `APPLE_PASS_CERT` (base64 .p12) /
       `APPLE_PASS_CERT_PASSWORD` on the `getApplePass` function, then test on an iPhone.
 - [ ] Apple Wallet: obtain the Apple Developer cert + set credentials + device test.
       Note: the current `icon.png` is a simple solid-color placeholder — polish with a
       proper logo before shipping Apple passes.
+- [ ] To re-enable the front end: restore the Wallet button + `WalletModal` render in
+      `src/pages/CardViewerPage.tsx` (they were removed to hide the feature while paused).

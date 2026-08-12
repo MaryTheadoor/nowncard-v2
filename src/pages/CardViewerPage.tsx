@@ -13,12 +13,11 @@ import ShareModal from '@/components/ShareModal';
 import AppointmentModal from '@/components/AppointmentModal';
 import ImportVCardModal from '@/components/ImportVCardModal';
 import SaveImageModal from '@/components/SaveImageModal';
-import WalletModal from '@/components/WalletModal';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import type { Card } from '@/types';
 
-import { Calendar, ExternalLink, Pencil, UtensilsCrossed, ChevronDown, Wallet } from 'lucide-react';
+import { Calendar, ExternalLink, Pencil, UtensilsCrossed, ChevronDown } from 'lucide-react';
 import { IconPhone, IconMail, IconGlobe, IconPin } from '@/components/CardIcons';
 const IconDownload = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-[18px] h-[18px]"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10 12 15 17 10"/><path d="M12 15V3"/></svg>;
 const IconSend = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-10z"/></svg>;
@@ -49,7 +48,6 @@ export default function CardViewerPage() {
   const [flipped, setFlipped] = useState(false);
   const [menuExpanded, setMenuExpanded] = useState(false);
   const [saveImageOpen, setSaveImageOpen] = useState(false);
-  const [walletOpen, setWalletOpen] = useState(false);
   const [vcfHelpOpen, setVcfHelpOpen] = useState(false);
   const trackedMeta = useRef(false);
   const startTime = useRef(0);
@@ -492,9 +490,6 @@ export default function CardViewerPage() {
           <button onClick={() => setSaveImageOpen(true)} className="btn btn-secondary btn-lg">
             <IconCamera /> Save Image
           </button>
-          <button onClick={() => setWalletOpen(true)} className="btn btn-secondary btn-lg" title="Add a digital wallet pass (Google / Apple Wallet)">
-            <Wallet className="w-4 h-4" /> Wallet
-          </button>
         </div>
 
         {/* Messaging / Lead capture */}
@@ -670,13 +665,6 @@ export default function CardViewerPage() {
         onClose={() => setSaveImageOpen(false)}
         card={card}
         name={name}
-        onTrack={track}
-      />
-
-      <WalletModal
-        open={walletOpen}
-        onClose={() => setWalletOpen(false)}
-        card={card}
         onTrack={track}
       />
     </div>
