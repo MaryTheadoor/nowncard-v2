@@ -4,6 +4,37 @@
 
 ---
 
+## 2026-08-12 — Homepage tile colors + admin CSS-theme panel
+
+### Homepage coherence pass (`aca5077`)
+- **Pain-point tiles** ("Does This Sound Familiar?") were grey `bg-tile` — now filled with the
+  **gold accent** (`--tile-gold`) and their text uses the accent-button text color
+  (`--tile-gold-text`, the dark `#1a1408` from `btn-primary`).
+- **Feature tiles** ("Everything You Need") — now filled with the **blue accent**
+  (`--tile-blue`, matching the `btn-secondary` tactile blue) with white text; the icon chips
+  were unified to translucent-white chips (removed the per-feature rainbow chip colors).
+- New adjustable CSS vars: `--tile-gold`, `--tile-gold-text`, `--tile-blue`, `--tile-blue-text`
+  (light + dark) in `src/index.css` + `@theme` mappings so Tailwind classes
+  `bg-tile-gold`, `bg-tile-blue`, `text-tile-gold-text`, `text-tile-blue-text` resolve.
+
+### Admin console CSS-theme panel (`1f4e252`)
+- **New "Theme" tab** in the Admin console (`CssThemePanel`) that lists every core CSS color
+  variable (page/surfaces, text, accents, homepage tiles) for **Light and Dark** modes side by
+  side, each with a color picker + hex field.
+- Adjustments apply **live** and persist to this browser (localStorage key
+  `nowncard-css-theme`); applied on boot by `ThemeProvider`. Overrides are mode-aware via
+  scoped rules (`:root:not(.dark)` / `.dark`) so editing light doesn't clobber dark.
+- **Export CSS** copies the full `:root` + `.dark` blocks to the clipboard for committing to
+  `index.css`; **Reset** restores codebase defaults.
+- New lib `src/lib/css-theme.ts` (load/save/apply/effective-var helpers).
+
+### Note
+- Theme edits are per-browser (admin's browser) for instant preview; to ship site-wide, export
+  the CSS and commit it to `src/index.css`. A Firestore-backed config that all clients read is
+  a possible follow-up.
+
+---
+
 ## 2026-08-10 — Wallet paused + front end hidden (resume session ready)
 
 - **Wallet work paused** until the Google Wallet backend is configured (user hit a wrong
