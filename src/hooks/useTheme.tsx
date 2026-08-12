@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ThemeContext } from './theme-context';
+import { applyThemeOverrides, loadThemeOverrides } from '@/lib/css-theme';
 
 const STORAGE_KEY = 'nowncard-theme';
 
@@ -18,6 +19,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   // Compute resolved theme directly during render to avoid setState in effect
   const resolved = theme === 'system' ? getSystemTheme() : theme;
+
+  useEffect(() => {
+    applyThemeOverrides(loadThemeOverrides());
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;

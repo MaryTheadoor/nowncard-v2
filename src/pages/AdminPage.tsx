@@ -14,10 +14,11 @@ import Navbar from '@/components/Navbar';
 import {
   Shield, Search, KeyRound, CreditCard, BarChart3,
   Users, FileText, RefreshCw, TrendingUp, DollarSign,
-  Eye, ExternalLink, Trash2, X, Star,
+  Eye, ExternalLink, Trash2, X, Star, Palette,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Review } from '@/types';
+import CssThemePanel from '@/components/CssThemePanel';
 
 const BOOTSTRAP_ADMIN_UID = 'EeiBBDTu5jOooHbxyOC98JSlt6r1';
 
@@ -49,6 +50,7 @@ const TABS = [
   { key: 'users', label: 'Users', icon: Users },
   { key: 'cards', label: 'Cards', icon: FileText },
   { key: 'reviews', label: 'Reviews', icon: Star },
+  { key: 'theme', label: 'Theme', icon: Palette },
 ] as const;
 
 type TabKey = typeof TABS[number]['key'];
@@ -768,6 +770,8 @@ export default function AdminPage() {
             )}
           </section>
         )}
+        {/* ========================= THEME ========================= */}
+        {tab === 'theme' && <CssThemePanel />}
       </main>
     </div>
   );
