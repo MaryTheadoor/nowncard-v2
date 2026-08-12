@@ -123,9 +123,9 @@ export default function LandingPage() {
                 desc: 'Too many features you do not need. Clunky editors. Apps to download. Platforms that want to own your data. You just want something simple that looks great and works everywhere, with no app required for the person receiving it.',
               },
             ].map((item) => (
-              <div key={item.title} className="bg-tile border border-line rounded-2xl p-6 hover:border-accent/30 transition">
-                <h3 className="text-base font-bold text-ink-muted italic mb-2">{item.title}</h3>
-                <p className="text-sm text-ink-muted leading-relaxed">{item.desc}</p>
+              <div key={item.title} className="bg-tile-gold border border-accent/30 rounded-2xl p-6 hover:-translate-y-1 hover:shadow-surface transition">
+                <h3 className="text-base font-bold text-tile-gold-text italic mb-2">{item.title}</h3>
+                <p className="text-sm text-tile-gold-text/80 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -141,20 +141,20 @@ export default function LandingPage() {
           <h2 className="text-2xl md:text-3xl font-extrabold text-center text-sky-500 dark:text-sky-400 mb-10">Everything You Need</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { icon: <Link2 className="w-5 h-5" />, title: 'Shareable Link', desc: 'Every card gets a clean URL. Share it anywhere — text, email, social, or embed it in your signature.', chip: 'text-amber-400 bg-amber-500/10 border border-amber-500/25' },
-              { icon: <QrCode className="w-5 h-5" />, title: 'QR Code', desc: 'Instant QR for every card. Print it on flyers, posters, or your phone wallpaper.', chip: 'text-sky-400 bg-sky-500/10 border border-sky-500/25' },
-              { icon: <Download className="w-5 h-5" />, title: 'vCard Export', desc: 'One tap adds your contact to any phone. Works with Apple, Android, and Outlook.', chip: 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/25' },
-              { icon: <Palette className="w-5 h-5" />, title: 'Custom Design', desc: 'Choose your theme, accent color, fonts, and layout. Make it unmistakably yours.', chip: 'text-violet-400 bg-violet-500/10 border border-violet-500/25' },
-              { icon: <Smartphone className="w-5 h-5" />, title: 'NFC Ready', desc: 'Tap any programmed tag with an NFC-enabled phone to open your card instantly. Program tags right from Android Chrome.', chip: 'text-teal-400 bg-teal-500/10 border border-teal-500/25' },
-              { icon: <Leaf className="w-5 h-5" />, title: 'Eco Friendly', desc: 'Skip the paper waste. Every digital card saves resources compared to printed cards that often end up in the trash.', chip: 'text-lime-400 bg-lime-500/10 border border-lime-500/25' },
-              { icon: <CalendarClock className="w-5 h-5" />, title: 'Appointment Booking', desc: 'Let visitors pick a date and time from your availability. Appointments land in your dashboard with add-to-calendar options.', chip: 'text-orange-400 bg-orange-500/10 border border-orange-500/25' },
-              { icon: <Eye className="w-5 h-5" />, title: 'Rich Link Previews', desc: 'Share your card link and it unfurls with your name, photo, and a branded preview in WhatsApp, iMessage, Slack, and more.', chip: 'text-pink-400 bg-pink-500/10 border border-pink-500/25' },
-              { icon: <UtensilsCrossed className="w-5 h-5" />, title: 'Online Menu', desc: 'Food trucks and venues can list their menu right on the card with a "view full menu" toggle. Business plan.', chip: 'text-red-400 bg-red-500/10 border border-red-500/25' },
+              { icon: <Link2 className="w-5 h-5" />, title: 'Shareable Link', desc: 'Every card gets a clean URL. Share it anywhere — text, email, social, or embed it in your signature.' },
+              { icon: <QrCode className="w-5 h-5" />, title: 'QR Code', desc: 'Instant QR for every card. Print it on flyers, posters, or your phone wallpaper.' },
+              { icon: <Download className="w-5 h-5" />, title: 'vCard Export', desc: 'One tap adds your contact to any phone. Works with Apple, Android, and Outlook.' },
+              { icon: <Palette className="w-5 h-5" />, title: 'Custom Design', desc: 'Choose your theme, accent color, fonts, and layout. Make it unmistakably yours.' },
+              { icon: <Smartphone className="w-5 h-5" />, title: 'NFC Ready', desc: 'Tap any programmed tag with an NFC-enabled phone to open your card instantly. Program tags right from Android Chrome.' },
+              { icon: <Leaf className="w-5 h-5" />, title: 'Eco Friendly', desc: 'Skip the paper waste. Every digital card saves resources compared to printed cards that often end up in the trash.' },
+              { icon: <CalendarClock className="w-5 h-5" />, title: 'Appointment Booking', desc: 'Let visitors pick a date and time from your availability. Appointments land in your dashboard with add-to-calendar options.' },
+              { icon: <Eye className="w-5 h-5" />, title: 'Rich Link Previews', desc: 'Share your card link and it unfurls with your name, photo, and a branded preview in WhatsApp, iMessage, Slack, and more.' },
+              { icon: <UtensilsCrossed className="w-5 h-5" />, title: 'Online Menu', desc: 'Food trucks and venues can list their menu right on the card with a "view full menu" toggle. Business plan.' },
             ].map((f) => (
-              <div key={f.title} className="bg-tile border border-line rounded-2xl p-5 text-left hover:-translate-y-1 hover:shadow-surface transition">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${f.chip}`}>{f.icon}</div>
+              <div key={f.title} className="bg-tile-blue text-tile-blue-text rounded-2xl p-5 text-left hover:-translate-y-1 hover:shadow-surface transition">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 bg-white/15 border border-white/25 text-white">{f.icon}</div>
                 <h3 className="text-base font-bold mb-2">{f.title}</h3>
-                <p className="text-sm text-ink-muted leading-relaxed">{f.desc}</p>
+                <p className="text-sm text-tile-blue-text/85 leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
