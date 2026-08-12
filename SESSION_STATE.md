@@ -80,6 +80,10 @@ Wallet backend is configured. Apple Wallet backend is built but **inactive**. Fu
 ---
 
 ## Backlog (see HEALTH_CHECK.md for detail)
+- **Site-wide theme config** — store CSS-variable overrides in Firestore (`config/theme`) so
+  Admin Theme-panel edits apply to all visitors, not just the admin's browser. The panel today
+  persists per-browser (localStorage); reading a Firestore config doc on boot (and writing it
+  from the panel) makes it site-wide.
 - **Security rules hardening** — `messages`/`appointments` create (hasOnly, caps, bind
   sender/recipient to card owner) to stop spam.
 - **Plan card-limit server enforcement** (close direct-write bypass).

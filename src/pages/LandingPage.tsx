@@ -107,7 +107,7 @@ export default function LandingPage() {
       {/* Pain Points */}
       <section className="bg-space-2 py-16 px-6">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-center text-rose-500 dark:text-rose-400 mb-10">Does This Sound Familiar?</h2>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-center text-accent mb-10">Does This Sound Familiar?</h2>
           <div className="space-y-5">
             {[
               {
