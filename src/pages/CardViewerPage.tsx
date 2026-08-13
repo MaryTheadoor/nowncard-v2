@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { collection, query, where, limit, getDocs, doc, updateDoc, increment, setDoc, serverTimestamp, addDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { downloadVCard, generateVCard, saveToContacts } from '@/lib/vcard';
-import { getMenuIcon } from '@/lib/menuIcons';
+import MenuHeaderIcon from '@/components/MenuHeaderIcon';
 import { escHtml, initials, fullName, orgLine, formatAddress, shareNative, detectDevice, PLAT, PAYMENT_PLAT } from '@/lib/utils';
 import { useAuth } from '@/hooks/auth-context';
 import { useCardTheme } from '@/hooks/useCardTheme';
@@ -288,6 +288,7 @@ export default function CardViewerPage() {
     ? card.menu.filter((c) => c?.name?.trim() && Array.isArray(c.items) && c.items.some((it) => it?.name?.trim()))
     : [];
   const menuItemCount = menu.reduce((n, c) => n + c.items.filter((it) => it?.name?.trim()).length, 0);
+  const menuTitle = card.menuTitle?.trim() || 'Menu';
   const MENU_PREVIEW_ITEMS = 6;
   const visibleMenu = (() => {
     if (menuExpanded) return menu;
@@ -586,12 +587,10 @@ export default function CardViewerPage() {
         )}
 
         {/* Menu (food trucks / venues) */}
-        {menu.length > 0 && (() => {
-          const MenuIcon = getMenuIcon(card.menuIcon);
-          return (
+        {menu.length > 0 && (
           <div className="w-full flex flex-col gap-2.5">
             <div className="text-xs font-bold text-ink-muted uppercase tracking-wider text-center flex items-center justify-center gap-1.5">
-              {MenuIcon && <MenuIcon className="w-3.5 h-3.5" />} {card.menuTitle?.trim() || 'Menu'}
+              <MenuHeaderIcon value={card.menuIcon} className="w-3.5 h-3.5" /> {menuTitle}
             </div>
             <div className="bg-tile border border-line rounded-2xl p-5">
               {visibleMenu.map((cat, ci) => (
@@ -624,8 +623,7 @@ export default function CardViewerPage() {
               )}
             </div>
           </div>
-          );
-        })()}
+        )}
         </div>
       </div>
 
