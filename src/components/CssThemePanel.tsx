@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Palette, RefreshCw, Copy, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
+import ThemePreview from '@/components/ThemePreview';
 import {
   CSS_THEME_VARS, saveThemeOverrides, applyThemeOverrides,
   clearThemeOverrides, getThemeDefaults, fetchThemeOverrides, saveThemeOverridesServer,
@@ -146,36 +147,42 @@ export default function CssThemePanel() {
         </div>
       </div>
 
-      <div className="space-y-6">
-        {SECTIONS.map((section) => (
-          <div key={section.label}>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-ink-faint mb-3">{section.label}</h3>
-            <div className="hidden sm:grid grid-cols-[9rem_1fr_1fr] items-center gap-3 text-[11px] font-bold uppercase tracking-wider text-ink-faint px-1 mb-2">
-              <span>Variable</span>
-              <span>Light</span>
-              <span>Dark</span>
-            </div>
-            <div className="space-y-2">
-              {section.vars.map((name) => (
-                <div key={name} className="bg-space border border-line rounded-xl px-3 py-3 sm:grid sm:grid-cols-[9rem_1fr_1fr] sm:items-center sm:gap-3">
-                  <div className="mb-2 sm:mb-0">
-                    <span className="text-xs font-bold font-mono text-ink">{name}</span>
-                  </div>
-                  <div className="sm:contents space-y-2 sm:space-y-0">
-                    <div className="flex items-center gap-2">
-                      <span className="w-10 shrink-0 text-[11px] font-bold uppercase tracking-wider text-ink-faint sm:hidden">Light</span>
-                      <VarInput value={values[name].light} onCommit={(v) => update(name, 'light', v)} />
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] gap-6 items-start">
+        <div className="space-y-6">
+          {SECTIONS.map((section) => (
+            <div key={section.label}>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-ink-faint mb-3">{section.label}</h3>
+              <div className="hidden sm:grid grid-cols-[9rem_1fr_1fr] items-center gap-3 text-[11px] font-bold uppercase tracking-wider text-ink-faint px-1 mb-2">
+                <span>Variable</span>
+                <span>Light</span>
+                <span>Dark</span>
+              </div>
+              <div className="space-y-2">
+                {section.vars.map((name) => (
+                  <div key={name} className="bg-space border border-line rounded-xl px-3 py-3 sm:grid sm:grid-cols-[9rem_1fr_1fr] sm:items-center sm:gap-3">
+                    <div className="mb-2 sm:mb-0">
+                      <span className="text-xs font-bold font-mono text-ink">{name}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-10 shrink-0 text-[11px] font-bold uppercase tracking-wider text-ink-faint sm:hidden">Dark</span>
-                      <VarInput value={values[name].dark} onCommit={(v) => update(name, 'dark', v)} />
+                    <div className="sm:contents space-y-2 sm:space-y-0">
+                      <div className="flex items-center gap-2">
+                        <span className="w-10 shrink-0 text-[11px] font-bold uppercase tracking-wider text-ink-faint sm:hidden">Light</span>
+                        <VarInput value={values[name].light} onCommit={(v) => update(name, 'light', v)} />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-10 shrink-0 text-[11px] font-bold uppercase tracking-wider text-ink-faint sm:hidden">Dark</span>
+                        <VarInput value={values[name].dark} onCommit={(v) => update(name, 'dark', v)} />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+
+        <aside className="lg:sticky lg:top-16">
+          <ThemePreview />
+        </aside>
       </div>
 
       <p className="text-[11px] text-ink-faint mt-5 flex items-center gap-1.5">
