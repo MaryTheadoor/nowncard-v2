@@ -1,7 +1,6 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyC5LYbN48ILp4eXv_6O00dR3ode_9cWE1w',
@@ -13,7 +12,7 @@ const firebaseConfig = {
   measurementId: 'G-J5CTHK4GT9',
 };
 
-let app;
+let app: FirebaseApp;
 try {
   app = initializeApp(firebaseConfig);
 } catch (err) {
@@ -21,9 +20,9 @@ try {
   throw new Error('Failed to initialize Firebase. Check your configuration.', { cause: err });
 }
 
+export { app };
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const storage = getStorage(app);
 
 // Debug tokens for local dev
 if (location.hostname === 'localhost') {
