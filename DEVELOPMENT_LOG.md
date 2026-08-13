@@ -4,6 +4,32 @@
 
 ---
 
+## 2026-08-12 — Theming protocol, semantic tokens, live surface preview
+
+### Semantic tokens + color standardization (`0387340`)
+- New themeable tokens: `--success`, `--warning`, `--violet` (light + dark, `@theme`,
+  panel "Semantic" section). Reused `--secondary` for all "blue/info" accents.
+- Migrated every hardcoded status/accent color to tokens across the site:
+  `text-emerald-*`→`text-success`, `text-amber-*`/`fill-amber`→`text-warning`/`fill-warning`,
+  `text-blue/sky-*`→`text-secondary`, `text-purple/violet-*`→`text-violet`, and the plan
+  badges (`bg-{purple,amber,emerald}-950 text-*-400 border-*-800`) → `bg-{violet,warning,success}/10
+  text-{…} border-{…}/25`. Status colors now adapt to light/dark instead of fixed `-400` shades.
+
+### Live surface preview (`ThemePreview` + panel)
+- **Admin → Theme** now has a sticky **Surface preview** (like the card editor's live
+  preview) showing the actual site chrome — headings/text, tactile buttons, tiles, status
+  badges, and the gold/blue homepage tiles — each captioned with the variable(s) it uses.
+  It updates live as you drag/edit colors, so you can see exactly which surface a token
+  changes.
+
+### Theming protocol (`docs/THEMING.md`)
+- Authoritative outline: token taxonomy, full light/dark inventory (what each token
+  controls), the wiring (index.css → `@theme` → utilities → Firestore overrides), and the
+  rules for adding colors. Includes the known-gaps list (hero glows, toaster chrome,
+  Google brand, card-face system) to finish later.
+
+---
+
 ## 2026-08-12 — Firefox button-depth glitch fix + cleanup
 
 ### Button depth glitch (`07bcaa8`)
