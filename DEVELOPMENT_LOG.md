@@ -4,6 +4,26 @@
 
 ---
 
+## 2026-08-12 — Firefox button-depth glitch fix + cleanup
+
+### Button depth glitch (`07bcaa8`)
+- **Symptom:** on Firefox mobile the tactile button shading (top highlight + bottom 3D edge)
+  misrendered after the button-color-variable change.
+- **Root cause:** the buttons derived their depth with `color-mix(in oklab, …)` inside
+  `linear-gradient` **and** `box-shadow`. Firefox (esp. mobile) has known bugs resolving
+  `color-mix()` in those contexts, so the shading dropped or painted incorrectly.
+- **Fix:** replaced color-mix with universally-supported **white/black `rgba()` overlays**:
+  `background-color: var(--btn-primary)` + a fixed `linear-gradient` highlight/shade, and a
+  neutral `0 2px 0 rgba(0,0,0,0.32)` bottom edge. The single adjustable base color still
+  retints the whole button. No `color-mix`/`oklab` remains in `src/index.css`.
+
+### Cleanup (`8497126`)
+- The menu-header icon was returned from a lookup function and rendered via a dynamic
+  component variable — flagged by the React 19 `react-hooks/static-components` lint rule.
+  Split into `MenuHeaderIcon` (a static component) + `MENU_ICON_OPTIONS` (pure data).
+
+---
+
 ## 2026-08-12 — Menu customization, collapsible editor sections, speed audit
 
 ### Menu header now user-configurable (`bef5fb7`)
