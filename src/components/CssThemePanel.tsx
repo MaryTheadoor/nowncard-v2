@@ -16,7 +16,7 @@ const SECTIONS: { label: string; vars: string[] }[] = [
   { label: 'Text', vars: ['ink', 'ink-muted', 'ink-faint'] },
   { label: 'Accents', vars: ['accent', 'accent-hover', 'secondary', 'secondary-hover', 'danger'] },
   { label: 'Semantic', vars: ['success', 'warning', 'violet'] },
-  { label: 'Homepage Tiles', vars: ['tile-gold', 'tile-gold-text', 'tile-blue', 'tile-blue-text'] },
+  { label: 'Homepage Tiles', vars: ['tile-gold', 'tile-gold-text', 'tile-violet', 'tile-violet-text'] },
   { label: 'Buttons', vars: ['btn-primary', 'btn-primary-text', 'btn-secondary', 'btn-secondary-text', 'btn-danger', 'btn-danger-text'] },
 ];
 
@@ -40,7 +40,7 @@ function VarInput({ value, onCommit }: { value: string; onCommit: (v: string) =>
           if (/^#[0-9a-f]{6}$/i.test(e.target.value)) onCommit(e.target.value.toLowerCase());
         }}
         onBlur={() => setDraft(null)}
-        className="w-full sm:w-24 px-2 py-1 bg-space border border-line rounded-lg text-xs font-mono text-ink focus:outline-none focus:border-accent"
+        className="w-full sm:w-24 px-2 py-1 bg-space border border-line rounded-lg text-xs font-mono text-ink focus:outline-none focus:border-accent-text"
         spellCheck={false}
       />
     </div>
@@ -127,7 +127,7 @@ export default function CssThemePanel() {
       <div className="flex items-start justify-between gap-3 flex-wrap mb-5">
         <div>
           <h2 className="text-lg font-extrabold flex items-center gap-2">
-            <Palette className="w-5 h-5 text-accent" /> Site Theme (CSS variables)
+            <Palette className="w-5 h-5 text-accent-text" /> Site Theme (CSS variables)
           </h2>
           <p className="text-xs text-ink-muted mt-1">
             Adjust colors live — saved to Firestore and applied site-wide for every visitor.

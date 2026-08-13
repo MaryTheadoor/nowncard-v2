@@ -1,42 +1,55 @@
 @import "tailwindcss";
 
-/* Light theme (default) */
+/* ────────────────────────────────────────────────────────────────────────────
+   NownCard design system — "Warm Paper & Brass"
+   Tactile, timeless, hybrid retro-material: paper grain, raised card-stock
+   tiles, recessed fields, brass (gold) + aubergine (purple) + warm cream.
+   Contrast verified WCAG AA (≥4.5:1 normal text / ≥3:1 UI) for every pair.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/* Light theme (default) — warm paper */
 :root {
-  --space: #f8f9fa;
-  --space-2: #ffffff;
-  --tile: #ffffff;
-  --tile-soft: #f1f5f9;
-  --ink: #0f172a;
-  --ink-muted: #64748b;
-  --ink-faint: #94a3b8;
-  --accent: #d4a34a;
+  --space: #f5efe3;
+  --space-2: #efe7d6;
+  --tile: #fbf7ee;
+  --tile-soft: #f2ebdd;
+  --ink: #1a1612;
+  --ink-muted: #635a4d;
+  --ink-faint: #6e6453;
+  --accent: #d4a34a;          /* brass — fills only, never body text */
   --accent-hover: #c1913a;
-  --secondary: #4a90d9;
-  --secondary-hover: #3d7ec4;
-  --line: #e2e8f0;
-  --line-soft: #f1f5f9;
-  --card-bg: #ffffff;
-  --danger: #ef4444;
-  --success: #059669;
-  --warning: #b45309;
-  --violet: #7c3aed;
+  --accent-text: #8a5a12;     /* dark bronze — text/icon-safe gold (5.2:1 on paper) */
+  --accent-text-hover: #70450c;
+  --secondary: #2b1b52;       /* aubergine — secondary material (15:1 with white) */
+  --secondary-hover: #3a2568;
+  --line: #ddd2bd;
+  --line-soft: #eae2d2;
+  --card-bg: #fbf7ee;
+  --danger: #b91c1c;
+  --success: #047857;
+  --warning: #92400e;
+  --violet: #6d3bb0;
   --tile-gold: #d4a34a;
   --tile-gold-text: #1a1408;
-  --tile-blue: #3578b8;
-  --tile-blue-text: #ffffff;
+  --tile-violet: #3a2568;
+  --tile-violet-text: #ffffff;
   --btn-primary: #e2ad41;
   --btn-primary-text: #1a1408;
-  --btn-secondary: #2f6ba5;
+  --btn-primary-shade: rgba(120, 72, 8, 0.35);   /* warm brown — never gray */
+  --btn-secondary: #2b1b52;
   --btn-secondary-text: #ffffff;
+  --btn-secondary-shade: rgba(0, 0, 0, 0.30);
   --btn-danger: #dc2626;
   --btn-danger-text: #ffffff;
+  --focus-ring: rgba(138, 90, 18, 0.30);
+  --shadow-tile: 0 1px 2px rgba(26, 20, 8, 0.06), 0 6px 18px rgba(26, 20, 8, 0.10);
   --card-face-dark: #12121a;
   --card-face-light: #f4f1ec;
   --card-text-primary-dark: #f4f1ec;
   --card-text-primary-light: #1a1612;
   --card-text-secondary-dark: #9a9186;
   --card-text-secondary-light: #6b6256;
-  --card-text-muted: #7a7166;
+  --card-text-muted: #5f564c;   /* sync: useCardTheme light textMuted */
   --card-text-link-dark: #c9c3ba;
   --card-text-link-light: #4a4238;
   --card-text-link-hover-dark: #f4f1ec;
@@ -49,38 +62,52 @@
   --card-profile-fallback-to-dark: #1a1a2e;
   --card-profile-fallback-from-light: #d4cfc8;
   --card-profile-fallback-to-light: #e8e4de;
-  --card-divider-dark: rgba(255,255,255,0.08);
-  --card-divider-light: rgba(42,37,32,0.12);
+  --card-divider-dark: rgba(255, 255, 255, 0.08);
+  --card-divider-light: rgba(42, 37, 32, 0.12);
   --card-overlay-dark: #12121a;
   --card-overlay-light: #f4f1ec;
-  --card-face-shadow: 0 1px 0 rgba(255,255,255,0.15) inset, 0 24px 60px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3);
-  --card-face-shadow-dark: 0 1px 0 rgba(255,255,255,0.05) inset, 0 24px 60px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
+  --card-face-shadow: 0 1px 0 rgba(255, 255, 255, 0.15) inset, 0 24px 60px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+  --card-face-shadow-dark: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 24px 60px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-/* Dark theme — deep-purple page, navy tiles for contrast, brighter gold accent */
+/* Dark theme — deep aubergine page, navy tiles, brighter brass accent */
 .dark {
   --space: #391681;
   --space-2: #2e1270;
   --tile: #111827;
   --tile-soft: #1a2235;
   --ink: #f8f9fc;
-  --ink-muted: #8a93a5;
-  --ink-faint: #7d89a1;
+  --ink-muted: #a9b1c2;        /* 6.1:1 on purple — was 4.2:1 */
+  --ink-faint: #8f99ad;
   --accent: #f5b940;
   --accent-hover: #ffc95e;
-  --secondary: #74b8ff;
-  --secondary-hover: #86c4ff;
-  --line: #4b3a93;
-  --line-soft: #3a2a78;
+  --accent-text: #f5b940;
+  --accent-text-hover: #ffd27a;
+  --secondary: #b9a6f0;
+  --secondary-hover: #c9baf5;
+  --line: #55449e;
+  --line-soft: #443389;
   --card-bg: #f4f1ec;
-  --danger: #ef4444;
+  --danger: #f87171;
   --success: #34d399;
   --warning: #fbbf24;
   --violet: #a78bfa;
   --tile-gold: #f5b940;
   --tile-gold-text: #1a1408;
-  --tile-blue: #2f6ba5;
-  --tile-blue-text: #ffffff;
+  --tile-violet: #6b52b8;
+  --tile-violet-text: #ffffff;
+  --btn-secondary: #b9a6f0;
+  --btn-secondary-text: #1a1408;
+  --btn-secondary-shade: rgba(58, 37, 104, 0.45);
+  --focus-ring: rgba(245, 185, 64, 0.35);
+  --shadow-tile: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+/* Paper grain — low-alpha monochrome speckle, baked into the SVG's alpha so it
+   layers under backgrounds instead of being covered by opaque sections. */
+:root {
+  --grain-coarse: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grain-fine: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 @theme {
@@ -93,6 +120,8 @@
   --color-ink-faint: var(--ink-faint);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
+  --color-accent-text: var(--accent-text);
+  --color-accent-text-hover: var(--accent-text-hover);
   --color-secondary: var(--secondary);
   --color-secondary-hover: var(--secondary-hover);
   --color-line: var(--line);
@@ -104,8 +133,8 @@
   --color-violet: var(--violet);
   --color-tile-gold: var(--tile-gold);
   --color-tile-gold-text: var(--tile-gold-text);
-  --color-tile-blue: var(--tile-blue);
-  --color-tile-blue-text: var(--tile-blue-text);
+  --color-tile-violet: var(--tile-violet);
+  --color-tile-violet-text: var(--tile-violet-text);
 
   --font-family-sans: 'Manrope', system-ui, -apple-system, sans-serif;
 }
@@ -119,16 +148,22 @@
     -webkit-font-smoothing: antialiased;
     -webkit-tap-highlight-color: transparent;
   }
+  /* Global paper grain for areas not covered by opaque surfaces */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    opacity: 0.03;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.8;
+    background-image: var(--grain-coarse);
     background-repeat: repeat;
     background-size: 256px 256px;
+  }
+  /* Every interactive element gets a visible focus affordance */
+  :focus-visible {
+    outline: 2px solid var(--accent-text);
+    outline-offset: 2px;
   }
   ::selection {
     background: rgba(245, 185, 64, 0.35);
@@ -137,25 +172,28 @@
 }
 
 @layer components {
-  /* ── Skeuomorphic/material texture: raised panels ── */
-  /* Tiles get a soft top highlight + bottom shade so they read as tactile,
-     slightly-raised surfaces against the page background. */
+  /* ── Raised card-stock tiles ──
+     Grain + top light + bottom shade + soft drop shadow, so tiles read as
+     physical cards resting on the paper page. */
   .bg-tile {
-    background-image: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0) 28%), linear-gradient(0deg, rgba(0,0,0,0.12), rgba(0,0,0,0) 24%);
+    background-image: var(--grain-coarse), linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0) 30%), linear-gradient(0deg, rgba(26, 20, 8, 0.16), rgba(26, 20, 8, 0) 22%);
+    box-shadow: var(--shadow-tile);
   }
   .bg-tile-soft {
-    background-image: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 32%);
+    background-image: var(--grain-coarse), linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 32%);
   }
-  /* Recessed form fields — inputs sit "into" the surface for a tactile feel. */
+
+  /* Recessed form fields — inputs sit "into" the paper for a tactile feel,
+     with a bronze/gold focus ring (AA for the affordance). */
   input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]),
   textarea,
   select {
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.20), inset 0 0 0 1px rgba(0,0,0,0.04);
+    box-shadow: inset 0 2px 3px rgba(26, 20, 8, 0.10), inset 0 1px 0 rgba(26, 20, 8, 0.05);
   }
   input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
   textarea:focus,
   select:focus {
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.08);
+    box-shadow: inset 0 1px 2px rgba(26, 20, 8, 0.05), 0 0 0 3px var(--focus-ring);
   }
 
   .card-face {
@@ -168,6 +206,18 @@
     -webkit-transform: translateZ(3px);
     transform: translateZ(3px);
     box-shadow: var(--card-face-shadow);
+  }
+  /* Subtle paper grain on card faces (sits under z-10 content) */
+  .card-face::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.5;
+    background-image: var(--grain-coarse);
+    background-repeat: repeat;
+    background-size: 256px 256px;
   }
 
   /* ── Shared button base ── */
@@ -188,7 +238,7 @@
     position: relative;
   }
   .btn:focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--accent-text);
     outline-offset: 2px;
   }
   .btn:disabled {
@@ -199,87 +249,87 @@
     transform: none;
   }
 
-  /* ── Primary: tactile gold (brightened to pop on the purple theme) ── */
-  /* Depth is drawn with white/black rgba overlays (not color-mix) so the
-     shading renders correctly on every browser, including Firefox mobile. */
+  /* ── Primary: tactile brass. Depth is drawn with white/black-bronze rgba
+     overlays (not color-mix) so shading renders identically on every browser,
+     including Firefox mobile. Grain makes the surface read as stamped metal. ── */
   .btn-primary {
     background-color: var(--btn-primary);
-    background-image: linear-gradient(180deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.06) 45%, rgba(0,0,0,0.18) 100%);
+    background-image: var(--grain-fine), linear-gradient(180deg, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.10) 42%, var(--btn-primary-shade) 100%);
     color: var(--btn-primary-text);
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.35) inset,
-      0 -1px 0 rgba(0,0,0,0.15) inset,
-      0 2px 0 rgba(0,0,0,0.32),
-      0 3px 6px rgba(0,0,0,0.25);
+      0 1px 0 rgba(255, 255, 255, 0.45) inset,
+      0 -1px 0 rgba(97, 58, 6, 0.35) inset,
+      0 2px 0 rgba(97, 58, 6, 0.55),
+      0 3px 8px rgba(26, 20, 8, 0.30);
   }
   .btn-primary:hover:not(:disabled) {
-    background-image: linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.12) 45%, rgba(0,0,0,0.12) 100%);
+    background-image: var(--grain-fine), linear-gradient(180deg, rgba(255, 255, 255, 0.50) 0%, rgba(255, 255, 255, 0.14) 42%, rgba(120, 72, 8, 0.22) 100%);
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.4) inset,
-      0 -1px 0 rgba(0,0,0,0.12) inset,
-      0 2px 0 rgba(0,0,0,0.32),
-      0 4px 10px rgba(0,0,0,0.3);
+      0 1px 0 rgba(255, 255, 255, 0.5) inset,
+      0 -1px 0 rgba(97, 58, 6, 0.3) inset,
+      0 2px 0 rgba(97, 58, 6, 0.55),
+      0 4px 12px rgba(26, 20, 8, 0.35);
     transform: translateY(-1px);
   }
   .btn-primary:active:not(:disabled) {
     transform: translateY(1px);
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.25) inset,
-      0 2px 0 rgba(0,0,0,0.32);
+      0 1px 0 rgba(255, 255, 255, 0.25) inset,
+      0 2px 0 rgba(97, 58, 6, 0.55);
   }
 
-  /* ── Secondary: tactile blue (darkened stops for WCAG AA white-on-blue) ── */
+  /* ── Secondary: tactile aubergine (light) / pale violet (dark) ── */
   .btn-secondary {
     background-color: var(--btn-secondary);
-    background-image: linear-gradient(180deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.06) 45%, rgba(0,0,0,0.18) 100%);
+    background-image: var(--grain-fine), linear-gradient(180deg, rgba(255, 255, 255, 0.30) 0%, rgba(255, 255, 255, 0.06) 45%, var(--btn-secondary-shade) 100%);
     color: var(--btn-secondary-text);
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.3) inset,
-      0 -1px 0 rgba(0,0,0,0.12) inset,
-      0 2px 0 rgba(0,0,0,0.32),
-      0 3px 6px rgba(0,0,0,0.22);
+      0 1px 0 rgba(255, 255, 255, 0.30) inset,
+      0 -1px 0 rgba(0, 0, 0, 0.20) inset,
+      0 2px 0 rgba(20, 10, 45, 0.45),
+      0 3px 8px rgba(20, 10, 45, 0.28);
   }
   .btn-secondary:hover:not(:disabled) {
-    background-image: linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.12) 45%, rgba(0,0,0,0.12) 100%);
+    background-image: var(--grain-fine), linear-gradient(180deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.12) 45%, rgba(0, 0, 0, 0.18) 100%);
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.35) inset,
-      0 -1px 0 rgba(0,0,0,0.1) inset,
-      0 2px 0 rgba(0,0,0,0.32),
-      0 4px 10px rgba(0,0,0,0.28);
+      0 1px 0 rgba(255, 255, 255, 0.35) inset,
+      0 -1px 0 rgba(0, 0, 0, 0.16) inset,
+      0 2px 0 rgba(20, 10, 45, 0.45),
+      0 4px 12px rgba(20, 10, 45, 0.35);
     transform: translateY(-1px);
   }
   .btn-secondary:active:not(:disabled) {
     transform: translateY(1px);
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.2) inset,
-      0 2px 0 rgba(0,0,0,0.32);
+      0 1px 0 rgba(255, 255, 255, 0.20) inset,
+      0 2px 0 rgba(20, 10, 45, 0.45);
   }
 
   /* ── Danger: tactile red ── */
   .btn-danger {
     background-color: var(--btn-danger);
-    background-image: linear-gradient(180deg, rgba(255,255,255,0.26) 0%, rgba(255,255,255,0.05) 45%, rgba(0,0,0,0.16) 100%);
+    background-image: var(--grain-fine), linear-gradient(180deg, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0.05) 45%, rgba(0, 0, 0, 0.16) 100%);
     color: var(--btn-danger-text);
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.25) inset,
-      0 -1px 0 rgba(0,0,0,0.15) inset,
-      0 2px 0 rgba(0,0,0,0.32),
-      0 3px 6px rgba(0,0,0,0.2);
+      0 1px 0 rgba(255, 255, 255, 0.25) inset,
+      0 -1px 0 rgba(0, 0, 0, 0.15) inset,
+      0 2px 0 rgba(0, 0, 0, 0.32),
+      0 3px 6px rgba(0, 0, 0, 0.20);
   }
   .btn-danger:hover:not(:disabled) {
-    background-image: linear-gradient(180deg, rgba(255,255,255,0.38) 0%, rgba(255,255,255,0.10) 45%, rgba(0,0,0,0.10) 100%);
+    background-image: var(--grain-fine), linear-gradient(180deg, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.10) 45%, rgba(0, 0, 0, 0.10) 100%);
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.3) inset,
-      0 -1px 0 rgba(0,0,0,0.12) inset,
-      0 2px 0 rgba(0,0,0,0.32),
-      0 4px 10px rgba(0,0,0,0.25);
+      0 1px 0 rgba(255, 255, 255, 0.3) inset,
+      0 -1px 0 rgba(0, 0, 0, 0.12) inset,
+      0 2px 0 rgba(0, 0, 0, 0.32),
+      0 4px 10px rgba(0, 0, 0, 0.25);
     transform: translateY(-1px);
   }
   .btn-danger:active:not(:disabled) {
     transform: translateY(1px);
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.2) inset,
-      0 2px 0 rgba(0,0,0,0.32);
+      0 1px 0 rgba(255, 255, 255, 0.2) inset,
+      0 2px 0 rgba(0, 0, 0, 0.32);
   }
 
   /* ── Selected toggle state ── */
@@ -287,8 +337,8 @@
   .btn-selected.btn-secondary,
   .btn-selected.btn-danger {
     box-shadow:
-      0 1px 0 rgba(0,0,0,0.3) inset,
-      inset 0 2px 4px rgba(0,0,0,0.2);
+      0 1px 0 rgba(0, 0, 0, 0.3) inset,
+      inset 0 2px 4px rgba(0, 0, 0, 0.2);
     transform: translateY(1px);
   }
 
@@ -305,7 +355,17 @@
   .preserve-3d { transform-style: preserve-3d; -webkit-transform-style: preserve-3d; }
   .rotate-y-180 { transform: rotateY(180deg); }
   .shadow-surface {
-    box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 12px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 12px 40px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  /* ── Retro chamfered-notch geometry (badge cut corners) ──
+     Accent use only: solid gold/violet tiles and badges. Avoid on bordered
+     tiles — clip-path trims the border line. */
+  .chamfer-sm {
+    clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+  }
+  .chamfer-md {
+    clip-path: polygon(16px 0, calc(100% - 16px) 0, 100% 16px, 100% calc(100% - 16px), calc(100% - 16px) 100%, 16px 100%, 0 calc(100% - 16px), 0 16px);
   }
 }
 @media (prefers-reduced-motion: reduce) {

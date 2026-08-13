@@ -15,7 +15,7 @@ function emptyCategory(): MenuCategory {
   return { name: '', items: [emptyItem()] };
 }
 
-const inputBase = 'px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent';
+const inputBase = 'px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text';
 const inputWide = `${inputBase} w-full`;
 const inputRow = `${inputBase} flex-1 min-w-0`;
 
@@ -66,7 +66,7 @@ export default function MenuEditor({ value, onChange, onUploadImage }: MenuEdito
               placeholder="Category (e.g. Tacos, Drinks, Desserts)"
               className={`${inputRow} font-semibold`}
             />
-            <label className="p-2 text-ink-faint hover:text-accent transition cursor-pointer" title="Add a category photo">
+            <label className="p-2 text-ink-faint hover:text-accent-text transition cursor-pointer" title="Add a category photo">
               <ImagePlus className="w-4 h-4" />
               <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) pickImage(ci, f); e.target.value = ''; }} />
             </label>
@@ -105,7 +105,7 @@ export default function MenuEditor({ value, onChange, onUploadImage }: MenuEdito
             ))}
           </div>
 
-          <button onClick={() => addItem(ci)} className="mt-2 text-xs font-semibold text-accent hover:text-accent-hover cursor-pointer">
+          <button onClick={() => addItem(ci)} className="mt-2 text-xs font-semibold text-accent-text hover:text-accent-text-hover cursor-pointer">
             + Add item
           </button>
         </div>
@@ -113,7 +113,7 @@ export default function MenuEditor({ value, onChange, onUploadImage }: MenuEdito
 
       <button
         onClick={addCategory}
-        className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition cursor-pointer"
+        className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent-text hover:text-accent-text transition cursor-pointer"
       >
         <Plus className="w-4 h-4 inline-block mr-1 -mt-0.5" /> Add Category
       </button>

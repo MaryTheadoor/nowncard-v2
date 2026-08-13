@@ -70,11 +70,11 @@ owncard-v2/
 │   │   ├── Navbar.tsx         # Global nav (auth-aware, admin link)
 │   │   ├── AuthModal.tsx      # Sign in/up modal (email + Google + anonymous)
 │   │   ├── ShareModal.tsx     # Copy-link + native share fallback
-│   │   ├── CardPreview.tsx    # Static card preview (editor sidebar)
+│   │   ├── LivePagePreview.tsx # Editor preview: LiveCardPreview + mocked page chrome
 │   │   ├── LiveCardPreview.tsx# Live preview in editor (front/back, real-time)
 │   │   ├── DemoCard.tsx       # Landing page animated demo card
 │   │   ├── Footer.tsx         # Site footer
-│   │   └── ui/                # shadcn/ui components
+│   │   ├── (no ui/ dir — hand-rolled Tailwind + CSS vars, no shadcn)
 │   ├── pages/
 │   │   ├── LandingPage.tsx    # Marketing homepage
 │   │   ├── DashboardPage.tsx  # Card list + messaging inbox
@@ -356,6 +356,11 @@ Handled automatically via Firebase Messaging (project-scoped). VAPID key is hard
 ## 10. Coding Conventions
 
 - **Tailwind only** — no inline CSS except for dynamic values (colors, fonts, sizes)
+- **Design system — "Warm Paper & Brass"** (2026-08 redesign). Single source of truth: `src/index.css` (`:root`/`.dark` CSS vars mapped via `@theme`; `tailwind.config.js` was DELETED — never recreate it; Tailwind v4 reads the CSS `@theme` block only).
+  - Palette: warm paper `--space`/`--tile`, ink, brass `--accent` (fills only), dark bronze `--accent-text` (text/icon foregrounds — **never `text-accent` for text**), aubergine `--secondary`, `--tile-gold`, `--tile-violet` (replaced `tile-blue`).
+  - Texture/elevation: `--grain-coarse`/`--grain-fine` SVG data-URIs (alpha ≤6-9%), `--shadow-tile`, `--focus-ring`; `.bg-tile` = raised card-stock, inputs = recessed via global inset shadows.
+  - Chamfer utilities `.chamfer-sm`/`.chamfer-md` are `clip-path` — accent use only (solid tiles/badges); clip-path trims borders and shadows, so never combine with `shadow-*` or rely on borders at the notches.
+  - Contrast is verified AA: every token pair in `src/index.css` was computed ≥4.5:1 (text) / ≥3:1 (UI). Before changing any token value, re-check with the WCAG luminance formula.
 - **TypeScript strict** — no `any` without comment justification
 - **Firebase modular SDK** — v12 tree-shakable imports
 - **Toast errors** — use `sonner` toast for user-facing errors, `console.error` for dev details
@@ -392,7 +397,7 @@ Handled automatically via Firebase Messaging (project-scoped). VAPID key is hard
 - **EditorPage.tsx section order:** Auto-Fill → Basic Info → Settings → Typography → Contact → Addresses → Social Links → Payment Links → Images. Settings and Typography are BETWEEN Info sections — not grouped together.
 
 ### Shared State
-- **useCardTheme hook** (`src/hooks/useCardTheme.ts`) is the SINGLE source for card theme computation (`tc` object, bgOpacity, bgSizeStyle, profile sizing). All 4 card renderers (DemoCard, LiveCardPreview, CardPreview, CardViewerPage) MUST use it. Never inline `tc` or derived variables.
+- **useCardTheme hook** (`src/hooks/useCardTheme.ts`) is the SINGLE source for card theme computation (`tc` object, bgOpacity, bgSizeStyle, profile sizing). All 3 card renderers (DemoCard, LiveCardPreview, CardViewerPage — LivePagePreview delegates to LiveCardPreview) MUST use it. Never inline `tc` or derived variables. Card color values here must stay in sync with the `--card-*` vars in `src/index.css`.
 - **DemoCard `forceLight` prop** bypasses cardTheme but bgOpacity must be destructured from useCardTheme, not read inline.
 - **Card action pills in DashboardPage** (`px-3 py-1.5 bg-tile-soft border border-line rounded-lg text-xs`) are intentionally NOT migrated to `.btn-*` classes — they're a compact pattern.
 

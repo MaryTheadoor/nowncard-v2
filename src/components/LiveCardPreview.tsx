@@ -43,7 +43,7 @@ export default function LiveCardPreview({ card, className = '' }: LiveCardPrevie
             {card.backgroundImage && (
               <>
                 <div className={isHeaderBg ? 'absolute top-0 left-0 right-0 h-[40%]' : 'absolute inset-0'} style={{ backgroundImage: `url('${card.backgroundImage}')`, backgroundPosition: card.bgPosition || 'center', backgroundSize: bgSizeStyle, backgroundRepeat: 'no-repeat', transform: `rotate(${card.bgRotation || 0}deg)` }} />
-                <div className={isHeaderBg ? 'absolute top-0 left-0 right-0 h-[40%]' : 'absolute inset-0'} style={{ backgroundColor: isDark ? '#12121a' : '#f4f1ec', opacity: bgOpacity }} />
+                <div className={isHeaderBg ? 'absolute top-0 left-0 right-0 h-[40%]' : 'absolute inset-0'} style={{ backgroundColor: tc.overlayBg, opacity: bgOpacity }} />
               </>
             )}
             <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-6 pb-5 text-center overflow-y-auto" style={{ fontFamily }}>
@@ -144,7 +144,7 @@ export default function LiveCardPreview({ card, className = '' }: LiveCardPrevie
             {(card.backBackgroundImage || card.backgroundImage) && (
               <>
                 <div className="absolute inset-0" style={{ backgroundImage: `url('${card.backBackgroundImage || card.backgroundImage}')`, backgroundPosition: card.backBgPosition || card.bgPosition || 'center', backgroundSize: card.backBgZoom ? `${card.backBgZoom}% auto` : bgSizeStyle, backgroundRepeat: 'no-repeat', transform: `rotate(${card.backBgRotation ?? card.bgRotation ?? 0}deg)` }} />
-                <div className="absolute inset-0" style={{ backgroundColor: isDark ? '#12121a' : '#f4f1ec', opacity: bgOpacity }} />
+                <div className="absolute inset-0" style={{ backgroundColor: tc.overlayBg, opacity: bgOpacity }} />
               </>
             )}
             <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-7 text-center" style={{ fontFamily }}>

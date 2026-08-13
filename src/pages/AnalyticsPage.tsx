@@ -91,7 +91,7 @@ export default function AnalyticsPage() {
     <div className="min-h-screen bg-space">
       <Navbar />
 
-      <main className="max-w-3xl mx-auto px-5 py-8">
+      <main className="max-w-3xl xl:max-w-4xl mx-auto px-5 py-8">
         <div className="flex items-center gap-3 mb-6">
           <BackLink to="/dashboard">Back to Dashboard</BackLink>
         </div>

@@ -36,7 +36,7 @@ export default function ImportVCardModal({ open, onClose, platform }: ImportVCar
     <ModalShell open={open} onClose={onClose} labelledBy="import-vcard-modal-title" panelClassName="relative bg-tile border border-line rounded-2xl p-6 w-full max-w-[400px] shadow-surface">
       <button onClick={onClose} aria-label="Close" className="absolute top-4 right-4 text-ink-muted hover:text-ink cursor-pointer"><X className="w-5 h-5" /></button>
       <div className="flex items-center gap-2.5 mb-2">
-        <div className="w-9 h-9 rounded-xl bg-accent/15 text-accent flex items-center justify-center"><FileDown className="w-5 h-5" /></div>
+        <div className="w-9 h-9 rounded-xl bg-accent/15 text-accent-text flex items-center justify-center"><FileDown className="w-5 h-5" /></div>
         <h2 id="import-vcard-modal-title" className="text-lg font-extrabold">Contact file downloaded</h2>
       </div>
       <p className="text-sm text-ink-muted mb-4">{content.title}. Follow these steps to add it to your phone:</p>

@@ -77,13 +77,13 @@ export default function LivePagePreview({ card, className = '', layout = 'stack'
                   {cat.items.slice(0, 4).map((item, ii) => (
                     <div key={ii} className="flex items-baseline justify-between gap-2 py-0.5 text-xs">
                       <span className="text-ink">{item.name}</span>
-                      {item.price ? <span className="font-bold text-accent">{item.price}</span> : null}
+                      {item.price ? <span className="font-bold text-accent-text">{item.price}</span> : null}
                     </div>
                   ))}
                 </div>
               ))}
               {menuItemCount > 4 && (
-                <div className="mt-1.5 text-center text-[10px] font-semibold text-accent">View full menu</div>
+                <div className="mt-1.5 text-center text-[10px] font-semibold text-accent-text">View full menu</div>
               )}
             </div>
           )}

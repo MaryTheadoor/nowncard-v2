@@ -19,6 +19,7 @@ import {
 import { toast } from 'sonner';
 import type { Review } from '@/types';
 import CssThemePanel from '@/components/CssThemePanel';
+import { useConfirm } from '@/components/ConfirmDialog';
 
 const BOOTSTRAP_ADMIN_UID = 'EeiBBDTu5jOooHbxyOC98JSlt6r1';
 
@@ -71,6 +72,7 @@ export default function AdminPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showConfirm, ConfirmDialog] = useConfirm();
   const [checkingAdmin, setCheckingAdmin] = useState(true);
   const [canBootstrap, setCanBootstrap] = useState(false);
   const [tab, setTab] = useState<TabKey>('overview');
@@ -189,7 +191,7 @@ export default function AdminPage() {
   };
 
   const deleteReview = async (userId: string) => {
-    if (!confirm('Delete this review permanently?')) return;
+    const ok = await showConfirm({ title: 'Delete review?', message: 'This will permanently remove this review.', destructive: true }); if (!ok) return;
     try {
       await adminMutation('deleteReview', { userId });
       toast.success('Review deleted');
@@ -342,7 +344,7 @@ export default function AdminPage() {
   };
 
   const deleteCard = async (cardId: string) => {
-    if (!confirm('Delete this card permanently?')) return;
+    const ok = await showConfirm({ title: 'Delete card?', message: 'This will permanently remove this card and all its data.', destructive: true }); if (!ok) return;
     try {
       await adminMutation('deleteCard', { cardId });
       toast.success('Card deleted');
@@ -404,7 +406,7 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen bg-space flex flex-col items-center justify-center px-6">
         <div className="bg-tile border border-line rounded-2xl p-8 max-w-sm w-full text-center">
-          <KeyRound className="w-10 h-10 text-accent mx-auto mb-4" />
+          <KeyRound className="w-10 h-10 text-accent-text mx-auto mb-4" />
           <h1 className="text-xl font-extrabold mb-2">Admin Setup</h1>
           <p className="text-sm text-ink-muted mb-6">This account is eligible for admin privileges.</p>
           <button onClick={handleBootstrap} className="btn btn-primary btn-md w-full">
@@ -420,10 +422,11 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-space">
       <Navbar />
+      <ConfirmDialog />
 
-      <main className="max-w-6xl mx-auto px-5 py-8">
+      <main className="max-w-6xl xl:max-w-7xl mx-auto px-5 py-8">
         <div className="flex items-center gap-3 mb-6">
-          <Shield className="w-6 h-6 text-accent" />
+          <Shield className="w-6 h-6 text-accent-text" />
           <h1 className="text-2xl font-extrabold">Admin Panel</h1>
         </div>
 
@@ -433,7 +436,7 @@ export default function AdminPage() {
             <button
               key={key}
               onClick={() => { setTab(key); if (key === 'pending') loadPending(); if (key === 'overview') loadStats(); if (key === 'pricing') loadPricing(); if (key === 'reviews') loadReviews(); if (key === 'users') loadAllUsers(); if (key === 'cards') loadAllCards(); }}
-              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-bold whitespace-nowrap border-b-2 transition ${tab === key ? 'border-accent text-accent' : 'border-transparent text-ink-muted hover:text-ink'}`}
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-bold whitespace-nowrap border-b-2 transition ${tab === key ? 'border-accent-text text-accent-text' : 'border-transparent text-ink-muted hover:text-ink'}`}
             >
               <Icon className="w-4 h-4" /> {label}
             </button>
@@ -460,7 +463,7 @@ export default function AdminPage() {
             {statsError && (
               <p className="text-xs text-danger">Could not load stats. Check the admin permissions.</p>
             )}
-            <button onClick={loadStats} className="flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent transition">
+            <button onClick={loadStats} className="flex items-center gap-1.5 text-xs text-ink-muted hover:text-accent-text transition">
               <RefreshCw className="w-3 h-3" /> Refresh stats
             </button>
           </div>
@@ -469,7 +472,7 @@ export default function AdminPage() {
         {/* ========================= PRICING ========================= */}
         {tab === 'pricing' && (
           <section className="bg-tile border border-line rounded-2xl p-6 max-w-lg">
-            <h2 className="text-lg font-extrabold mb-4 flex items-center gap-2"><DollarSign className="w-5 h-5 text-accent" /> Plan Pricing</h2>
+            <h2 className="text-lg font-extrabold mb-4 flex items-center gap-2"><DollarSign className="w-5 h-5 text-accent-text" /> Plan Pricing</h2>
             <p className="text-sm text-ink-muted mb-5">Changes apply immediately to the checkout flow on the landing page.</p>
             <div className="space-y-4">
               <div className="flex items-center gap-3">
@@ -480,7 +483,7 @@ export default function AdminPage() {
                   min={1}
                   value={proPriceStr}
                   onChange={(e) => setProPriceStr(e.target.value)}
-                  className="w-20 px-3 py-2 bg-space border border-line rounded-lg text-ink text-sm font-bold focus:outline-none focus:border-accent"
+                  className="w-20 px-3 py-2 bg-space border border-line rounded-lg text-ink text-sm font-bold focus:outline-none focus:border-accent-text"
                 />
                 <span className="text-sm text-ink-muted">/year</span>
               </div>
@@ -492,7 +495,7 @@ export default function AdminPage() {
                   min={1}
                   value={bizPriceStr}
                   onChange={(e) => setBizPriceStr(e.target.value)}
-                  className="w-20 px-3 py-2 bg-space border border-line rounded-lg text-ink text-sm font-bold focus:outline-none focus:border-accent"
+                  className="w-20 px-3 py-2 bg-space border border-line rounded-lg text-ink text-sm font-bold focus:outline-none focus:border-accent-text"
                 />
                 <span className="text-sm text-ink-muted">/year</span>
               </div>
@@ -511,8 +514,8 @@ export default function AdminPage() {
         {tab === 'pending' && (
           <section className="bg-tile border border-line rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-extrabold flex items-center gap-2"><Shield className="w-5 h-5 text-accent" /> Pending Upgrades</h2>
-              <button onClick={loadPending} className="text-xs text-ink-muted hover:text-accent"><RefreshCw className="w-3.5 h-3.5" /></button>
+              <h2 className="text-lg font-extrabold flex items-center gap-2"><Shield className="w-5 h-5 text-accent-text" /> Pending Upgrades</h2>
+              <button onClick={loadPending} className="text-xs text-ink-muted hover:text-accent-text"><RefreshCw className="w-3.5 h-3.5" /></button>
             </div>
             {pending.length === 0 ? (
               <p className="text-sm text-ink-muted">No pending upgrades.</p>
@@ -533,7 +536,7 @@ export default function AdminPage() {
                     {pending.map((p) => (
                       <tr key={p.id} className="border-b border-line-soft">
                         <td className="py-2 pr-4 text-xs">{p.userEmail || p.uid.slice(0, 14) + '…'}</td>
-                        <td className="py-2 pr-4 capitalize font-semibold text-accent">{p.plan}</td>
+                        <td className="py-2 pr-4 capitalize font-semibold text-accent-text">{p.plan}</td>
                         <td className="py-2 pr-4">${p.price}</td>
                         <td className="py-2 pr-4 font-mono text-[11px] text-ink-faint">{p.orderId ? p.orderId.slice(0, 12) + '…' : '-'}</td>
                         <td className="py-2 pr-4 text-xs text-ink-muted">{ts(p.createdAt) ? new Date(ts(p.createdAt)).toLocaleDateString() : '-'}</td>
@@ -559,7 +562,7 @@ export default function AdminPage() {
         {/* ========================= UPGRADES ========================= */}
         {tab === 'upgrades' && (
           <section className="bg-tile border border-line rounded-2xl p-6">
-            <h2 className="text-lg font-extrabold mb-4 flex items-center gap-2"><CreditCard className="w-5 h-5 text-accent" /> Completed Upgrades</h2>
+            <h2 className="text-lg font-extrabold mb-4 flex items-center gap-2"><CreditCard className="w-5 h-5 text-accent-text" /> Completed Upgrades</h2>
             {upgrades.length === 0 ? (
               <p className="text-sm text-ink-muted">No completed upgrades.</p>
             ) : (
@@ -580,7 +583,7 @@ export default function AdminPage() {
                     {upgrades.map((u) => (
                       <tr key={u.id} className="border-b border-line-soft">
                         <td className="py-2 pr-4 font-mono text-xs text-ink-muted">{u.uid.slice(0, 12)}…</td>
-                        <td className="py-2 pr-4 capitalize font-semibold text-accent">{u.plan}</td>
+                        <td className="py-2 pr-4 capitalize font-semibold text-accent-text">{u.plan}</td>
                         <td className="py-2 pr-4">{fmtCents(u.amountPaid)}</td>
                         <td className="py-2 pr-4 text-xs">{u.cardBrand ? `${u.cardBrand} ••••${u.lastFour || ''}` : u.paymentId?.slice(0, 10) + '…' || '-'}</td>
                         <td className="py-2 pr-4 text-xs">
@@ -591,7 +594,7 @@ export default function AdminPage() {
                         <td className="py-2 pr-4 text-xs text-ink-muted whitespace-nowrap">{ts(u.appliedAt) ? new Date(ts(u.appliedAt)).toLocaleString() : '-'}</td>
                         <td className="py-2 pr-4">
                           {u.orderId && (
-                            <button onClick={() => loadPaymentDetail(u.orderId!)} className="flex items-center gap-1 text-[11px] text-accent hover:underline">
+                            <button onClick={() => loadPaymentDetail(u.orderId!)} className="flex items-center gap-1 text-[11px] text-accent-text hover:underline">
                               <Eye className="w-3 h-3" /> Details
                             </button>
                           )}
@@ -603,7 +606,7 @@ export default function AdminPage() {
               </div>
             )}
             {upgradesHasMore && (
-              <button onClick={() => loadUpgrades(upgradesLastDoc || undefined)} className="mt-4 w-full py-2 text-sm font-semibold text-ink-muted hover:text-accent border border-line rounded-xl transition">
+              <button onClick={() => loadUpgrades(upgradesLastDoc || undefined)} className="mt-4 w-full py-2 text-sm font-semibold text-ink-muted hover:text-accent-text border border-line rounded-xl transition">
                 Load More
               </button>
             )}
@@ -624,13 +627,13 @@ export default function AdminPage() {
         {tab === 'users' && (
           <section className="bg-tile border border-line rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-              <h2 className="text-lg font-extrabold flex items-center gap-2"><Users className="w-5 h-5 text-accent" /> Users</h2>
+              <h2 className="text-lg font-extrabold flex items-center gap-2"><Users className="w-5 h-5 text-accent-text" /> Users</h2>
               {!usersLoading && <span className="text-xs text-ink-faint">{filteredUsers.length} of {adminUsers.length} loaded</span>}
             </div>
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
               <input value={userSearch} onChange={(e) => setUserSearch(e.target.value)}
-                placeholder="Search by email, name, or plan…" className="w-full pl-9 pr-3 py-2 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                placeholder="Search by email, name, or plan…" className="w-full pl-9 pr-3 py-2 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
             </div>
             {usersLoading ? (
               <p className="text-sm text-ink-muted">Loading users…</p>
@@ -649,7 +652,7 @@ export default function AdminPage() {
                         <td className="py-2 pr-4 font-mono text-xs text-ink-muted">{u.email}</td>
                         <td className="py-2 pr-4 capitalize font-semibold">{u.plan}</td>
                         <td className="py-2 pr-4">{u.cardCount}</td>
-                        <td className="py-2 pr-4">{u.isAdmin ? <Shield className="w-3.5 h-3.5 text-accent" /> : '-'}</td>
+                        <td className="py-2 pr-4">{u.isAdmin ? <Shield className="w-3.5 h-3.5 text-accent-text" /> : '-'}</td>
                         <td className="py-2 flex gap-1.5">
                           {['free', 'pro', 'business'].map((plan) => (
                             <button key={plan} onClick={() => setPlan(u.id, plan)}
@@ -671,13 +674,13 @@ export default function AdminPage() {
         {tab === 'cards' && (
           <section className="bg-tile border border-line rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-              <h2 className="text-lg font-extrabold flex items-center gap-2"><FileText className="w-5 h-5 text-accent" /> Cards</h2>
+              <h2 className="text-lg font-extrabold flex items-center gap-2"><FileText className="w-5 h-5 text-accent-text" /> Cards</h2>
               {!cardsLoading && <span className="text-xs text-ink-faint">{filteredCards.length} of {adminCards.length} loaded</span>}
             </div>
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
               <input value={cardSearch} onChange={(e) => setCardSearch(e.target.value)}
-                placeholder="Search by slug, name, company, or owner…" className="w-full pl-9 pr-3 py-2 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                placeholder="Search by slug, name, company, or owner…" className="w-full pl-9 pr-3 py-2 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
             </div>
             {cardsLoading ? (
               <p className="text-sm text-ink-muted">Loading cards…</p>
@@ -732,8 +735,8 @@ export default function AdminPage() {
         {tab === 'reviews' && (
           <section className="bg-tile border border-line rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-extrabold flex items-center gap-2"><Star className="w-5 h-5 text-accent" /> Reviews</h2>
-              <button onClick={loadReviews} className="text-xs text-ink-muted hover:text-accent"><RefreshCw className="w-3.5 h-3.5" /></button>
+              <h2 className="text-lg font-extrabold flex items-center gap-2"><Star className="w-5 h-5 text-accent-text" /> Reviews</h2>
+              <button onClick={loadReviews} className="text-xs text-ink-muted hover:text-accent-text"><RefreshCw className="w-3.5 h-3.5" /></button>
             </div>
             {reviews.length === 0 ? (
               <p className="text-sm text-ink-muted">No reviews yet.</p>

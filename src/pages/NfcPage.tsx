@@ -1,3 +1,5 @@
+import Navbar from '@/components/Navbar';
+import BackLink from '@/components/BackLink';
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { collection, query, where, limit, getDocs } from 'firebase/firestore';
@@ -136,19 +138,15 @@ export default function NfcPage() {
 
   return (
     <div className="min-h-screen bg-space">
-      <header className="sticky top-0 z-40 bg-space/80 backdrop-blur-xl border-b border-line-soft">
-        <div className="max-w-2xl mx-auto px-5 flex items-center justify-between h-14">
-          <Link to={`/card/${slug}`} className="flex items-center gap-2 text-ink font-bold text-[15px]">
-            <ArrowLeft className="w-4 h-4" />
-            <span>Write NFC Tag</span>
-          </Link>
-        </div>
-      </header>
+      <Navbar />
+      <div className="max-w-2xl mx-auto px-5 pt-5">
+        <BackLink to={`/card/${slug}`}>Back to Card</BackLink>
+      </div>
 
       <main className="max-w-2xl mx-auto px-5 py-8">
         <div className="bg-tile border border-line rounded-2xl p-6 mb-6 text-center">
           <div className="w-16 h-16 rounded-2xl bg-tile-soft border border-line flex items-center justify-center mx-auto mb-4">
-            <Nfc className="w-8 h-8 text-accent" />
+            <Nfc className="w-8 h-8 text-accent-text" />
           </div>
           <h1 className="text-xl font-bold text-ink mb-1">Program NFC Tag</h1>
           <p className="text-sm text-ink-muted mb-6">
@@ -159,7 +157,7 @@ export default function NfcPage() {
             <div className="bg-space border border-line rounded-xl p-4 mb-6 text-left">
               <h3 className="font-bold text-sm mb-1">{card.firstName} {card.lastName}</h3>
               <p className="text-xs text-ink-muted mb-2">{card.jobTitle}{card.company ? ` · ${card.company}` : ''}</p>
-              <p className="text-xs text-accent font-mono break-all">{cardUrl}</p>
+              <p className="text-xs text-accent-text font-mono break-all">{cardUrl}</p>
             </div>
           )}
 
@@ -207,7 +205,7 @@ export default function NfcPage() {
 
           <button
             onClick={() => setShowPreview((s) => !s)}
-            className="mt-4 text-xs text-accent font-semibold hover:underline cursor-pointer"
+            className="mt-4 text-xs text-accent-text font-semibold hover:underline cursor-pointer"
           >
             {showPreview ? 'Hide preview' : 'Preview what will be written'}
           </button>

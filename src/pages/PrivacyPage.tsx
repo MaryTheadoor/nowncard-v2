@@ -119,7 +119,7 @@ export default function PrivacyPage() {
             </ul>
             <p className="text-sm leading-relaxed mt-2">
               To exercise these rights, contact us at{' '}
-              <a href="mailto:support@nowncard.com" className="text-accent hover:underline">support@nowncard.com</a>. We will respond within 30 days.
+              <a href="mailto:support@nowncard.com" className="text-accent-text hover:underline">support@nowncard.com</a>. We will respond within 30 days.
             </p>
           </section>
 
@@ -143,8 +143,8 @@ export default function PrivacyPage() {
               Our Service integrates with third-party services. Their use of your information is governed by their respective privacy policies:
             </p>
             <ul className="list-disc list-inside text-sm leading-relaxed mt-2 space-y-1">
-              <li><a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">Google Privacy Policy</a> (Firebase, Authentication, Fonts)</li>
-              <li><a href="https://squareup.com/us/en/legal/general/privacy" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">Square Privacy Policy</a> (Payments)</li>
+              <li><a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-accent-text hover:underline">Google Privacy Policy</a> (Firebase, Authentication, Fonts)</li>
+              <li><a href="https://squareup.com/us/en/legal/general/privacy" target="_blank" rel="noopener noreferrer" className="text-accent-text hover:underline">Square Privacy Policy</a> (Payments)</li>
             </ul>
           </section>
 
@@ -162,7 +162,7 @@ export default function PrivacyPage() {
             </p>
             <p className="text-sm leading-relaxed mt-2">
               <strong>Email:</strong>{' '}
-              <a href="mailto:support@nowncard.com" className="text-accent hover:underline">support@nowncard.com</a>
+              <a href="mailto:support@nowncard.com" className="text-accent-text hover:underline">support@nowncard.com</a>
               <br />
               <strong>Company:</strong> NOWN Digital
             </p>

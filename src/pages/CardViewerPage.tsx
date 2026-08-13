@@ -506,12 +506,12 @@ export default function CardViewerPage() {
               <div className="bg-tile border border-line rounded-2xl p-4">
                 <div className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-3">Contact {name || 'us'}</div>
                 <div className="grid grid-cols-2 gap-2 mb-2">
-                  <input value={leadName} onChange={(e) => setLeadName(e.target.value)} placeholder="Your name" aria-label="Your name" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-                  <input type="email" value={leadEmail} onChange={(e) => setLeadEmail(e.target.value)} placeholder="Email" aria-label="Email" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                  <input value={leadName} onChange={(e) => setLeadName(e.target.value)} placeholder="Your name" aria-label="Your name" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
+                  <input type="email" value={leadEmail} onChange={(e) => setLeadEmail(e.target.value)} placeholder="Email" aria-label="Email" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
                 </div>
                 <div className="grid grid-cols-2 gap-2 mb-2">
-                  <input value={leadPhone} onChange={(e) => setLeadPhone(e.target.value)} placeholder="Phone (optional)" aria-label="Phone" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-                  <input value={leadCompany} onChange={(e) => setLeadCompany(e.target.value)} placeholder="Company (optional)" aria-label="Company" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                  <input value={leadPhone} onChange={(e) => setLeadPhone(e.target.value)} placeholder="Phone (optional)" aria-label="Phone" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
+                  <input value={leadCompany} onChange={(e) => setLeadCompany(e.target.value)} placeholder="Company (optional)" aria-label="Company" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
                 </div>
                 <textarea
                   value={messageText}
@@ -520,7 +520,7 @@ export default function CardViewerPage() {
                   aria-label="Message"
                   rows={3}
                   maxLength={2000}
-                  className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent resize-none mb-3"
+                  className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text resize-none mb-3"
                 />
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-ink-faint">{messageText.length}/2000</span>
@@ -549,7 +549,7 @@ export default function CardViewerPage() {
                 placeholder="Hi! I'd love to connect…"
                 rows={3}
                 maxLength={500}
-                className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent resize-none mb-3"
+                className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text resize-none mb-3"
               />
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-ink-faint">{messageText.length}/500</span>
@@ -606,7 +606,7 @@ export default function CardViewerPage() {
                           <div className="text-sm text-ink font-medium">{item.name}</div>
                           {item.description ? <div className="text-xs text-ink-muted">{item.description}</div> : null}
                         </div>
-                        {item.price ? <div className="text-sm font-bold text-accent whitespace-nowrap">{item.price}</div> : null}
+                        {item.price ? <div className="text-sm font-bold text-accent-text whitespace-nowrap">{item.price}</div> : null}
                       </div>
                     ))}
                   </div>
@@ -615,7 +615,7 @@ export default function CardViewerPage() {
               {menuItemCount > MENU_PREVIEW_ITEMS && (
                 <button
                   onClick={() => { setMenuExpanded((s) => !s); track('menu'); }}
-                  className="mt-3 w-full text-sm font-semibold text-accent hover:underline cursor-pointer flex items-center justify-center gap-1"
+                  className="mt-3 w-full text-sm font-semibold text-accent-text hover:underline cursor-pointer flex items-center justify-center gap-1"
                 >
                   {menuExpanded ? 'Show less' : `View full menu (${menuItemCount} items)`}
                   <ChevronDown className={`w-4 h-4 transition-transform ${menuExpanded ? 'rotate-180' : ''}`} />

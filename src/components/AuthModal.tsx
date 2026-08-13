@@ -66,9 +66,9 @@ export default function AuthModal({ open, onClose, onSignInEmail, onSignUpEmail,
         <div className="text-center text-xs text-ink-faint mb-4">Or use email</div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" aria-label="Email" required className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20" />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" aria-label="Email" required className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text focus:ring-1 focus:ring-accent-text/30" />
           <div className="relative">
-            <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" aria-label="Password" required className="w-full px-3.5 py-2.5 pr-10 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20" />
+            <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" aria-label="Password" required className="w-full px-3.5 py-2.5 pr-10 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text focus:ring-1 focus:ring-accent-text/30" />
             <button type="button" onClick={() => setShowPassword((s) => !s)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink cursor-pointer p-1" aria-label={showPassword ? 'Hide password' : 'Show password'}>
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -81,9 +81,9 @@ export default function AuthModal({ open, onClose, onSignInEmail, onSignUpEmail,
 
         <div className="text-center mt-4 text-sm text-ink-muted">
           {mode === 'signin' ? (
-            <>Need an account? <button onClick={() => { setMode('signup'); setEmail(''); setPassword(''); }} className="text-accent font-semibold cursor-pointer">Sign Up</button></>
+            <>Need an account? <button onClick={() => { setMode('signup'); setEmail(''); setPassword(''); }} className="text-accent-text font-semibold cursor-pointer">Sign Up</button></>
           ) : (
-            <>Already have an account? <button onClick={() => { setMode('signin'); setEmail(''); setPassword(''); }} className="text-accent font-semibold cursor-pointer">Sign In</button></>
+            <>Already have an account? <button onClick={() => { setMode('signin'); setEmail(''); setPassword(''); }} className="text-accent-text font-semibold cursor-pointer">Sign In</button></>
           )}
         </div>
 

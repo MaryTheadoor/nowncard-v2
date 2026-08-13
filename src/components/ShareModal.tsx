@@ -134,7 +134,7 @@ export default function ShareModal({ open, onClose, url, title }: ShareModalProp
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => toast.success(`Opening ${s.label}…`)}
-              className="flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl bg-tile-soft border border-line hover:border-accent hover:bg-space/50 transition text-ink-muted hover:text-ink no-underline"
+              className="flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl bg-tile-soft border border-line hover:border-accent-text hover:bg-space/50 transition text-ink-muted hover:text-ink no-underline"
             >
               {s.icon}
               <span className="text-[11px] font-medium">{s.label}</span>

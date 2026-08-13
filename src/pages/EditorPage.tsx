@@ -14,6 +14,7 @@ import { storage } from '@/lib/storage';
 import { useAuth } from '@/hooks/auth-context';
 import BackgroundPositioner from '@/components/BackgroundPositioner';
 import { parseVCard } from '@/lib/vcard-parser';
+import { useConfirm } from '@/components/ConfirmDialog';
 import { slugify, getCardLimit, GOOGLE_FONTS, compressImage, SOCIAL_PLATFORMS, PAYMENT_PLATFORMS } from '@/lib/utils';
 import type { Card, SocialLink, FeaturedLink, MenuCategory } from '@/types';
 import { toast } from 'sonner';
@@ -41,6 +42,8 @@ export default function EditorPage() {
   const location = useLocation();
   const { user, userData, loading: authLoading } = useAuth();
   const [card, setCard] = useState<Partial<Card>>(defaultCard);
+  const [showConfirm, ConfirmDialog] = useConfirm();
+  const originalCardRef = useRef<Partial<Card> | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -101,6 +104,7 @@ export default function EditorPage() {
         const isTeamOwner = data?.teamOwnerUid === user.uid || data?.teamOwnerId === user.uid;
         if (snap.exists() && (isOwner || isTeamOwner)) {
           setCard(data as Card);
+          originalCardRef.current = data as Card;
           setAccentHex((data as Card).accentColor || '#f5b940');
           setCardBgHex((data as Card).cardBgColor || '#f4f1ec');
           setPageBgHex((data as Card).pageBgColor || '#391681');
@@ -155,6 +159,19 @@ export default function EditorPage() {
     }, 400);
     return () => { if (slugDebounce.current) clearTimeout(slugDebounce.current); };
   }, [card.slug, user, id]);
+
+  const isDirty = originalCardRef.current ? JSON.stringify(card) !== JSON.stringify(originalCardRef.current) : false;
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes.';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
 
   const handleSave = async () => {
     if (!user) return;
@@ -257,6 +274,7 @@ export default function EditorPage() {
           tx.set(slugRef, { cardId: id, ownerUid: user.uid, updatedAt: serverTimestamp() }, { merge: true });
         });
         toast.success('Card saved');
+        originalCardRef.current = { ...card };
       } else {
         if (!data.isTeamCard) {
           const [uidCards, idCards] = await Promise.all([
@@ -286,6 +304,7 @@ export default function EditorPage() {
           tx.set(slugRef, { cardId: cardRef.id, ownerUid: user.uid, updatedAt: serverTimestamp() });
         });
         toast.success('Card saved');
+        originalCardRef.current = { ...card };
         navigate(`/editor/${cardRef.id}`);
       }
     } catch (err: unknown) {
@@ -533,6 +552,7 @@ export default function EditorPage() {
   return (
     <div className="min-h-screen bg-space">
       <Navbar />
+      <ConfirmDialog />
       <div className="max-w-7xl mx-auto px-4 sm:px-5 pt-5">
         <BackLink to="/dashboard">Back to Dashboard</BackLink>
       </div>
@@ -565,23 +585,24 @@ export default function EditorPage() {
               <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
             </summary>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-              <input value={card.prefix || ''} onChange={(e) => updateField('prefix', e.target.value)} placeholder="Prefix" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-              <input value={card.firstName || ''} onChange={(e) => updateField('firstName', e.target.value)} placeholder="First Name *" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-              <input value={card.middleName || ''} onChange={(e) => updateField('middleName', e.target.value)} placeholder="Middle" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-              <input value={card.lastName || ''} onChange={(e) => updateField('lastName', e.target.value)} placeholder="Last Name *" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-              <input value={card.suffix || ''} onChange={(e) => updateField('suffix', e.target.value)} placeholder="Suffix" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-              <input value={card.nickname || ''} onChange={(e) => updateField('nickname', e.target.value)} placeholder="Nickname" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-              <input value={card.jobTitle || ''} onChange={(e) => updateField('jobTitle', e.target.value)} placeholder="Job Title" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-              <input value={card.department || ''} onChange={(e) => updateField('department', e.target.value)} placeholder="Department" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-              <input value={card.company || ''} onChange={(e) => updateField('company', e.target.value)} placeholder="Company" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-              <input value={card.industry || ''} onChange={(e) => updateField('industry', e.target.value)} placeholder="Industry" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+              <label className="block text-sm font-semibold text-ink mb-1.5">Prefix</label><input value={card.prefix || ''} onChange={(e) => updateField('prefix', e.target.value)} placeholder="Prefix" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
+              <label className="block text-sm font-semibold text-ink mb-1.5">First Name *</label><input value={card.firstName || ''} onChange={(e) => updateField('firstName', e.target.value)} placeholder="First Name *" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
+              <label className="block text-sm font-semibold text-ink mb-1.5">Middle Name</label><input value={card.middleName || ''} onChange={(e) => updateField('middleName', e.target.value)} placeholder="Middle" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
+              <label className="block text-sm font-semibold text-ink mb-1.5">Last Name *</label><input value={card.lastName || ''} onChange={(e) => updateField('lastName', e.target.value)} placeholder="Last Name *" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
+              <label className="block text-sm font-semibold text-ink mb-1.5">Suffix</label><input value={card.suffix || ''} onChange={(e) => updateField('suffix', e.target.value)} placeholder="Suffix" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
+              <label className="block text-sm font-semibold text-ink mb-1.5">Nickname</label><input value={card.nickname || ''} onChange={(e) => updateField('nickname', e.target.value)} placeholder="Nickname" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
+              <label className="block text-sm font-semibold text-ink mb-1.5">Job Title</label><input value={card.jobTitle || ''} onChange={(e) => updateField('jobTitle', e.target.value)} placeholder="Job Title" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
+              <label className="block text-sm font-semibold text-ink mb-1.5">Department</label><input value={card.department || ''} onChange={(e) => updateField('department', e.target.value)} placeholder="Department" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
+              <label className="block text-sm font-semibold text-ink mb-1.5">Company</label><input value={card.company || ''} onChange={(e) => updateField('company', e.target.value)} placeholder="Company" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
+              <label className="block text-sm font-semibold text-ink mb-1.5">Industry</label><input value={card.industry || ''} onChange={(e) => updateField('industry', e.target.value)} placeholder="Industry" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
               <div className="sm:col-span-2 flex gap-2">
                 <div className="flex-1 relative">
+                  <label className="block text-sm font-semibold text-ink mb-1.5">Card Slug</label>
                   <input
                     value={card.slug || ''}
                     onChange={(e) => { slugManuallySet.current = true; updateField('slug', e.target.value); }}
                     placeholder="Slug (e.g. jane-doe)"
-                    className={`w-full px-3.5 py-2.5 bg-space border rounded-lg text-ink text-sm focus:outline-none focus:border-accent ${
+                    className={`w-full px-3.5 py-2.5 bg-space border rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text ${
                       slugStatus === 'taken' || slugStatus === 'invalid' ? 'border-danger' :
                       slugStatus === 'available' ? 'border-success' :
                       'border-line'
@@ -605,13 +626,13 @@ export default function EditorPage() {
                   </a>
                 )}
               </div>
-              <textarea value={card.bio || ''} onChange={(e) => updateField('bio', e.target.value)} placeholder="Bio" rows={3} className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent sm:col-span-4" />
+              <label className="block text-sm font-semibold text-ink mb-1.5">Bio</label><textarea value={card.bio || ''} onChange={(e) => updateField('bio', e.target.value)} placeholder="Bio" rows={3} className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text sm:col-span-4" />
             </div>
 
             {/* Hidden dates toggle */}
             <button
               onClick={() => setShowDates((s) => !s)}
-              className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-ink-muted hover:text-accent transition"
+              className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-ink-muted hover:text-accent-text transition"
             >
               <Calendar className="w-3.5 h-3.5" />
               {showDates ? 'Hide date info' : 'Add date info'}
@@ -619,8 +640,8 @@ export default function EditorPage() {
             </button>
             {showDates && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                <input type="date" value={card.birthday || ''} onChange={(e) => updateField('birthday', e.target.value)} placeholder="Birthday" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-                <input type="date" value={card.anniversary || ''} onChange={(e) => updateField('anniversary', e.target.value)} placeholder="Anniversary" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                <label className="block text-sm font-semibold text-ink mb-1.5">Birthday</label><input type="date" value={card.birthday || ''} onChange={(e) => updateField('birthday', e.target.value)} placeholder="Birthday" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
+                <label className="block text-sm font-semibold text-ink mb-1.5">Anniversary</label><input type="date" value={card.anniversary || ''} onChange={(e) => updateField('anniversary', e.target.value)} placeholder="Anniversary" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
               </div>
             )}
           </details>
@@ -637,7 +658,7 @@ export default function EditorPage() {
                 Public (visible to anyone with the link)
               </label>
               {userData?.plan === 'business' && (
-                <label className={`flex items-center gap-2 text-sm ${isNewTeamCard ? 'text-accent' : 'text-ink-muted'} cursor-pointer`}>
+                <label className={`flex items-center gap-2 text-sm ${isNewTeamCard ? 'text-accent-text' : 'text-ink-muted'} cursor-pointer`}>
                   <input type="checkbox" checked={card.isTeamCard ?? false} onChange={(e) => updateField('isTeamCard', e.target.checked)} disabled={isNewTeamCard} className="w-4 h-4 accent-accent rounded" />
                   Team card (doesn't count against member's plan limit)
                   {isNewTeamCard && <span className="text-[10px] font-bold uppercase tracking-wider">— Pre-set</span>}
@@ -658,7 +679,7 @@ export default function EditorPage() {
                 <div className="flex items-center gap-2 text-sm text-ink-faint">
                   <input type="checkbox" disabled className="w-4 h-4 accent-accent rounded opacity-50" />
                   <span>Hide branding nav on card page</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-accent">— Pro</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-accent-text">— Pro</span>
                 </div>
               )}
             </div>
@@ -683,7 +704,7 @@ export default function EditorPage() {
                     const v = e.target.value.trim();
                     if (/^#[0-9A-Fa-f]{6}$/.test(v)) updateField('accentColor', v);
                   }}
-                  className="w-20 px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-xs font-mono uppercase focus:outline-none focus:border-accent"
+                  className="w-20 px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-xs font-mono uppercase focus:outline-none focus:border-accent-text"
                 />
               </div>
               {/* Card BG */}
@@ -698,7 +719,7 @@ export default function EditorPage() {
                     const v = e.target.value.trim();
                     if (/^#[0-9A-Fa-f]{6}$/.test(v)) updateField('cardBgColor', v);
                   }}
-                  className="w-20 px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-xs font-mono uppercase focus:outline-none focus:border-accent"
+                  className="w-20 px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-xs font-mono uppercase focus:outline-none focus:border-accent-text"
                 />
                 {card.cardBgColor && (
                   <button onClick={() => updateField('cardBgColor', undefined)} className="text-xs text-ink-muted hover:text-ink underline">Reset</button>
@@ -716,7 +737,7 @@ export default function EditorPage() {
                     const v = e.target.value.trim();
                     if (/^#[0-9A-Fa-f]{6}$/.test(v)) updateField('pageBgColor', v);
                   }}
-                  className="w-20 px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-xs font-mono uppercase focus:outline-none focus:border-accent"
+                  className="w-20 px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-xs font-mono uppercase focus:outline-none focus:border-accent-text"
                 />
                 {card.pageBgColor && (
                   <button onClick={() => updateField('pageBgColor', undefined)} className="text-xs text-ink-muted hover:text-ink underline">Reset</button>
@@ -725,10 +746,10 @@ export default function EditorPage() {
               {/* Text */}
               <div className="flex items-center gap-2">
                 <span className="text-sm text-ink-muted">Text</span>
-                <button onClick={() => updateField('textColor', undefined)} className={`w-7 h-7 rounded-full border-2 ${!card.textColor ? 'border-accent' : 'border-line'}`} style={{ background: 'linear-gradient(135deg, #f4f1ec 50%, #1a1612 50%)' }} title="Auto" />
-                <button onClick={() => updateField('textColor', '#1a1612')} className={`w-7 h-7 rounded-full border-2 ${card.textColor === '#1a1612' ? 'border-accent' : 'border-line'}`} style={{ background: '#1a1612' }} title="Black" />
-                <button onClick={() => updateField('textColor', '#f4f1ec')} className={`w-7 h-7 rounded-full border-2 ${card.textColor === '#f4f1ec' ? 'border-accent' : 'border-line'}`} style={{ background: '#f4f1ec' }} title="White" />
-                <button onClick={() => updateField('textColor', '#7a7166')} className={`w-7 h-7 rounded-full border-2 ${card.textColor === '#7a7166' ? 'border-accent' : 'border-line'}`} style={{ background: '#7a7166' }} title="Gray" />
+                <button onClick={() => updateField('textColor', undefined)} className={`w-7 h-7 rounded-full border-2 ${!card.textColor ? 'border-accent-text' : 'border-line'}`} style={{ background: 'linear-gradient(135deg, #f4f1ec 50%, #1a1612 50%)' }} title="Auto" />
+                <button onClick={() => updateField('textColor', '#1a1612')} className={`w-7 h-7 rounded-full border-2 ${card.textColor === '#1a1612' ? 'border-accent-text' : 'border-line'}`} style={{ background: '#1a1612' }} title="Black" />
+                <button onClick={() => updateField('textColor', '#f4f1ec')} className={`w-7 h-7 rounded-full border-2 ${card.textColor === '#f4f1ec' ? 'border-accent-text' : 'border-line'}`} style={{ background: '#f4f1ec' }} title="White" />
+                <button onClick={() => updateField('textColor', '#7a7166')} className={`w-7 h-7 rounded-full border-2 ${card.textColor === '#7a7166' ? 'border-accent-text' : 'border-line'}`} style={{ background: '#7a7166' }} title="Gray" />
                 {(userData?.plan === 'pro' || userData?.plan === 'business') ? (
                   <>
                     <input type="color" value={card.textColor || '#1a1612'} onChange={(e) => { updateField('textColor', e.target.value); setTextHex(e.target.value); }} className="w-10 h-10 rounded-lg border border-line bg-transparent cursor-pointer" />
@@ -740,11 +761,11 @@ export default function EditorPage() {
                         const v = e.target.value.trim();
                         if (/^#[0-9A-Fa-f]{6}$/.test(v)) updateField('textColor', v);
                       }}
-                      className="w-20 px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-xs font-mono uppercase focus:outline-none focus:border-accent"
+                      className="w-20 px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-xs font-mono uppercase focus:outline-none focus:border-accent-text"
                     />
                   </>
                 ) : (
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-accent">— Pro</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-accent-text">— Pro</span>
                 )}
                 {card.textColor && (
                   <button onClick={() => updateField('textColor', undefined)} className="text-xs text-ink-muted hover:text-ink underline">Reset</button>
@@ -792,7 +813,7 @@ export default function EditorPage() {
                           if (val === '__custom__') return;
                           setCard((prev) => ({ ...prev, fontFamily: val === 'Manrope' ? undefined : val, customFontUrl: undefined }));
                         }}
-                        className="flex-1 min-w-0 px-3 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent"
+                        className="flex-1 min-w-0 px-3 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text"
                       >
                         {GOOGLE_FONTS.map((f) => (
                           <option key={f.value} value={f.value}>{f.name}</option>
@@ -862,7 +883,7 @@ export default function EditorPage() {
                                   setCard((prev) => ({ ...prev, fontSizeScale: scaleFromPt(pt) }));
                                 }
                               }}
-                              className="w-14 px-1.5 py-1 bg-space border border-line rounded-lg text-ink text-xs font-bold text-center focus:outline-none focus:border-accent"
+                              className="w-14 px-1.5 py-1 bg-space border border-line rounded-lg text-ink text-xs font-bold text-center focus:outline-none focus:border-accent-text"
                             />
                             <span className="text-xs text-ink-muted">pt</span>
                           </div>
@@ -914,36 +935,36 @@ export default function EditorPage() {
             <div className="space-y-3">
               {card.phones?.length ? card.phones.map((p, i) => (
                 <div key={i} className="flex flex-wrap gap-2">
-                  <select value={p.type} onChange={(e) => updateField('phones', card.phones!.map((ph, idx) => idx === i ? { ...ph, type: e.target.value } : ph))} className="px-2.5 py-2.5 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent w-full sm:w-auto">
+                  <select value={p.type} onChange={(e) => updateField('phones', card.phones!.map((ph, idx) => idx === i ? { ...ph, type: e.target.value } : ph))} className="px-2.5 py-2.5 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent-text w-full sm:w-auto">
                     <option>Cell</option><option>Work</option><option>Home</option><option>Fax</option>
                   </select>
-                  <input value={p.number} onChange={(e) => updateField('phones', card.phones!.map((ph, idx) => idx === i ? { ...ph, number: e.target.value } : ph))} placeholder="Phone number" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                  <label className="block text-sm font-semibold text-ink mb-1.5">Phone Number</label><input value={p.number} onChange={(e) => updateField('phones', card.phones!.map((ph, idx) => idx === i ? { ...ph, number: e.target.value } : ph))} placeholder="Phone number" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
                   <button onClick={() => updateField('phones', card.phones!.filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">×</button>
                 </div>
               )) : null}
-              <button onClick={() => updateField('phones', [...(card.phones || []), { type: 'Cell', number: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Phone</button>
+              <button onClick={() => updateField('phones', [...(card.phones || []), { type: 'Cell', number: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent-text hover:text-accent-text transition">+ Add Phone</button>
 
               {card.emails?.length ? card.emails.map((e, i) => (
                 <div key={i} className="flex flex-wrap gap-2">
-                  <select value={e.type} onChange={(ev) => updateField('emails', card.emails!.map((em, idx) => idx === i ? { ...em, type: ev.target.value } : em))} className="px-2.5 py-2.5 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent w-full sm:w-auto">
+                  <select value={e.type} onChange={(ev) => updateField('emails', card.emails!.map((em, idx) => idx === i ? { ...em, type: ev.target.value } : em))} className="px-2.5 py-2.5 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent-text w-full sm:w-auto">
                     <option>Work</option><option>Personal</option>
                   </select>
-                  <input value={e.address} onChange={(ev) => updateField('emails', card.emails!.map((em, idx) => idx === i ? { ...em, address: ev.target.value } : em))} placeholder="Email address" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                  <label className="block text-sm font-semibold text-ink mb-1.5">Email Address</label><input value={e.address} onChange={(ev) => updateField('emails', card.emails!.map((em, idx) => idx === i ? { ...em, address: ev.target.value } : em))} placeholder="Email address" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
                   <button onClick={() => updateField('emails', card.emails!.filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">×</button>
                 </div>
               )) : null}
-              <button onClick={() => updateField('emails', [...(card.emails || []), { type: 'Work', address: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Email</button>
+              <button onClick={() => updateField('emails', [...(card.emails || []), { type: 'Work', address: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent-text hover:text-accent-text transition">+ Add Email</button>
 
               {card.websites?.length ? card.websites.map((w, i) => (
                 <div key={i} className="flex flex-wrap gap-2">
-                  <select value={w.type} onChange={(e) => updateField('websites', card.websites!.map((wb, idx) => idx === i ? { ...wb, type: e.target.value } : wb))} className="px-2.5 py-2.5 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent w-full sm:w-auto">
+                  <select value={w.type} onChange={(e) => updateField('websites', card.websites!.map((wb, idx) => idx === i ? { ...wb, type: e.target.value } : wb))} className="px-2.5 py-2.5 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent-text w-full sm:w-auto">
                     <option>Work</option><option>Personal</option><option>Portfolio</option><option>Blog</option>
                   </select>
-                  <input value={w.url} onChange={(e) => updateField('websites', card.websites!.map((wb, idx) => idx === i ? { ...wb, url: e.target.value } : wb))} placeholder="https://example.com" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                  <label className="block text-sm font-semibold text-ink mb-1.5">Website URL</label><input value={w.url} onChange={(e) => updateField('websites', card.websites!.map((wb, idx) => idx === i ? { ...wb, url: e.target.value } : wb))} placeholder="https://example.com" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
                   <button onClick={() => updateField('websites', card.websites!.filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">×</button>
                 </div>
               )) : null}
-              <button onClick={() => updateField('websites', [...(card.websites || []), { type: 'Work', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Website</button>
+              <button onClick={() => updateField('websites', [...(card.websites || []), { type: 'Work', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent-text hover:text-accent-text transition">+ Add Website</button>
             </div>
           </details>
 
@@ -956,18 +977,18 @@ export default function EditorPage() {
             <div className="space-y-3">
               {card.addresses?.length ? card.addresses.map((a, i) => (
                 <div key={i} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <select value={a.type} onChange={(e) => updateField('addresses', card.addresses!.map((ad, idx) => idx === i ? { ...ad, type: e.target.value } : ad))} className="px-2.5 py-2.5 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent">
+                  <select value={a.type} onChange={(e) => updateField('addresses', card.addresses!.map((ad, idx) => idx === i ? { ...ad, type: e.target.value } : ad))} className="px-2.5 py-2.5 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent-text">
                     <option>Work</option><option>Home</option><option>Mailing</option>
                   </select>
-                  <input value={a.street || ''} onChange={(e) => updateField('addresses', card.addresses!.map((ad, idx) => idx === i ? { ...ad, street: e.target.value } : ad))} placeholder="Street" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-                  <input value={a.city || ''} onChange={(e) => updateField('addresses', card.addresses!.map((ad, idx) => idx === i ? { ...ad, city: e.target.value } : ad))} placeholder="City" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-                  <input value={a.state || ''} onChange={(e) => updateField('addresses', card.addresses!.map((ad, idx) => idx === i ? { ...ad, state: e.target.value } : ad))} placeholder="State" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-                  <input value={a.zip || ''} onChange={(e) => updateField('addresses', card.addresses!.map((ad, idx) => idx === i ? { ...ad, zip: e.target.value } : ad))} placeholder="ZIP" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-                  <input value={a.country || ''} onChange={(e) => updateField('addresses', card.addresses!.map((ad, idx) => idx === i ? { ...ad, country: e.target.value } : ad))} placeholder="Country" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                  <label className="block text-sm font-semibold text-ink mb-1.5">Street</label><input value={a.street || ''} onChange={(e) => updateField('addresses', card.addresses!.map((ad, idx) => idx === i ? { ...ad, street: e.target.value } : ad))} placeholder="Street" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
+                  <label className="block text-sm font-semibold text-ink mb-1.5">City</label><input value={a.city || ''} onChange={(e) => updateField('addresses', card.addresses!.map((ad, idx) => idx === i ? { ...ad, city: e.target.value } : ad))} placeholder="City" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
+                  <label className="block text-sm font-semibold text-ink mb-1.5">State</label><input value={a.state || ''} onChange={(e) => updateField('addresses', card.addresses!.map((ad, idx) => idx === i ? { ...ad, state: e.target.value } : ad))} placeholder="State" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
+                  <label className="block text-sm font-semibold text-ink mb-1.5">ZIP Code</label><input value={a.zip || ''} onChange={(e) => updateField('addresses', card.addresses!.map((ad, idx) => idx === i ? { ...ad, zip: e.target.value } : ad))} placeholder="ZIP" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
+                  <label className="block text-sm font-semibold text-ink mb-1.5">Country</label><input value={a.country || ''} onChange={(e) => updateField('addresses', card.addresses!.map((ad, idx) => idx === i ? { ...ad, country: e.target.value } : ad))} placeholder="Country" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
                   <button onClick={() => updateField('addresses', card.addresses!.filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger sm:col-span-2">Remove address</button>
                 </div>
               )) : null}
-              <button onClick={() => updateField('addresses', [...(card.addresses || []), { type: 'Work', street: '', city: '', state: '', zip: '', country: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Address</button>
+              <button onClick={() => updateField('addresses', [...(card.addresses || []), { type: 'Work', street: '', city: '', state: '', zip: '', country: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent-text hover:text-accent-text transition">+ Add Address</button>
             </div>
           </details>
 
@@ -983,25 +1004,26 @@ export default function EditorPage() {
                   <select
                     value={SOCIAL_PLATFORMS.some(p => p.value === s.platform.toLowerCase()) ? s.platform.toLowerCase() : 'other'}
                     onChange={(e) => updateField('socialLinks', (card.socialLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, platform: e.target.value } : sl))}
-                    className="w-full sm:w-[150px] px-3 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent"
+                    className="w-full sm:w-[150px] px-3 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text"
                   >
                     {SOCIAL_PLATFORMS.map((p) => (
                       <option key={p.value} value={p.value}>{p.name}</option>
                     ))}
                   </select>
                   {(!s.platform || s.platform.toLowerCase() === 'other' || !SOCIAL_PLATFORMS.some(p => p.value === s.platform.toLowerCase())) && (
+                    <><label className="block text-sm font-semibold text-ink mb-1.5">Platform Name</label>
                     <input
                       value={s.platform === 'other' ? '' : s.platform}
                       onChange={(e) => updateField('socialLinks', (card.socialLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, platform: e.target.value || 'Other' } : sl))}
                       placeholder="Custom platform"
-                      className="w-full sm:w-[140px] px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent"
-                    />
+                      className="w-full sm:w-[140px] px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text"
+                    /></>
                   )}
-                  <input value={s.url} onChange={(e) => updateField('socialLinks', (card.socialLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, url: e.target.value } : sl))} placeholder="URL" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                  <label className="block text-sm font-semibold text-ink mb-1.5">Social URL</label><input value={s.url} onChange={(e) => updateField('socialLinks', (card.socialLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, url: e.target.value } : sl))} placeholder="URL" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
                   <button onClick={() => updateField('socialLinks', (card.socialLinks as SocialLink[]).filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">×</button>
                 </div>
               ))}
-              <button onClick={() => updateField('socialLinks', [...(Array.isArray(card.socialLinks) ? card.socialLinks : []), { platform: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Social</button>
+              <button onClick={() => updateField('socialLinks', [...(Array.isArray(card.socialLinks) ? card.socialLinks : []), { platform: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent-text hover:text-accent-text transition">+ Add Social</button>
             </div>
           </details>
 
@@ -1017,25 +1039,26 @@ export default function EditorPage() {
                   <select
                     value={PAYMENT_PLATFORMS.some(p => p.value === s.platform.toLowerCase()) ? s.platform.toLowerCase() : 'other'}
                     onChange={(e) => updateField('paymentLinks', (card.paymentLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, platform: e.target.value } : sl))}
-                    className="w-full sm:w-[150px] px-3 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent"
+                    className="w-full sm:w-[150px] px-3 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text"
                   >
                     {PAYMENT_PLATFORMS.map((p) => (
                       <option key={p.value} value={p.value}>{p.name}</option>
                     ))}
                   </select>
                   {(!s.platform || s.platform.toLowerCase() === 'other' || !PAYMENT_PLATFORMS.some(p => p.value === s.platform.toLowerCase())) && (
+                    <><label className="block text-sm font-semibold text-ink mb-1.5">Payment Platform</label>
                     <input
                       value={s.platform === 'other' ? '' : s.platform}
                       onChange={(e) => updateField('paymentLinks', (card.paymentLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, platform: e.target.value || 'Other' } : sl))}
                       placeholder="Custom platform"
-                      className="w-full sm:w-[140px] px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent"
-                    />
+                      className="w-full sm:w-[140px] px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text"
+                    /></>
                   )}
-                  <input value={s.url} onChange={(e) => updateField('paymentLinks', (card.paymentLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, url: e.target.value } : sl))} placeholder="URL" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                  <label className="block text-sm font-semibold text-ink mb-1.5">Payment URL</label><input value={s.url} onChange={(e) => updateField('paymentLinks', (card.paymentLinks as SocialLink[]).map((sl, idx) => idx === i ? { ...sl, url: e.target.value } : sl))} placeholder="URL" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
                   <button onClick={() => updateField('paymentLinks', (card.paymentLinks as SocialLink[]).filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">×</button>
                 </div>
               ))}
-              <button onClick={() => updateField('paymentLinks', [...(Array.isArray(card.paymentLinks) ? card.paymentLinks : []), { platform: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Payment Link</button>
+              <button onClick={() => updateField('paymentLinks', [...(Array.isArray(card.paymentLinks) ? card.paymentLinks : []), { platform: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent-text hover:text-accent-text transition">+ Add Payment Link</button>
             </div>
           </details>
 
@@ -1057,7 +1080,7 @@ export default function EditorPage() {
                   <select
                     value={card.appointmentSettings?.durationMinutes ?? 30}
                     onChange={(e) => updateAppointmentSettings({ ...(card.appointmentSettings || {}), durationMinutes: Number(e.target.value) })}
-                    className="px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent"
+                    className="px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text"
                   >
                     <option value={15}>15 minutes</option>
                     <option value={30}>30 minutes</option>
@@ -1090,9 +1113,9 @@ export default function EditorPage() {
                         </label>
                         {hour && (
                           <div className="flex items-center gap-1.5">
-                            <input type="time" value={hour.start} onChange={(e) => updateWeeklyHour(dayIndex, 'start', e.target.value)} className="px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                            <input type="time" value={hour.start} onChange={(e) => updateWeeklyHour(dayIndex, 'start', e.target.value)} className="px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
                             <span className="text-ink-faint text-sm">to</span>
-                            <input type="time" value={hour.end} onChange={(e) => updateWeeklyHour(dayIndex, 'end', e.target.value)} className="px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                            <input type="time" value={hour.end} onChange={(e) => updateWeeklyHour(dayIndex, 'end', e.target.value)} className="px-2 py-1.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
                           </div>
                         )}
                       </div>
@@ -1132,19 +1155,19 @@ export default function EditorPage() {
               <div className="flex items-center gap-2 text-sm text-ink-faint mb-4">
                 <input type="checkbox" disabled className="w-4 h-4 accent-accent rounded opacity-50" />
                 <span>Show link list on this card</span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-accent">— Pro</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-accent-text">— Pro</span>
               </div>
             )}
             {card.featuredLinksEnabled && (userData?.plan === 'pro' || userData?.plan === 'business') && (
               <div className="space-y-3">
                 {Array.isArray(card.featuredLinks) && card.featuredLinks.map((l: FeaturedLink, i: number) => (
                   <div key={i} className="flex flex-wrap gap-2">
-                    <input value={l.label} onChange={(e) => updateField('featuredLinks', (card.featuredLinks as FeaturedLink[]).map((fl, idx) => idx === i ? { ...fl, label: e.target.value } : fl))} placeholder="Label (e.g. My Portfolio)" className="w-full sm:w-[220px] px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
-                    <input value={l.url} onChange={(e) => updateField('featuredLinks', (card.featuredLinks as FeaturedLink[]).map((fl, idx) => idx === i ? { ...fl, url: e.target.value } : fl))} placeholder="https://example.com" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                    <label className="block text-sm font-semibold text-ink mb-1.5">Link Label</label><input value={l.label} onChange={(e) => updateField('featuredLinks', (card.featuredLinks as FeaturedLink[]).map((fl, idx) => idx === i ? { ...fl, label: e.target.value } : fl))} placeholder="Label (e.g. My Portfolio)" className="w-full sm:w-[220px] px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
+                    <label className="block text-sm font-semibold text-ink mb-1.5">Link URL</label><input value={l.url} onChange={(e) => updateField('featuredLinks', (card.featuredLinks as FeaturedLink[]).map((fl, idx) => idx === i ? { ...fl, url: e.target.value } : fl))} placeholder="https://example.com" className="flex-1 min-w-0 px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
                     <button onClick={() => updateField('featuredLinks', (card.featuredLinks as FeaturedLink[]).filter((_, j) => j !== i))} className="px-3 py-2 text-danger text-sm font-bold border border-line rounded-lg hover:border-danger">×</button>
                   </div>
                 ))}
-                <button onClick={() => updateField('featuredLinks', [...(Array.isArray(card.featuredLinks) ? card.featuredLinks : []), { label: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Link</button>
+                <button onClick={() => updateField('featuredLinks', [...(Array.isArray(card.featuredLinks) ? card.featuredLinks : []), { label: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent-text hover:text-accent-text transition">+ Add Link</button>
               </div>
             )}
           </details>
@@ -1165,7 +1188,7 @@ export default function EditorPage() {
                       value={card.menuTitle || ''}
                       onChange={(e) => updateField('menuTitle', e.target.value)}
                       placeholder="Menu (e.g. Services, Price List)"
-                      className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent"
+                      className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text"
                     />
                     <p className="text-[11px] text-ink-faint mt-1">Leave blank for "Menu".</p>
                   </div>
@@ -1174,7 +1197,7 @@ export default function EditorPage() {
                     <select
                       value={card.menuIcon || 'utensils'}
                       onChange={(e) => updateField('menuIcon', e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent"
+                      className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text"
                     >
                       {MENU_ICON_OPTIONS.map((o) => (
                         <option key={o.value} value={o.value}>{o.label}</option>
@@ -1188,7 +1211,7 @@ export default function EditorPage() {
               <div className="flex items-center gap-2 text-sm text-ink-faint">
                 <UtensilsCrossed className="w-4 h-4" />
                 <span>Menu is a Business-plan feature.</span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-accent">— Business</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-accent-text">— Business</span>
               </div>
             )}
           </details>
@@ -1214,7 +1237,7 @@ export default function EditorPage() {
                   <select
                     value={card.profileSize || 'medium'}
                     onChange={(e) => updateField('profileSize', e.target.value as 'small' | 'medium' | 'large')}
-                    className="flex-1 px-2.5 py-2 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent"
+                    className="flex-1 px-2.5 py-2 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent-text"
                   >
                     <option value="small">Small</option>
                     <option value="medium">Medium</option>
@@ -1226,7 +1249,7 @@ export default function EditorPage() {
                   <select
                     value={card.profileShape || 'circle'}
                     onChange={(e) => updateField('profileShape', e.target.value as 'circle' | 'rounded' | 'square')}
-                    className="flex-1 px-2.5 py-2 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent"
+                    className="flex-1 px-2.5 py-2 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent-text"
                   >
                     <option value="circle">Circle</option>
                     <option value="rounded">Rounded</option>
@@ -1253,7 +1276,7 @@ export default function EditorPage() {
                     <select
                       value={card.bgDisplayMode || 'full'}
                       onChange={(e) => updateField('bgDisplayMode', e.target.value as 'full' | 'header')}
-                      className="flex-1 px-2.5 py-2 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent"
+                      className="flex-1 px-2.5 py-2 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent-text"
                     >
                       <option value="full">Full card</option>
                       <option value="header">Header only</option>
@@ -1280,7 +1303,7 @@ export default function EditorPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-ink-muted w-16">Size</span>
-                    <select value={card.bgSize || 'cover'} onChange={(e) => updateField('bgSize', e.target.value)} className="flex-1 px-2.5 py-2 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent">
+                    <select value={card.bgSize || 'cover'} onChange={(e) => updateField('bgSize', e.target.value)} className="flex-1 px-2.5 py-2 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent-text">
                       <option value="cover">Cover</option>
                       <option value="contain">Contain</option>
                       <option value="auto">Auto</option>
@@ -1321,7 +1344,7 @@ export default function EditorPage() {
               )}
               <div className="flex items-center gap-3">
                 <span className="text-xs text-ink-muted w-16">Size</span>
-                <select value={card.bgSize || 'cover'} onChange={(e) => updateField('bgSize', e.target.value)} className="flex-1 px-2.5 py-2 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent">
+                <select value={card.bgSize || 'cover'} onChange={(e) => updateField('bgSize', e.target.value)} className="flex-1 px-2.5 py-2 bg-space border border-line rounded-lg text-sm focus:outline-none focus:border-accent-text">
                   <option value="cover">Cover</option>
                   <option value="contain">Contain</option>
                   <option value="auto">Auto</option>
@@ -1355,7 +1378,7 @@ export default function EditorPage() {
 
       {/* Persistent bottom action bar */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-space/95 backdrop-blur-xl border-t border-line-soft px-3 md:px-6 py-2.5 flex items-center justify-between gap-1.5">
-        <button onClick={() => navigate('/dashboard')} className="btn btn-secondary btn-sm">Cancel</button>
+        <button onClick={async () => { if (isDirty) { const ok = await showConfirm({ title: 'Discard changes?', message: 'You have unsaved changes that will be lost.', destructive: true }); if (!ok) return; } navigate('/dashboard'); }} className="btn btn-secondary btn-sm">Cancel</button>
         <div className="flex items-center gap-1.5">
           {card.slug?.trim() && (
             <>

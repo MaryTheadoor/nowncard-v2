@@ -7,7 +7,7 @@ function Caption({ children }: { children: React.ReactNode }) {
 /**
  * Simulated site-chrome preview that mirrors the CSS-variable-driven surfaces
  * (like LivePagePreview does for the card editor). Rendered with token classes
- * (bg-space, text-accent, btn-primary, …) so it updates live as the admin edits
+ * (bg-space, text-accent-text, btn-primary, …) so it updates live as the admin edits
  * variables in the theme panel.
  */
 export default function ThemePreview() {
@@ -23,7 +23,7 @@ export default function ThemePreview() {
         <Caption>space · ink · accent · ink-muted</Caption>
         <div className="rounded-lg px-3 py-2 bg-space">
           <div className="text-sm font-extrabold text-ink leading-snug">
-            Build your card <span className="text-accent">in seconds</span>
+            Build your card <span className="text-accent-text">in seconds</span>
           </div>
           <div className="text-[11px] text-ink-muted">Share via link, QR code, or NFC tap.</div>
         </div>
@@ -66,13 +66,13 @@ export default function ThemePreview() {
 
       {/* Homepage tiles */}
       <div className="space-y-1.5">
-        <Caption>tile-gold · tile-blue</Caption>
+        <Caption>tile-gold · tile-violet</Caption>
         <div className="grid grid-cols-2 gap-2">
           <div className="bg-tile-gold text-tile-gold-text rounded-lg p-2.5">
             <div className="text-xs font-bold">Gold tile</div>
             <div className="text-[10px] opacity-80">accent surface</div>
           </div>
-          <div className="bg-tile-blue text-tile-blue-text rounded-lg p-2.5">
+          <div className="bg-tile-violet text-tile-violet-text rounded-lg p-2.5">
             <div className="text-xs font-bold">Blue tile</div>
             <div className="text-[10px] opacity-80">secondary surface</div>
           </div>

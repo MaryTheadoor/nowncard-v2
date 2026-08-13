@@ -59,7 +59,7 @@ export default function Navbar({ onAuthClick, messageCount = 0 }: NavbarProps) {
             {/* Favorite cards — always visible */}
             <button
               onClick={() => handleFavorite(defaultCardSlug)}
-              className={`p-2 transition ${defaultCardSlug ? 'text-accent hover:text-accent-hover' : 'text-ink-muted hover:text-accent'}`}
+              className={`p-2 transition ${defaultCardSlug ? 'text-accent-text hover:text-accent-text-hover' : 'text-ink-muted hover:text-accent-text'}`}
               title={userEmail ? (defaultCardSlug ? `Favorite: ${defaultCardSlug}` : 'No favorite set') : 'Sign in to view your cards'}
             >
               <Heart className="w-4 h-4" fill={defaultCardSlug ? 'currentColor' : 'none'} />
@@ -73,13 +73,13 @@ export default function Navbar({ onAuthClick, messageCount = 0 }: NavbarProps) {
             </button>
 
             {isAdmin && (
-              <Link to="/admin" className="p-2 text-ink-muted hover:text-accent transition" title="Admin">
+              <Link to="/admin" className="p-2 text-ink-muted hover:text-accent-text transition" title="Admin">
                 <Shield className="w-4 h-4" />
               </Link>
             )}
 
             {userEmail && (
-              <Link to="/dashboard" className="relative p-2 text-ink-muted hover:text-accent transition" title={`${messageCount} unread message${messageCount !== 1 ? 's' : ''}`}>
+              <Link to="/dashboard" className="relative p-2 text-ink-muted hover:text-accent-text transition" title={`${messageCount} unread message${messageCount !== 1 ? 's' : ''}`}>
                 <Bell className="w-4 h-4" />
                 {messageCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-accent text-space text-[10px] font-bold flex items-center justify-center leading-none">
@@ -113,7 +113,7 @@ export default function Navbar({ onAuthClick, messageCount = 0 }: NavbarProps) {
           <div className="flex items-center gap-1 md:hidden">
             <button
               onClick={() => handleFavorite(defaultCardSlug)}
-              className={`p-2 transition ${defaultCardSlug ? 'text-accent hover:text-accent-hover' : 'text-ink-muted hover:text-accent'}`}
+              className={`p-2 transition ${defaultCardSlug ? 'text-accent-text hover:text-accent-text-hover' : 'text-ink-muted hover:text-accent-text'}`}
               title={userEmail ? (defaultCardSlug ? `Favorite: ${defaultCardSlug}` : 'No favorite set') : 'Sign in to view your cards'}
             >
               <Heart className="w-5 h-5" fill={defaultCardSlug ? 'currentColor' : 'none'} />
@@ -168,13 +168,13 @@ export default function Navbar({ onAuthClick, messageCount = 0 }: NavbarProps) {
               onClick={() => { setTheme(resolved === 'dark' ? 'light' : 'dark'); setOpen(false); }}
               className="flex items-center gap-2 text-sm font-semibold text-ink py-2"
             >
-              {resolved === 'dark' ? <Sun className="w-4 h-4 text-accent" /> : <Moon className="w-4 h-4 text-accent" />}
+              {resolved === 'dark' ? <Sun className="w-4 h-4 text-accent-text" /> : <Moon className="w-4 h-4 text-accent-text" />}
               {resolved === 'dark' ? 'Light Mode' : 'Dark Mode'}
             </button>
 
             {isAdmin && (
               <Link to="/admin" onClick={() => setOpen(false)} className="flex items-center gap-2 text-sm font-semibold text-ink py-2">
-                <Shield className="w-4 h-4 text-accent" /> Admin
+                <Shield className="w-4 h-4 text-accent-text" /> Admin
               </Link>
             )}
 

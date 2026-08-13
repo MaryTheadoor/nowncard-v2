@@ -11,7 +11,7 @@ export const CSS_THEME_VARS = [
   'ink', 'ink-muted', 'ink-faint',
   'accent', 'accent-hover', 'secondary', 'secondary-hover', 'danger',
   'success', 'warning', 'violet',
-  'tile-gold', 'tile-gold-text', 'tile-blue', 'tile-blue-text',
+  'tile-gold', 'tile-gold-text', 'tile-violet', 'tile-violet-text',
   'btn-primary', 'btn-primary-text', 'btn-secondary', 'btn-secondary-text',
   'btn-danger', 'btn-danger-text',
 ] as const;

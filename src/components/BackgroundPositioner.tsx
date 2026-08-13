@@ -90,7 +90,7 @@ export default function BackgroundPositioner({
             <div className="flex items-center gap-3">
               <span className="text-xs text-ink-muted w-16">Position</span>
               <input type="text" value={position} readOnly className="flex-1 px-2.5 py-1.5 bg-space border border-line rounded-lg text-ink text-xs font-mono text-center focus:outline-none" />
-              <button type="button" onClick={() => { onPositionChange('center'); setCrop({ x: 0, y: 0 }); }} className="text-xs text-ink-muted hover:text-accent transition">Reset</button>
+              <button type="button" onClick={() => { onPositionChange('center'); setCrop({ x: 0, y: 0 }); }} className="text-xs text-ink-muted hover:text-accent-text transition">Reset</button>
             </div>
           </div>
         </div>

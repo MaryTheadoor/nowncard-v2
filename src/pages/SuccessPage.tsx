@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Footer from '@/components/Footer';
+import Navbar from '@/components/Navbar';
 import { applyPendingUpgrades } from '@/lib/payments';
 import { useAuth } from '@/hooks/auth-context';
 import { db } from '@/lib/firebase';
@@ -58,14 +59,7 @@ export default function SuccessPage() {
 
   return (
     <div className="min-h-screen bg-space flex flex-col">
-      <header className="bg-space/80 backdrop-blur-xl border-b border-line-soft">
-        <div className="max-w-4xl mx-auto px-5 flex items-center h-14">
-          <Link to="/" className="flex items-center gap-2.5 text-ink font-bold text-[15px]">
-            <img src="/nowncard-logo.png" alt="" className="h-[28px] w-auto object-contain rounded-lg" />
-            <span>NownCard</span>
-          </Link>
-        </div>
-      </header>
+      <Navbar />
       <main className="flex-1 flex items-center justify-center px-6">
         <div className="text-center max-w-md">
           <div className="text-6xl mb-6">{s.icon}</div>

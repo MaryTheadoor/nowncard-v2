@@ -63,7 +63,7 @@ export function useCardTheme({ card, forceDark, forceLight }: CardThemeParams): 
       faceShadow: isDark ? '0 1px 0 rgba(255,255,255,0.05) inset, 0 24px 60px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4)' : undefined,
       textPrimary: isDark ? 'text-[#f4f1ec]' : 'text-[#1a1612]',
       textSecondary: isDark ? 'text-[#9a9186]' : 'text-[#6b6256]',
-      textMuted: isDark ? 'text-[#7a7166]' : 'text-[#7a7166]',
+      textMuted: isDark ? 'text-[#a89f93]' : 'text-[#5f564c]',
       linkText: isDark ? 'text-[#c9c3ba]' : 'text-[#4a4238]',
       linkHover: isDark ? 'hover:text-[#f4f1ec]' : 'hover:text-[#2a2520]',
       divider: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(42,37,32,0.12)',
@@ -72,7 +72,7 @@ export function useCardTheme({ card, forceDark, forceLight }: CardThemeParams): 
       socialText: isDark ? 'text-[#9a9186]' : 'text-[#5a5046]',
       socialHoverBg: isDark ? 'hover:bg-white/5' : 'hover:bg-[rgba(42,37,32,0.06)]',
       socialHoverText: isDark ? 'hover:text-[#e8e4de]' : 'hover:text-[#2a2520]',
-      qrSub: isDark ? 'text-[#9a9186]' : 'text-[#7a7166]',
+      qrSub: isDark ? 'text-[#9a9186]' : 'text-[#5f564c]',
       profileFallbackBg: isDark ? 'bg-gradient-to-br from-[#2a2a3a] to-[#1a1a2e]' : 'bg-gradient-to-br from-[#d4cfc8] to-[#e8e4de]',
       profileFallbackText: isDark ? 'text-[#c9c3ba]' : 'text-[#6b6256]',
     };

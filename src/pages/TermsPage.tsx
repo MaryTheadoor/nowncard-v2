@@ -126,7 +126,7 @@ export default function TermsPage() {
             <h2 className="text-xl font-bold text-ink mb-3">14. Contact Information</h2>
             <p className="text-sm leading-relaxed">
               If you have any questions about these Terms, please contact us at{' '}
-              <a href="mailto:support@nowncard.com" className="text-accent hover:underline">support@nowncard.com</a>.
+              <a href="mailto:support@nowncard.com" className="text-accent-text hover:underline">support@nowncard.com</a>.
             </p>
           </section>
         </div>

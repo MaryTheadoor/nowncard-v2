@@ -76,14 +76,14 @@ export default function LandingPage() {
 
       <main>
       {/* Hero */}
-      <section className="relative overflow-x-clip text-center px-6 pt-16 pb-12 max-w-2xl mx-auto">
+      <section className="relative overflow-x-clip text-center px-6 pt-16 pb-12 max-w-2xl xl:max-w-4xl mx-auto">
         <div aria-hidden className="pointer-events-none absolute -z-10 -inset-x-24 -top-24 h-[28rem] bg-[radial-gradient(ellipse_at_top,rgba(245,185,64,0.20),transparent_60%)]" />
-        <div aria-hidden className="pointer-events-none absolute -z-10 -inset-x-24 top-32 h-[28rem] bg-[radial-gradient(ellipse_at_top,rgba(116,184,255,0.14),transparent_60%)]" />
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-tile border border-line rounded-full text-accent text-xs font-bold uppercase tracking-wider mb-8">
+        <div aria-hidden className="pointer-events-none absolute -z-10 -inset-x-24 top-32 h-[28rem] bg-[radial-gradient(ellipse_at_top,rgba(167,139,250,0.14),transparent_60%)]" />
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-tile border border-line rounded-full text-accent-text text-xs font-bold uppercase tracking-wider mb-8">
           Your card. Your brand. Anywhere.
         </div>
         <h1 className="text-4xl md:text-5xl font-extrabold leading-tight tracking-tight mb-5">
-          Digital Business Cards<br /><span className="text-accent">That Work Everywhere</span>
+          Digital Business Cards<br /><span className="text-accent-text">That Work Everywhere</span>
         </h1>
         <p className="text-lg text-ink-muted max-w-lg mx-auto mb-8">
           Create a beautiful digital card in seconds. Share via link, QR code, or NFC tap. Download as a vCard. No app required for recipients.
@@ -107,7 +107,7 @@ export default function LandingPage() {
       {/* Pain Points */}
       <section className="bg-space-2 py-16 px-6">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-center text-accent mb-10">Does This Sound Familiar?</h2>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-center text-accent-text mb-10">Does This Sound Familiar?</h2>
           <div className="space-y-5">
             {[
               {
@@ -123,7 +123,7 @@ export default function LandingPage() {
                 desc: 'Too many features you do not need. Clunky editors. Apps to download. Platforms that want to own your data. You just want something simple that looks great and works everywhere, with no app required for the person receiving it.',
               },
             ].map((item) => (
-              <div key={item.title} className="bg-tile-gold border border-accent/30 rounded-2xl p-6 hover:-translate-y-1 hover:shadow-surface transition">
+              <div key={item.title} className="bg-tile-gold chamfer-sm p-6 hover:-translate-y-1 transition">
                 <h3 className="text-base font-bold text-tile-gold-text italic mb-2">{item.title}</h3>
                 <p className="text-sm text-tile-gold-text/80 leading-relaxed">{item.desc}</p>
               </div>
@@ -137,7 +137,7 @@ export default function LandingPage() {
 
       {/* Features */}
       <section id="features" className="bg-space-2 py-16 px-6">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-5xl xl:max-w-7xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-extrabold text-center text-secondary mb-10">Everything You Need</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
@@ -151,10 +151,10 @@ export default function LandingPage() {
               { icon: <Eye className="w-5 h-5" />, title: 'Rich Link Previews', desc: 'Share your card link and it unfurls with your name, photo, and a branded preview in WhatsApp, iMessage, Slack, and more.' },
               { icon: <UtensilsCrossed className="w-5 h-5" />, title: 'Online Menu', desc: 'Food trucks and venues can list their menu right on the card with a "view full menu" toggle. Business plan.' },
             ].map((f) => (
-              <div key={f.title} className="bg-tile-blue text-tile-blue-text rounded-2xl p-5 text-left hover:-translate-y-1 hover:shadow-surface transition">
+              <div key={f.title} className="bg-tile-violet text-tile-violet-text border border-white/10 chamfer-sm p-5 text-left hover:-translate-y-1 transition">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 bg-white/15 border border-white/25 text-white">{f.icon}</div>
                 <h3 className="text-base font-bold mb-2">{f.title}</h3>
-                <p className="text-sm text-tile-blue-text/85 leading-relaxed">{f.desc}</p>
+                <p className="text-sm text-tile-violet-text/85 leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -177,7 +177,7 @@ export default function LandingPage() {
       {/* Testimonials — featured reviews from users */}
       {featuredReviews.length > 0 && (
         <section id="reviews" className="bg-space-2 py-16 px-6">
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-5xl xl:max-w-6xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-extrabold text-center text-violet mb-3">Loved by Professionals</h2>
             <p className="text-ink-muted text-center mb-10">Real feedback from the people using NownCard every day.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -199,7 +199,7 @@ export default function LandingPage() {
             {!user && (
               <p className="text-center text-sm text-ink-muted mt-8">
                 Used a digital card that changed how you network?{' '}
-                <button onClick={() => setAuthOpen(true)} className="text-accent font-semibold hover:underline cursor-pointer bg-transparent border-none">Leave a review</button>
+                <button onClick={() => setAuthOpen(true)} className="text-accent-text font-semibold hover:underline cursor-pointer bg-transparent border-none">Leave a review</button>
                 .
               </p>
             )}
@@ -212,15 +212,15 @@ export default function LandingPage() {
         <h2 className="text-2xl md:text-3xl font-extrabold mb-10">Who Is It For?</h2>
         <div className="flex flex-wrap justify-center gap-3">
           {['Freelancers', 'Consultants', 'Real Estate Agents', 'Sales Professionals', 'Startups', 'Small Business Owners', 'Creative Agencies', 'Coaches & Trainers', 'Event Organizers', 'Anyone Who Networks'].map((tag) => (
-            <span key={tag} className="px-5 py-2.5 bg-tile border border-line rounded-full text-sm text-ink hover:border-accent hover:text-accent transition cursor-default">{tag}</span>
+            <span key={tag} className="px-5 py-2.5 bg-tile border border-line rounded-full text-sm text-ink hover:border-accent-text hover:text-accent-text transition cursor-default">{tag}</span>
           ))}
         </div>
       </section>
 
       {/* Pricing */}
       <section id="pricing" className="bg-space-2 py-16 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-accent mb-2">Simple Plans</h2>
+        <div className="max-w-4xl xl:max-w-6xl mx-auto text-center">
+          <h2 className="text-2xl md:text-3xl font-extrabold text-accent-text mb-2">Simple Plans</h2>
           <p className="text-ink-muted mb-10">Start free. Upgrade when you need more.</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-left">
             <div className="bg-tile border border-line rounded-2xl p-7 hover:-translate-y-1 hover:shadow-surface transition">
@@ -228,12 +228,12 @@ export default function LandingPage() {
               <p className="text-sm text-ink-faint mt-1">For individuals</p>
               <div className="flex items-baseline gap-1 my-4"><span className="text-4xl font-extrabold">$0</span><span className="text-sm text-ink-faint">forever</span></div>
               <ul className="space-y-2 text-sm text-ink-muted mb-6">
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> 1 digital card</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Shareable link + QR</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> vCard export</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Custom colors &amp; themes</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Appointment booking</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Card directory + analytics</li>
+                <li className="flex items-start gap-2"><span className="text-accent-text font-bold">✓</span> 1 digital card</li>
+                <li className="flex items-start gap-2"><span className="text-accent-text font-bold">✓</span> Shareable link + QR</li>
+                <li className="flex items-start gap-2"><span className="text-accent-text font-bold">✓</span> vCard export</li>
+                <li className="flex items-start gap-2"><span className="text-accent-text font-bold">✓</span> Custom colors &amp; themes</li>
+                <li className="flex items-start gap-2"><span className="text-accent-text font-bold">✓</span> Appointment booking</li>
+                <li className="flex items-start gap-2"><span className="text-accent-text font-bold">✓</span> Card directory + analytics</li>
               </ul>
               {user ? (
                 <Link to="/editor" className="btn btn-secondary btn-lg block w-full text-center no-underline">Get Started</Link>
@@ -242,18 +242,18 @@ export default function LandingPage() {
               )}
             </div>
 
-            <div className="bg-tile border-2 border-accent rounded-2xl p-7 relative hover:-translate-y-1 hover:shadow-surface transition">
+            <div className="bg-tile border-2 border-accent-text rounded-2xl p-7 relative hover:-translate-y-1 hover:shadow-surface transition">
               <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-space text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Most Popular</span>
               <h3 className="text-xl font-extrabold">Pro</h3>
               <p className="text-sm text-ink-faint mt-1">For professionals</p>
               <div className="flex items-baseline gap-1 my-4"><span className="text-4xl font-extrabold">${pricing.proPrice}</span><span className="text-sm text-ink-faint">/year</span></div>
               <ul className="space-y-2 text-sm text-ink-muted mb-6">
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Up to 5 cards</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> 10 curated fonts</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Link list (link-in-bio)</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Analytics dashboard</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> NFC + QR + vCard</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> No branding</li>
+                <li className="flex items-start gap-2"><span className="text-accent-text font-bold">✓</span> Up to 5 cards</li>
+                <li className="flex items-start gap-2"><span className="text-accent-text font-bold">✓</span> 10 curated fonts</li>
+                <li className="flex items-start gap-2"><span className="text-accent-text font-bold">✓</span> Link list (link-in-bio)</li>
+                <li className="flex items-start gap-2"><span className="text-accent-text font-bold">✓</span> Analytics dashboard</li>
+                <li className="flex items-start gap-2"><span className="text-accent-text font-bold">✓</span> NFC + QR + vCard</li>
+                <li className="flex items-start gap-2"><span className="text-accent-text font-bold">✓</span> No branding</li>
               </ul>
               <button onClick={async () => {
                 if (!user) { setAuthOpen(true); return; }
@@ -267,13 +267,13 @@ export default function LandingPage() {
               <p className="text-sm text-ink-faint mt-1">For teams</p>
               <div className="flex items-baseline gap-1 my-4"><span className="text-4xl font-extrabold">${pricing.businessPrice}</span><span className="text-sm text-ink-faint">/year</span></div>
               <ul className="space-y-2 text-sm text-ink-muted mb-6">
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Unlimited cards</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Team cards for employees</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Upload your own font</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Online menu for your venue</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> White-label cards</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Priority support</li>
-                <li className="flex items-start gap-2"><span className="text-accent font-bold">✓</span> Everything in Pro</li>
+                <li className="flex items-start gap-2"><span className="text-accent-text font-bold">✓</span> Unlimited cards</li>
+                <li className="flex items-start gap-2"><span className="text-accent-text font-bold">✓</span> Team cards for employees</li>
+                <li className="flex items-start gap-2"><span className="text-accent-text font-bold">✓</span> Upload your own font</li>
+                <li className="flex items-start gap-2"><span className="text-accent-text font-bold">✓</span> Online menu for your venue</li>
+                <li className="flex items-start gap-2"><span className="text-accent-text font-bold">✓</span> White-label cards</li>
+                <li className="flex items-start gap-2"><span className="text-accent-text font-bold">✓</span> Priority support</li>
+                <li className="flex items-start gap-2"><span className="text-accent-text font-bold">✓</span> Everything in Pro</li>
               </ul>
               <button onClick={async () => {
                 if (!user) { setAuthOpen(true); return; }
@@ -291,7 +291,7 @@ export default function LandingPage() {
         <div className="space-y-3">
           {faqs.map((faq) => (
             <details key={faq.q} className="bg-tile border border-line rounded-2xl group">
-              <summary className="p-5 text-sm font-bold cursor-pointer hover:text-accent transition select-none">{faq.q}</summary>
+              <summary className="p-5 text-sm font-bold cursor-pointer hover:text-accent-text transition select-none">{faq.q}</summary>
               <p className="px-5 pb-5 text-sm text-ink-muted leading-relaxed">{faq.a}</p>
             </details>
           ))}

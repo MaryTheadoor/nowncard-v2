@@ -245,7 +245,7 @@ export default function AppointmentModal({ open, onClose, card }: AppointmentMod
                       type="button"
                       disabled={cell.disabled}
                       onClick={() => { setSelectedDate(dateStrOf(cell.date)); setSelectedTime(null); }}
-                      className={`aspect-square rounded-lg text-sm font-semibold transition flex items-center justify-center ${cell.disabled ? 'text-ink-faint/40 cursor-not-allowed' : cell.selected ? 'bg-accent text-space' : cell.available ? 'bg-tile-soft text-ink hover:bg-accent/20 hover:text-accent cursor-pointer' : 'text-ink-faint/40 cursor-not-allowed'} ${cell.date.getTime() === today.getTime() ? 'ring-1 ring-accent' : ''}`}
+                      className={`aspect-square rounded-lg text-sm font-semibold transition flex items-center justify-center ${cell.disabled ? 'text-ink-faint/40 cursor-not-allowed' : cell.selected ? 'bg-accent text-space' : cell.available ? 'bg-tile-soft text-ink hover:bg-accent/20 hover:text-accent-text cursor-pointer' : 'text-ink-faint/40 cursor-not-allowed'} ${cell.date.getTime() === today.getTime() ? 'ring-1 ring-accent-text' : ''}`}
                     >
                       {cell.date.getTime() === 0 ? '' : cell.date.getDate()}
                     </button>
@@ -273,7 +273,7 @@ export default function AppointmentModal({ open, onClose, card }: AppointmentMod
                           type="button"
                           disabled={s.disabled}
                           onClick={() => setSelectedTime(s.time)}
-                          className={`px-3.5 py-2 rounded-lg border text-sm font-semibold transition ${s.disabled ? 'border-line text-ink-faint/40 cursor-not-allowed line-through' : selectedTime === s.time ? 'border-accent bg-accent text-space' : 'border-line bg-tile-soft text-ink hover:border-accent hover:text-accent cursor-pointer'}`}
+                          className={`px-3.5 py-2 rounded-lg border text-sm font-semibold transition ${s.disabled ? 'border-line text-ink-faint/40 cursor-not-allowed line-through' : selectedTime === s.time ? 'border-accent-text bg-accent text-space' : 'border-line bg-tile-soft text-ink hover:border-accent-text hover:text-accent-text cursor-pointer'}`}
                         >
                           {fmtMinutes(toMinutes(s.time))}
                         </button>
@@ -290,20 +290,20 @@ export default function AppointmentModal({ open, onClose, card }: AppointmentMod
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label htmlFor="appt-name" className="flex items-center gap-1.5 text-sm font-semibold text-ink mb-1.5"><User className="w-3.5 h-3.5 text-ink-faint" /> Your name</label>
-                    <input id="appt-name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Doe" required className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                    <input id="appt-name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Doe" required className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
                   </div>
                   <div>
                     <label htmlFor="appt-email" className="flex items-center gap-1.5 text-sm font-semibold text-ink mb-1.5"><Mail className="w-3.5 h-3.5 text-ink-faint" /> Email</label>
-                    <input id="appt-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jane@example.com" required className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                    <input id="appt-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jane@example.com" required className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
                   </div>
                 </div>
                 <div>
                   <label htmlFor="appt-phone" className="flex items-center gap-1.5 text-sm font-semibold text-ink mb-1.5"><Phone className="w-3.5 h-3.5 text-ink-faint" /> Phone <span className="text-ink-faint font-normal">(optional)</span></label>
-                  <input id="appt-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 123 4567" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                  <input id="appt-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 123 4567" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
                 </div>
                 <div>
                   <label htmlFor="appt-notes" className="flex items-center gap-1.5 text-sm font-semibold text-ink mb-1.5"><FileText className="w-3.5 h-3.5 text-ink-faint" /> Notes <span className="text-ink-faint font-normal">(optional)</span></label>
-                  <textarea id="appt-notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="What would you like to discuss?" rows={2} className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
+                  <textarea id="appt-notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="What would you like to discuss?" rows={2} className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
                 </div>
 
                 {selectedDate && selectedTime && (

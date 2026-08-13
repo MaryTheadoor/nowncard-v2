@@ -142,7 +142,7 @@ export default function RolodexPage() {
     <div className="min-h-screen bg-space">
       <Navbar onAuthClick={() => setAuthOpen(true)} />
 
-      <main className="max-w-5xl mx-auto px-5 py-8">
+      <main className="max-w-5xl xl:max-w-7xl mx-auto px-5 py-8">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-2xl md:text-3xl font-extrabold mb-2">Card Directory</h1>
@@ -156,7 +156,7 @@ export default function RolodexPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, company, job title, or industry…"
-            className="w-full pl-10 pr-10 py-3 bg-tile border border-line rounded-xl text-ink text-sm focus:outline-none focus:border-accent"
+            className="w-full pl-10 pr-10 py-3 bg-tile border border-line rounded-xl text-ink text-sm focus:outline-none focus:border-accent-text"
           />
           {search && (
             <button
@@ -181,7 +181,7 @@ export default function RolodexPage() {
           {hasActiveFilters && (
             <button
               onClick={() => { setSearch(''); setActiveIndustry('All'); setSortMode('az'); }}
-              className="text-xs text-ink-muted hover:text-accent underline underline-offset-2"
+              className="text-xs text-ink-muted hover:text-accent-text underline underline-offset-2"
             >
               Clear all
             </button>
@@ -277,7 +277,7 @@ export default function RolodexPage() {
               <Link
                 key={c.id}
                 to={`/card/${c.slug}`}
-                className="flex flex-col bg-tile border border-line rounded-2xl p-4 hover:border-accent transition no-underline group"
+                className="flex flex-col bg-tile border border-line rounded-2xl p-4 hover:border-accent-text transition no-underline group"
               >
                 <div className="flex items-center gap-4 mb-3">
                   {c.profileImage ? (
@@ -291,7 +291,7 @@ export default function RolodexPage() {
                     </div>
                   )}
                   <div className="min-w-0">
-                    <div className="font-bold text-ink truncate group-hover:text-accent transition">
+                    <div className="font-bold text-ink truncate group-hover:text-accent-text transition">
                       {c.firstName} {c.lastName}
                     </div>
                     {c.company && (

@@ -69,9 +69,9 @@ export default function SaveImageModal({ open, onClose, card, name, onTrack }: S
           <button
             key={o.key}
             onClick={() => download(o.href, o.file, o.track)}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl bg-space border border-line hover:border-accent transition text-left cursor-pointer"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl bg-space border border-line hover:border-accent-text transition text-left cursor-pointer"
           >
-            <span className="w-9 h-9 rounded-lg bg-accent/15 text-accent flex items-center justify-center flex-shrink-0">{o.icon}</span>
+            <span className="w-9 h-9 rounded-lg bg-accent/15 text-accent-text flex items-center justify-center flex-shrink-0">{o.icon}</span>
             <span className="min-w-0">
               <span className="block text-sm font-bold text-ink">{o.label}</span>
               <span className="block text-xs text-ink-muted">{o.desc}</span>
