@@ -191,27 +191,24 @@
   }
 
   /* ── Primary: tactile gold (brightened to pop on the purple theme) ── */
+  /* Depth is drawn with white/black rgba overlays (not color-mix) so the
+     shading renders correctly on every browser, including Firefox mobile. */
   .btn-primary {
-    background: linear-gradient(180deg,
-      color-mix(in oklab, var(--btn-primary) 72%, white) 0%,
-      var(--btn-primary) 50%,
-      color-mix(in oklab, var(--btn-primary) 76%, black) 100%);
+    background-color: var(--btn-primary);
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.06) 45%, rgba(0,0,0,0.18) 100%);
     color: var(--btn-primary-text);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.35) inset,
       0 -1px 0 rgba(0,0,0,0.15) inset,
-      0 2px 0 color-mix(in oklab, var(--btn-primary) 58%, black),
+      0 2px 0 rgba(0,0,0,0.32),
       0 3px 6px rgba(0,0,0,0.25);
   }
   .btn-primary:hover:not(:disabled) {
-    background: linear-gradient(180deg,
-      color-mix(in oklab, var(--btn-primary) 60%, white) 0%,
-      color-mix(in oklab, var(--btn-primary) 88%, white) 50%,
-      color-mix(in oklab, var(--btn-primary) 84%, black) 100%);
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.12) 45%, rgba(0,0,0,0.12) 100%);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.4) inset,
       0 -1px 0 rgba(0,0,0,0.12) inset,
-      0 2px 0 color-mix(in oklab, var(--btn-primary) 58%, black),
+      0 2px 0 rgba(0,0,0,0.32),
       0 4px 10px rgba(0,0,0,0.3);
     transform: translateY(-1px);
   }
@@ -219,31 +216,26 @@
     transform: translateY(1px);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.25) inset,
-      0 2px 0 color-mix(in oklab, var(--btn-primary) 58%, black);
+      0 2px 0 rgba(0,0,0,0.32);
   }
 
   /* ── Secondary: tactile blue (darkened stops for WCAG AA white-on-blue) ── */
   .btn-secondary {
-    background: linear-gradient(180deg,
-      color-mix(in oklab, var(--btn-secondary) 82%, white) 0%,
-      var(--btn-secondary) 50%,
-      color-mix(in oklab, var(--btn-secondary) 84%, black) 100%);
+    background-color: var(--btn-secondary);
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.06) 45%, rgba(0,0,0,0.18) 100%);
     color: var(--btn-secondary-text);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.3) inset,
       0 -1px 0 rgba(0,0,0,0.12) inset,
-      0 2px 0 color-mix(in oklab, var(--btn-secondary) 78%, black),
+      0 2px 0 rgba(0,0,0,0.32),
       0 3px 6px rgba(0,0,0,0.22);
   }
   .btn-secondary:hover:not(:disabled) {
-    background: linear-gradient(180deg,
-      color-mix(in oklab, var(--btn-secondary) 72%, white) 0%,
-      color-mix(in oklab, var(--btn-secondary) 90%, white) 50%,
-      color-mix(in oklab, var(--btn-secondary) 88%, black) 100%);
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.12) 45%, rgba(0,0,0,0.12) 100%);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.35) inset,
       0 -1px 0 rgba(0,0,0,0.1) inset,
-      0 2px 0 color-mix(in oklab, var(--btn-secondary) 78%, black),
+      0 2px 0 rgba(0,0,0,0.32),
       0 4px 10px rgba(0,0,0,0.28);
     transform: translateY(-1px);
   }
@@ -251,31 +243,26 @@
     transform: translateY(1px);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.2) inset,
-      0 2px 0 color-mix(in oklab, var(--btn-secondary) 78%, black);
+      0 2px 0 rgba(0,0,0,0.32);
   }
 
   /* ── Danger: tactile red ── */
   .btn-danger {
-    background: linear-gradient(180deg,
-      color-mix(in oklab, var(--btn-danger) 78%, white) 0%,
-      var(--btn-danger) 50%,
-      color-mix(in oklab, var(--btn-danger) 78%, black) 100%);
+    background-color: var(--btn-danger);
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.26) 0%, rgba(255,255,255,0.05) 45%, rgba(0,0,0,0.16) 100%);
     color: var(--btn-danger-text);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.25) inset,
       0 -1px 0 rgba(0,0,0,0.15) inset,
-      0 2px 0 color-mix(in oklab, var(--btn-danger) 62%, black),
+      0 2px 0 rgba(0,0,0,0.32),
       0 3px 6px rgba(0,0,0,0.2);
   }
   .btn-danger:hover:not(:disabled) {
-    background: linear-gradient(180deg,
-      color-mix(in oklab, var(--btn-danger) 68%, white) 0%,
-      color-mix(in oklab, var(--btn-danger) 88%, white) 50%,
-      color-mix(in oklab, var(--btn-danger) 84%, black) 100%);
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.38) 0%, rgba(255,255,255,0.10) 45%, rgba(0,0,0,0.10) 100%);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.3) inset,
       0 -1px 0 rgba(0,0,0,0.12) inset,
-      0 2px 0 color-mix(in oklab, var(--btn-danger) 62%, black),
+      0 2px 0 rgba(0,0,0,0.32),
       0 4px 10px rgba(0,0,0,0.25);
     transform: translateY(-1px);
   }
@@ -283,7 +270,7 @@
     transform: translateY(1px);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.2) inset,
-      0 2px 0 color-mix(in oklab, var(--btn-danger) 62%, black);
+      0 2px 0 rgba(0,0,0,0.32);
   }
 
   /* ── Selected toggle state ── */
