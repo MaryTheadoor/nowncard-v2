@@ -4,6 +4,42 @@
 
 ---
 
+## 2026-08-12 — Site-wide theme config + button colors + nav cleanup
+
+### Site-wide theme (Firestore-backed) (`f2c1d31`)
+- Admin **Theme** panel edits now save to **Firestore `config/theme`** (readable by everyone,
+  admin-write via existing `config` rule) and apply to **every visitor** on load — not just the
+  admin's browser. `ThemeProvider` applies the localStorage cache instantly, then reconciles
+  with the Firestore doc. Values are sanitized on write *and* read (hex-only, `--name` key
+  format) to prevent CSS injection into the shared style tag.
+- `src/lib/css-theme.ts` gained `fetchThemeOverrides` / `saveThemeOverridesServer` +
+  sanitization; the panel debounces server writes (600ms) and merges server state over code
+  defaults on mount.
+
+### Button colors as first-class CSS variables
+- Buttons no longer hardcode their own gradients. New vars (per-mode overridable):
+  `--btn-primary`, `--btn-primary-text`, `--btn-secondary`, `--btn-secondary-text`,
+  `--btn-danger`, `--btn-danger-text`. The tactile 3-stop gradient is now derived from the base
+  color via `color-mix(in oklab, …)`, so changing one color retints the whole button
+  (highlight/shadow included). Exposed under a new **Buttons** section in the Theme panel.
+
+### Nav cleanup
+- **Logo only** — removed the "NownCard" wordmark next to the logo (logo already carries the
+  name), freeing header space; link kept accessible via `alt`/`aria-label`.
+- **Removed the Features + Pricing nav links** (desktop + mobile drawer) — the hero CTA buttons
+  already cover them.
+
+### Mobile theme panel
+- Theme panel rows now stack on mobile with explicit **Light / Dark** labels per input (was a
+  fixed 3-column desktop grid that overflowed); desktop keeps the 3-column layout.
+
+### Note
+- Feature-tile icons under "Everything You Need" are uniform white/monochrome chips (unified in
+  the prior round); any earlier color variation was stale cache, now superseded by the
+  site-wide theme.
+
+---
+
 ## 2026-08-12 — Homepage tile colors + admin CSS-theme panel
 
 ### Homepage coherence pass (`aca5077`)
