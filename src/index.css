@@ -21,6 +21,12 @@
   --tile-gold-text: #1a1408;
   --tile-blue: #3578b8;
   --tile-blue-text: #ffffff;
+  --btn-primary: #e2ad41;
+  --btn-primary-text: #1a1408;
+  --btn-secondary: #2f6ba5;
+  --btn-secondary-text: #ffffff;
+  --btn-danger: #dc2626;
+  --btn-danger-text: #ffffff;
   --card-face-dark: #12121a;
   --card-face-light: #f4f1ec;
   --card-text-primary-dark: #f4f1ec;
@@ -186,20 +192,26 @@
 
   /* ── Primary: tactile gold (brightened to pop on the purple theme) ── */
   .btn-primary {
-    background: linear-gradient(180deg, #f6da7c 0%, #e2ad41 50%, #c19126 100%);
-    color: #1a1408;
+    background: linear-gradient(180deg,
+      color-mix(in oklab, var(--btn-primary) 72%, white) 0%,
+      var(--btn-primary) 50%,
+      color-mix(in oklab, var(--btn-primary) 76%, black) 100%);
+    color: var(--btn-primary-text);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.35) inset,
       0 -1px 0 rgba(0,0,0,0.15) inset,
-      0 2px 0 #8a6216,
+      0 2px 0 color-mix(in oklab, var(--btn-primary) 58%, black),
       0 3px 6px rgba(0,0,0,0.25);
   }
   .btn-primary:hover:not(:disabled) {
-    background: linear-gradient(180deg, #fbe289 0%, #ecb64a 50%, #cd9930 100%);
+    background: linear-gradient(180deg,
+      color-mix(in oklab, var(--btn-primary) 60%, white) 0%,
+      color-mix(in oklab, var(--btn-primary) 88%, white) 50%,
+      color-mix(in oklab, var(--btn-primary) 84%, black) 100%);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.4) inset,
       0 -1px 0 rgba(0,0,0,0.12) inset,
-      0 2px 0 #8a6216,
+      0 2px 0 color-mix(in oklab, var(--btn-primary) 58%, black),
       0 4px 10px rgba(0,0,0,0.3);
     transform: translateY(-1px);
   }
@@ -207,25 +219,31 @@
     transform: translateY(1px);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.25) inset,
-      0 2px 0 #8a6216;
+      0 2px 0 color-mix(in oklab, var(--btn-primary) 58%, black);
   }
 
   /* ── Secondary: tactile blue (darkened stops for WCAG AA white-on-blue) ── */
   .btn-secondary {
-    background: linear-gradient(180deg, #3578b8 0%, #2f6ba5 50%, #26598e 100%);
-    color: #ffffff;
+    background: linear-gradient(180deg,
+      color-mix(in oklab, var(--btn-secondary) 82%, white) 0%,
+      var(--btn-secondary) 50%,
+      color-mix(in oklab, var(--btn-secondary) 84%, black) 100%);
+    color: var(--btn-secondary-text);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.3) inset,
       0 -1px 0 rgba(0,0,0,0.12) inset,
-      0 2px 0 #285d8f,
+      0 2px 0 color-mix(in oklab, var(--btn-secondary) 78%, black),
       0 3px 6px rgba(0,0,0,0.22);
   }
   .btn-secondary:hover:not(:disabled) {
-    background: linear-gradient(180deg, #3d86c8 0%, #3578b8 50%, #2f6ba5 100%);
+    background: linear-gradient(180deg,
+      color-mix(in oklab, var(--btn-secondary) 72%, white) 0%,
+      color-mix(in oklab, var(--btn-secondary) 90%, white) 50%,
+      color-mix(in oklab, var(--btn-secondary) 88%, black) 100%);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.35) inset,
       0 -1px 0 rgba(0,0,0,0.1) inset,
-      0 2px 0 #285d8f,
+      0 2px 0 color-mix(in oklab, var(--btn-secondary) 78%, black),
       0 4px 10px rgba(0,0,0,0.28);
     transform: translateY(-1px);
   }
@@ -233,25 +251,31 @@
     transform: translateY(1px);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.2) inset,
-      0 2px 0 #285d8f;
+      0 2px 0 color-mix(in oklab, var(--btn-secondary) 78%, black);
   }
 
   /* ── Danger: tactile red ── */
   .btn-danger {
-    background: linear-gradient(180deg, #f27a7a 0%, #dc2626 50%, #b91c1c 100%);
-    color: #ffffff;
+    background: linear-gradient(180deg,
+      color-mix(in oklab, var(--btn-danger) 78%, white) 0%,
+      var(--btn-danger) 50%,
+      color-mix(in oklab, var(--btn-danger) 78%, black) 100%);
+    color: var(--btn-danger-text);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.25) inset,
       0 -1px 0 rgba(0,0,0,0.15) inset,
-      0 2px 0 #7f1d1d,
+      0 2px 0 color-mix(in oklab, var(--btn-danger) 62%, black),
       0 3px 6px rgba(0,0,0,0.2);
   }
   .btn-danger:hover:not(:disabled) {
-    background: linear-gradient(180deg, #f58a8a 0%, #ef4444 50%, #dc2626 100%);
+    background: linear-gradient(180deg,
+      color-mix(in oklab, var(--btn-danger) 68%, white) 0%,
+      color-mix(in oklab, var(--btn-danger) 88%, white) 50%,
+      color-mix(in oklab, var(--btn-danger) 84%, black) 100%);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.3) inset,
       0 -1px 0 rgba(0,0,0,0.12) inset,
-      0 2px 0 #7f1d1d,
+      0 2px 0 color-mix(in oklab, var(--btn-danger) 62%, black),
       0 4px 10px rgba(0,0,0,0.25);
     transform: translateY(-1px);
   }
@@ -259,7 +283,7 @@
     transform: translateY(1px);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.2) inset,
-      0 2px 0 #7f1d1d;
+      0 2px 0 color-mix(in oklab, var(--btn-danger) 62%, black);
   }
 
   /* ── Selected toggle state ── */

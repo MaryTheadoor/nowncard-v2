@@ -50,9 +50,8 @@ export default function Navbar({ onAuthClick, messageCount = 0 }: NavbarProps) {
     <>
       <header className="sticky top-0 z-30 bg-space/95 backdrop-blur-sm border-b border-line-soft">
         <div className="max-w-6xl mx-auto px-4 sm:px-5 flex items-center justify-between h-14">
-          <Link to="/" className="flex items-center gap-2.5 text-ink font-bold text-[15px] no-underline">
-            <img src="/nowncard-logo.png" alt="" className="h-[28px] w-auto object-contain rounded-lg" />
-            <span>NownCard</span>
+          <Link to="/" className="flex items-center no-underline" aria-label="NownCard home">
+            <img src="/nowncard-logo.png" alt="NownCard" className="h-[28px] w-auto object-contain rounded-lg" />
           </Link>
 
           {/* Desktop nav */}
@@ -72,9 +71,6 @@ export default function Navbar({ onAuthClick, messageCount = 0 }: NavbarProps) {
             >
               <Star className="w-4 h-4" fill={secondaryCardSlug ? 'currentColor' : 'none'} />
             </button>
-
-            <Link to="/#features" className="text-sm font-medium text-ink-muted hover:text-ink transition px-2">Features</Link>
-            <Link to="/#pricing" className="text-sm font-medium text-ink-muted hover:text-ink transition px-2">Pricing</Link>
 
             {isAdmin && (
               <Link to="/admin" className="p-2 text-ink-muted hover:text-accent transition" title="Admin">
@@ -184,8 +180,6 @@ export default function Navbar({ onAuthClick, messageCount = 0 }: NavbarProps) {
 
             <div className="mt-auto flex flex-col gap-3 pb-4">
               <div className="h-px bg-line-soft" />
-              <Link to="/#features" onClick={() => setOpen(false)} className="text-sm font-semibold text-ink-muted hover:text-ink transition">Features</Link>
-              <Link to="/#pricing" onClick={() => setOpen(false)} className="text-sm font-semibold text-ink-muted hover:text-ink transition">Pricing</Link>
             </div>
           </div>
         </div>

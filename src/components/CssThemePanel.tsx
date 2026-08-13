@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { Palette, RefreshCw, Copy, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import {
-  CSS_THEME_VARS, loadThemeOverrides, saveThemeOverrides, applyThemeOverrides,
-  clearThemeOverrides, getEffectiveVar, getThemeDefaults,
+  CSS_THEME_VARS, saveThemeOverrides, applyThemeOverrides,
+  clearThemeOverrides, getThemeDefaults, fetchThemeOverrides, saveThemeOverridesServer,
   type CssThemeOverrides,
 } from '@/lib/css-theme';
 
@@ -13,21 +13,10 @@ type Mode = 'light' | 'dark';
 const SECTIONS: { label: string; vars: string[] }[] = [
   { label: 'Page & Surfaces', vars: ['space', 'space-2', 'tile', 'tile-soft', 'card-bg', 'line', 'line-soft'] },
   { label: 'Text', vars: ['ink', 'ink-muted', 'ink-faint'] },
-  { label: 'Accents & Buttons', vars: ['accent', 'accent-hover', 'secondary', 'secondary-hover', 'danger'] },
+  { label: 'Accents', vars: ['accent', 'accent-hover', 'secondary', 'secondary-hover', 'danger'] },
   { label: 'Homepage Tiles', vars: ['tile-gold', 'tile-gold-text', 'tile-blue', 'tile-blue-text'] },
+  { label: 'Buttons', vars: ['btn-primary', 'btn-primary-text', 'btn-secondary', 'btn-secondary-text', 'btn-danger', 'btn-danger-text'] },
 ];
-
-function captureCurrent(): VarValues {
-  const overrides = loadThemeOverrides();
-  const out = {} as VarValues;
-  for (const name of CSS_THEME_VARS) {
-    out[name] = {
-      light: overrides.light[name] || getEffectiveVar(name, 'light'),
-      dark: overrides.dark[name] || getEffectiveVar(name, 'dark'),
-    };
-  }
-  return out;
-}
 
 function VarInput({ value, onCommit }: { value: string; onCommit: (v: string) => void }) {
   const [draft, setDraft] = useState<string | null>(null);
@@ -38,7 +27,7 @@ function VarInput({ value, onCommit }: { value: string; onCommit: (v: string) =>
         type="color"
         value={/^#[0-9a-f]{6}$/i.test(value) ? value : '#000000'}
         onChange={(e) => onCommit(e.target.value)}
-        className="w-8 h-8 rounded cursor-pointer border border-line bg-transparent"
+        className="w-8 h-8 rounded cursor-pointer border border-line bg-transparent shrink-0"
         title="Pick color"
       />
       <input
@@ -49,7 +38,7 @@ function VarInput({ value, onCommit }: { value: string; onCommit: (v: string) =>
           if (/^#[0-9a-f]{6}$/i.test(e.target.value)) onCommit(e.target.value.toLowerCase());
         }}
         onBlur={() => setDraft(null)}
-        className="w-24 px-2 py-1 bg-space border border-line rounded-lg text-xs font-mono text-ink focus:outline-none focus:border-accent"
+        className="w-full sm:w-24 px-2 py-1 bg-space border border-line rounded-lg text-xs font-mono text-ink focus:outline-none focus:border-accent"
         spellCheck={false}
       />
     </div>
@@ -58,9 +47,31 @@ function VarInput({ value, onCommit }: { value: string; onCommit: (v: string) =>
 
 export default function CssThemePanel() {
   const [defaults] = useState<VarValues>(getThemeDefaults);
-  const [values, setValues] = useState<VarValues>(captureCurrent);
+  const [values, setValues] = useState<VarValues>(defaults);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+    fetchThemeOverrides()
+      .then((server) => {
+        if (cancelled) return;
+        setValues((prev) => {
+          const next = {} as VarValues;
+          for (const name of CSS_THEME_VARS) {
+            next[name] = {
+              light: server.light[name] || prev[name].light,
+              dark: server.dark[name] || prev[name].dark,
+            };
+          }
+          return next;
+        });
+      })
+      .finally(() => { if (!cancelled) setLoaded(true); });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
     const overrides: CssThemeOverrides = { light: {}, dark: {} };
     for (const name of CSS_THEME_VARS) {
       if (values[name].light !== defaults[name].light) overrides.light[name] = values[name].light;
@@ -68,7 +79,11 @@ export default function CssThemePanel() {
     }
     applyThemeOverrides(overrides);
     saveThemeOverrides(overrides);
-  }, [values, defaults]);
+    const t = setTimeout(() => {
+      saveThemeOverridesServer(overrides).catch(() => toast.error('Could not save theme to the site'));
+    }, 600);
+    return () => clearTimeout(t);
+  }, [values, loaded, defaults]);
 
   const update = (name: string, mode: Mode, value: string) => {
     setValues((prev) => ({ ...prev, [name]: { ...prev[name], [mode]: value } }));
@@ -76,8 +91,9 @@ export default function CssThemePanel() {
 
   const reset = () => {
     clearThemeOverrides();
+    saveThemeOverridesServer({ light: {}, dark: {} }).catch(() => {});
     setValues(defaults);
-    toast.success('Theme reset to defaults');
+    toast.success('Theme reset to defaults (site-wide)');
   };
 
   const exportCss = async () => {
@@ -93,15 +109,15 @@ export default function CssThemePanel() {
   };
 
   return (
-    <section className="bg-tile border border-line rounded-2xl p-6">
+    <section className="bg-tile border border-line rounded-2xl p-4 sm:p-6">
       <div className="flex items-start justify-between gap-3 flex-wrap mb-5">
         <div>
           <h2 className="text-lg font-extrabold flex items-center gap-2">
             <Palette className="w-5 h-5 text-accent" /> Site Theme (CSS variables)
           </h2>
           <p className="text-xs text-ink-muted mt-1">
-            Adjust colors live — saved to this browser and applied instantly. Export the CSS to
-            commit changes to the codebase permanently.
+            Adjust colors live — saved to Firestore and applied site-wide for every visitor.
+            Export the CSS to commit changes into the codebase instead.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -118,17 +134,27 @@ export default function CssThemePanel() {
         {SECTIONS.map((section) => (
           <div key={section.label}>
             <h3 className="text-xs font-bold uppercase tracking-wider text-ink-faint mb-3">{section.label}</h3>
+            <div className="hidden sm:grid grid-cols-[9rem_1fr_1fr] items-center gap-3 text-[11px] font-bold uppercase tracking-wider text-ink-faint px-1 mb-2">
+              <span>Variable</span>
+              <span>Light</span>
+              <span>Dark</span>
+            </div>
             <div className="space-y-2">
-              <div className="grid grid-cols-[9rem_1fr_1fr] items-center gap-3 text-[11px] font-bold uppercase tracking-wider text-ink-faint px-1">
-                <span>Variable</span>
-                <span>Light</span>
-                <span>Dark</span>
-              </div>
               {section.vars.map((name) => (
-                <div key={name} className="grid grid-cols-[9rem_1fr_1fr] items-center gap-3 bg-space border border-line rounded-xl px-3 py-2">
-                  <span className="text-xs font-bold font-mono text-ink">{name}</span>
-                  <VarInput value={values[name].light} onCommit={(v) => update(name, 'light', v)} />
-                  <VarInput value={values[name].dark} onCommit={(v) => update(name, 'dark', v)} />
+                <div key={name} className="bg-space border border-line rounded-xl px-3 py-3 sm:grid sm:grid-cols-[9rem_1fr_1fr] sm:items-center sm:gap-3">
+                  <div className="mb-2 sm:mb-0">
+                    <span className="text-xs font-bold font-mono text-ink">{name}</span>
+                  </div>
+                  <div className="sm:contents space-y-2 sm:space-y-0">
+                    <div className="flex items-center gap-2">
+                      <span className="w-10 shrink-0 text-[11px] font-bold uppercase tracking-wider text-ink-faint sm:hidden">Light</span>
+                      <VarInput value={values[name].light} onCommit={(v) => update(name, 'light', v)} />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-10 shrink-0 text-[11px] font-bold uppercase tracking-wider text-ink-faint sm:hidden">Dark</span>
+                      <VarInput value={values[name].dark} onCommit={(v) => update(name, 'dark', v)} />
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -137,8 +163,9 @@ export default function CssThemePanel() {
       </div>
 
       <p className="text-[11px] text-ink-faint mt-5 flex items-center gap-1.5">
-        <RefreshCw className="w-3 h-3" /> Overrides live in this browser via localStorage (key{' '}
-        <code className="font-mono">nowncard-css-theme</code>).
+        <RefreshCw className="w-3 h-3 shrink-0" /> Stored in Firestore{' '}
+        <code className="font-mono">config/theme</code> — every visitor applies these overrides
+        on load (cached locally for instant re-apply).
       </p>
     </section>
   );

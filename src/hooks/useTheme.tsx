@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ThemeContext } from './theme-context';
-import { applyThemeOverrides, loadThemeOverrides } from '@/lib/css-theme';
+import {
+  applyThemeOverrides, loadThemeOverrides, saveThemeOverrides, fetchThemeOverrides,
+} from '@/lib/css-theme';
 
 const STORAGE_KEY = 'nowncard-theme';
 
@@ -21,7 +23,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const resolved = theme === 'system' ? getSystemTheme() : theme;
 
   useEffect(() => {
+    // Apply cached overrides instantly, then reconcile with the site-wide
+    // Firestore config so the admin's theme edits reach every visitor.
     applyThemeOverrides(loadThemeOverrides());
+    fetchThemeOverrides().then((server) => {
+      applyThemeOverrides(server);
+      saveThemeOverrides(server);
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {

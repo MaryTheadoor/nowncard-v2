@@ -1,3 +1,6 @@
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+
 const STORAGE_KEY = 'nowncard-css-theme';
 const STYLE_ID = 'nowncard-css-theme-overrides';
 
@@ -8,20 +11,33 @@ export const CSS_THEME_VARS = [
   'ink', 'ink-muted', 'ink-faint',
   'accent', 'accent-hover', 'secondary', 'secondary-hover', 'danger',
   'tile-gold', 'tile-gold-text', 'tile-blue', 'tile-blue-text',
+  'btn-primary', 'btn-primary-text', 'btn-secondary', 'btn-secondary-text',
+  'btn-danger', 'btn-danger-text',
 ] as const;
+
+const HEX_COLOR = /^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/;
+
+function sanitizeMap(raw: unknown): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (raw && typeof raw === 'object') {
+    for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+      if (/^--[a-z0-9-]+$/.test(key) && typeof value === 'string' && HEX_COLOR.test(value)) {
+        out[key] = value;
+      }
+    }
+  }
+  return out;
+}
+
+function sanitizeOverrides(raw: unknown): CssThemeOverrides {
+  const src = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  return { light: sanitizeMap(src.light), dark: sanitizeMap(src.dark) };
+}
 
 export function loadThemeOverrides(): CssThemeOverrides {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as Partial<CssThemeOverrides>;
-      if (parsed && typeof parsed === 'object') {
-        return {
-          light: parsed.light && typeof parsed.light === 'object' ? parsed.light : {},
-          dark: parsed.dark && typeof parsed.dark === 'object' ? parsed.dark : {},
-        };
-      }
-    }
+    if (raw) return sanitizeOverrides(JSON.parse(raw));
   } catch {
     /* ignore corrupt storage */
   }
@@ -35,6 +51,27 @@ export function saveThemeOverrides(overrides: CssThemeOverrides) {
 export function clearThemeOverrides() {
   try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
   document.getElementById(STYLE_ID)?.remove();
+}
+
+export async function fetchThemeOverrides(): Promise<CssThemeOverrides> {
+  try {
+    const snap = await getDoc(doc(db, 'config', 'theme'));
+    if (snap.exists()) return sanitizeOverrides(snap.data());
+  } catch { /* fall back to empty */ }
+  return { light: {}, dark: {} };
+}
+
+// Site-wide save — writes to Firestore `config/theme` (readable by everyone,
+// writable by admins via firestore.rules). Also caches locally for instant
+// re-apply on the next load.
+export async function saveThemeOverridesServer(overrides: CssThemeOverrides): Promise<void> {
+  const payload = sanitizeOverrides(overrides);
+  await setDoc(doc(db, 'config', 'theme'), {
+    light: payload.light,
+    dark: payload.dark,
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+  saveThemeOverrides(payload);
 }
 
 export function applyThemeOverrides(overrides: CssThemeOverrides) {
