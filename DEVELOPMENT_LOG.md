@@ -4,6 +4,34 @@
 
 ---
 
+## 2026-08-12 — Menu customization, collapsible editor sections, speed audit
+
+### Menu header now user-configurable (`bef5fb7`)
+- The card-page menu section header was hardcoded to `<UtensilsCrossed /> Menu`. Added
+  `Card.menuTitle` (custom title, e.g. "Services", "Price List") and `Card.menuIcon` (icon
+  key). Editor gains a "Section title" text field + "Header icon" selector (Food & Drink,
+  Business, Services, Beauty, Spa & Wellness, Pricing, Featured, No icon). Card viewer +
+  live-preview render the custom title/icon. New `src/lib/menuIcons.ts` (`MENU_ICON_OPTIONS`,
+  `getMenuIcon`).
+
+### Collapsible editor sections (`e158044`)
+- The 12 editor sections (Basic Info → Images) were flat `<div>` panels. Converted to native
+  `<details open>` with a chevron `<summary>` so users can fold completed sections to cut
+  vertical scrolling. Also folded the stray, unstyled "Back Background Photo" block into its
+  own collapsible section (it had been left outside the Images tile).
+
+### Speed audit (`844e33e`)
+- **Entry bundle 581→560 KB raw (178→170 KB gzip)** by deferring the Firebase **Storage** SDK
+  into `src/lib/storage.ts` (only the lazy-loaded editor uploads images/fonts). Entry still
+  dominated by React + `firebase/auth` + `firestore` (~170 KB gzip) — those are required
+  app-wide (Navbar auth, config reads) so they can't be dropped, but `firebase/auth` deferral
+  remains the biggest remaining lever (see HEALTH_CHECK backlog).
+- Reviewed: pages are already route-lazy (`App.tsx`), `qrcode.react`/`functions` SDK are
+  already page-scoped, `sw.js` skips hashed JS/CSS (network-first nav only), Google Fonts use
+  `display=swap` + `preconnect`. No render-blocking scripts found beyond the entry module.
+
+---
+
 ## 2026-08-12 — Site-wide theme config + button colors + nav cleanup
 
 ### Site-wide theme (Firestore-backed) (`f2c1d31`)
