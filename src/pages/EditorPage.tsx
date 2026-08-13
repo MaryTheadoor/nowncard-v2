@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import BackLink from '@/components/BackLink';
 import ShareModal from '@/components/ShareModal';
 import MenuEditor from '@/components/MenuEditor';
+import { MENU_ICON_OPTIONS } from '@/lib/menuIcons';
 import { doc, getDoc, deleteField, serverTimestamp, collection, query, where, getDocs, limit, runTransaction } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
@@ -1122,7 +1123,33 @@ export default function EditorPage() {
             <h2 className="text-lg font-bold mb-1">Menu</h2>
             <p className="text-xs text-ink-faint mb-4">Add a simple menu for your food truck or venue. Items appear on your card page with a toggle to expand the full list.</p>
             {userData?.plan === 'business' ? (
-              <MenuEditor value={card.menu || []} onChange={(menu) => updateField('menu', menu)} onUploadImage={uploadMenuImage} />
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                  <div>
+                    <label className="block text-sm font-semibold text-ink mb-1.5">Section title</label>
+                    <input
+                      value={card.menuTitle || ''}
+                      onChange={(e) => updateField('menuTitle', e.target.value)}
+                      placeholder="Menu (e.g. Services, Price List)"
+                      className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent"
+                    />
+                    <p className="text-[11px] text-ink-faint mt-1">Leave blank for "Menu".</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-ink mb-1.5">Header icon</label>
+                    <select
+                      value={card.menuIcon || 'utensils'}
+                      onChange={(e) => updateField('menuIcon', e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent"
+                    >
+                      {MENU_ICON_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <MenuEditor value={card.menu || []} onChange={(menu) => updateField('menu', menu)} onUploadImage={uploadMenuImage} />
+              </>
             ) : (
               <div className="flex items-center gap-2 text-sm text-ink-faint">
                 <UtensilsCrossed className="w-4 h-4" />

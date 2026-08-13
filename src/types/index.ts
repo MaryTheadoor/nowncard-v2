@@ -70,6 +70,8 @@ export interface Card {
   paymentLinks?: SocialLink[];
   featuredLinks?: FeaturedLink[];
   menu?: MenuCategory[];
+  menuTitle?: string;
+  menuIcon?: string;
   birthday?: string;
   anniversary?: string;
   bio?: string;

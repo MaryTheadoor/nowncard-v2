@@ -67,7 +67,7 @@ export default function LivePagePreview({ card, className = '', layout = 'stack'
           {/* Menu preview (mock) */}
           {menu.length > 0 && (
             <div className={`bg-space border border-line rounded-xl p-3 ${isRow ? '' : 'mt-4'}`}>
-              <div className="text-[10px] font-bold text-ink-muted uppercase tracking-wider text-center mb-1.5">Menu</div>
+              <div className="text-[10px] font-bold text-ink-muted uppercase tracking-wider text-center mb-1.5">{card.menuTitle?.trim() || 'Menu'}</div>
               {menu.map((cat, ci) => (
                 <div key={ci} className={ci > 0 ? 'mt-2 pt-2 border-t border-line' : ''}>
                   <div className="flex items-center gap-1.5 mb-1">

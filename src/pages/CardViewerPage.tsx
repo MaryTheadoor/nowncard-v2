@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { collection, query, where, limit, getDocs, doc, updateDoc, increment, setDoc, serverTimestamp, addDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { downloadVCard, generateVCard, saveToContacts } from '@/lib/vcard';
+import { getMenuIcon } from '@/lib/menuIcons';
 import { escHtml, initials, fullName, orgLine, formatAddress, shareNative, detectDevice, PLAT, PAYMENT_PLAT } from '@/lib/utils';
 import { useAuth } from '@/hooks/auth-context';
 import { useCardTheme } from '@/hooks/useCardTheme';
@@ -17,7 +18,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import type { Card } from '@/types';
 
-import { Calendar, ExternalLink, Pencil, UtensilsCrossed, ChevronDown } from 'lucide-react';
+import { Calendar, ExternalLink, Pencil, ChevronDown } from 'lucide-react';
 import { IconPhone, IconMail, IconGlobe, IconPin } from '@/components/CardIcons';
 const IconDownload = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-[18px] h-[18px]"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10 12 15 17 10"/><path d="M12 15V3"/></svg>;
 const IconSend = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-10z"/></svg>;
@@ -585,10 +586,12 @@ export default function CardViewerPage() {
         )}
 
         {/* Menu (food trucks / venues) */}
-        {menu.length > 0 && (
+        {menu.length > 0 && (() => {
+          const MenuIcon = getMenuIcon(card.menuIcon);
+          return (
           <div className="w-full flex flex-col gap-2.5">
             <div className="text-xs font-bold text-ink-muted uppercase tracking-wider text-center flex items-center justify-center gap-1.5">
-              <UtensilsCrossed className="w-3.5 h-3.5" /> Menu
+              {MenuIcon && <MenuIcon className="w-3.5 h-3.5" />} {card.menuTitle?.trim() || 'Menu'}
             </div>
             <div className="bg-tile border border-line rounded-2xl p-5">
               {visibleMenu.map((cat, ci) => (
@@ -621,7 +624,8 @@ export default function CardViewerPage() {
               )}
             </div>
           </div>
-        )}
+          );
+        })()}
         </div>
       </div>
 
