@@ -44,6 +44,7 @@ export default function EditorPage() {
   const [card, setCard] = useState<Partial<Card>>(defaultCard);
   const [showConfirm, ConfirmDialog] = useConfirm();
   const originalCardRef = useRef<Partial<Card> | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -104,6 +105,7 @@ export default function EditorPage() {
         const isTeamOwner = data?.teamOwnerUid === user.uid || data?.teamOwnerId === user.uid;
         if (snap.exists() && (isOwner || isTeamOwner)) {
           setCard(data as Card);
+          setIsDirty(false);
           originalCardRef.current = data as Card;
           setAccentHex((data as Card).accentColor || '#f5b940');
           setCardBgHex((data as Card).cardBgColor || '#f4f1ec');
@@ -159,8 +161,11 @@ export default function EditorPage() {
     }, 400);
     return () => { if (slugDebounce.current) clearTimeout(slugDebounce.current); };
   }, [card.slug, user, id]);
+  useEffect(() => {
+    if (!originalCardRef.current) return;
+    setIsDirty(JSON.stringify(card) !== JSON.stringify(originalCardRef.current));
+  }, [card]);
 
-  const isDirty = originalCardRef.current ? JSON.stringify(card) !== JSON.stringify(originalCardRef.current) : false;
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
@@ -274,6 +279,7 @@ export default function EditorPage() {
           tx.set(slugRef, { cardId: id, ownerUid: user.uid, updatedAt: serverTimestamp() }, { merge: true });
         });
         toast.success('Card saved');
+        setIsDirty(false);
         originalCardRef.current = { ...card };
       } else {
         if (!data.isTeamCard) {
@@ -304,6 +310,7 @@ export default function EditorPage() {
           tx.set(slugRef, { cardId: cardRef.id, ownerUid: user.uid, updatedAt: serverTimestamp() });
         });
         toast.success('Card saved');
+        setIsDirty(false);
         originalCardRef.current = { ...card };
         navigate(`/editor/${cardRef.id}`);
       }
