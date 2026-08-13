@@ -128,7 +128,7 @@ export default function LiveCardPreview({ card, className = '' }: LiveCardPrevie
                   {paymentLinks.map((s, i) => (
                     <span
                       key={`pay-${i}`}
-                      className={`px-3 py-1.5 rounded-full font-bold lowercase tracking-wide border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 transition-colors`}
+                      className={`px-3 py-1.5 rounded-full font-bold lowercase tracking-wide border border-success/30 text-success hover:bg-success/10 hover:text-success transition-colors`}
                       style={{ ...textColorStyle, fontSize: sfs(11) }}
                     >
                       {PAYMENT_PLAT[s.platform.toLowerCase()] || s.platform}

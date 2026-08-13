@@ -66,7 +66,7 @@ export default function Navbar({ onAuthClick, messageCount = 0 }: NavbarProps) {
             </button>
             <button
               onClick={() => handleFavorite(secondaryCardSlug)}
-              className={`p-2 transition ${secondaryCardSlug ? 'text-blue-400 hover:text-blue-500' : 'text-ink-muted hover:text-blue-400'}`}
+              className={`p-2 transition ${secondaryCardSlug ? 'text-secondary hover:text-secondary' : 'text-ink-muted hover:text-secondary'}`}
               title={userEmail ? (secondaryCardSlug ? `Second favorite: ${secondaryCardSlug}` : 'No second favorite set') : 'Sign in to view your cards'}
             >
               <Star className="w-4 h-4" fill={secondaryCardSlug ? 'currentColor' : 'none'} />
@@ -120,7 +120,7 @@ export default function Navbar({ onAuthClick, messageCount = 0 }: NavbarProps) {
             </button>
             <button
               onClick={() => handleFavorite(secondaryCardSlug)}
-              className={`p-2 transition ${secondaryCardSlug ? 'text-blue-400 hover:text-blue-500' : 'text-ink-muted hover:text-blue-400'}`}
+              className={`p-2 transition ${secondaryCardSlug ? 'text-secondary hover:text-secondary' : 'text-ink-muted hover:text-secondary'}`}
               title={userEmail ? (secondaryCardSlug ? `Second favorite: ${secondaryCardSlug}` : 'No second favorite set') : 'Sign in to view your cards'}
             >
               <Star className="w-5 h-5" fill={secondaryCardSlug ? 'currentColor' : 'none'} />

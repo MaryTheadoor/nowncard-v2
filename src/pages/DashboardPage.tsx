@@ -59,15 +59,15 @@ function CardRow({ c, showTeamBadge, defaultCardSlug, secondaryCardSlug, onSetDe
           </button>
           <button
             onClick={() => onSetSecondary(c.slug)}
-            className={`p-1 rounded transition cursor-pointer ${secondaryCardSlug === c.slug ? 'text-blue-400' : 'text-ink-faint hover:text-blue-400'}`}
+            className={`p-1 rounded transition cursor-pointer ${secondaryCardSlug === c.slug ? 'text-secondary' : 'text-ink-faint hover:text-secondary'}`}
             title={secondaryCardSlug === c.slug ? 'Star favorite' : 'Set as star favorite'}
           >
             <Star className="w-3.5 h-3.5" fill={secondaryCardSlug === c.slug ? 'currentColor' : 'none'} />
           </button>
           {showTeamBadge && (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-purple-950 text-purple-400 border border-purple-800">Team</span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-violet/10 text-violet border border-violet/25">Team</span>
           )}
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${c.isPublic ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-tile-soft text-ink-faint border border-line'}`}>{c.isPublic ? 'Public' : 'Private'}</span>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${c.isPublic ? 'bg-success/10 text-success border border-success/25' : 'bg-tile-soft text-ink-faint border border-line'}`}>{c.isPublic ? 'Public' : 'Private'}</span>
         </div>
       </div>
 
@@ -435,7 +435,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-extrabold">Dashboard</h1>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border ${plan === 'business' ? 'bg-purple-950 text-purple-400 border-purple-800' : plan === 'pro' ? 'bg-amber-950 text-amber-400 border-amber-800' : 'bg-tile-soft text-ink-faint border-line'}`}>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border ${plan === 'business' ? 'bg-violet/10 text-violet border-violet/25' : plan === 'pro' ? 'bg-warning/10 text-warning border-warning/25' : 'bg-tile-soft text-ink-faint border-line'}`}>
               {plan} · {personalCards.length}/{getCardLimit(plan) === Infinity ? '∞' : getCardLimit(plan)}
             </span>
             <button
@@ -557,7 +557,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
               <div className="flex items-center gap-3">
                 <h2 className="text-xl font-extrabold">Team Cards</h2>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-purple-950 text-purple-400 border border-purple-800">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-violet/10 text-violet border border-violet/25">
                   {teamCards.length} member{teamCards.length === 1 ? '' : 's'}
                 </span>
               </div>
@@ -632,7 +632,7 @@ export default function DashboardPage() {
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-sm">{m.senderName}</span>
                         {m.isLead && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-amber-950 text-amber-400 border border-amber-800">Lead</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-warning/10 text-warning border border-warning/25">Lead</span>
                         )}
                         {!m.read && <span className="w-2 h-2 rounded-full bg-accent" />}
                       </div>
@@ -736,14 +736,14 @@ export default function DashboardPage() {
                 {appointments.map((a) => (
                   <div
                     key={a.id}
-                    className={`bg-tile border rounded-2xl p-5 transition ${a.status === 'pending' ? 'border-accent' : a.status === 'confirmed' ? 'border-emerald-500' : 'border-line'}`}
+                    className={`bg-tile border rounded-2xl p-5 transition ${a.status === 'pending' ? 'border-accent' : a.status === 'confirmed' ? 'border-success' : 'border-line'}`}
                   >
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-sm">{a.requesterName}</span>
                           {a.status === 'pending' && <span className="w-2 h-2 rounded-full bg-accent" />}
-                          {a.status === 'confirmed' && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-emerald-950 text-emerald-400 border border-emerald-800">Confirmed</span>}
+                          {a.status === 'confirmed' && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-success/10 text-success border border-success/25">Confirmed</span>}
                           {a.status === 'cancelled' && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-tile-soft text-ink-faint border border-line">Cancelled</span>}
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -836,7 +836,7 @@ className="btn btn-danger btn-xs"
                       aria-label={`${n} star${n > 1 ? 's' : ''}`}
                     >
                       <Star
-                        className={`w-7 h-7 ${n <= (hoverRating || rating) ? 'text-amber-400 fill-amber-400' : 'text-ink-faint'}`}
+                        className={`w-7 h-7 ${n <= (hoverRating || rating) ? 'text-warning fill-warning' : 'text-ink-faint'}`}
                       />
                     </button>
                   ))}
@@ -862,7 +862,7 @@ className="btn btn-danger btn-xs"
                 />
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-[10px] text-ink-faint">{reviewText.length}/1000</span>
-                  {myReview && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-emerald-950 text-emerald-400 border border-emerald-800">Submitted</span>}
+                  {myReview && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-success/10 text-success border border-success/25">Submitted</span>}
                 </div>
 
                 <button
@@ -881,7 +881,7 @@ className="btn btn-danger btn-xs"
           <div>
             <div className="flex items-center gap-3 mb-4">
               <h2 className="text-xl font-extrabold">Billing</h2>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border ${plan === 'business' ? 'bg-purple-950 text-purple-400 border-purple-800' : plan === 'pro' ? 'bg-amber-950 text-amber-400 border-amber-800' : 'bg-tile-soft text-ink-faint border-line'}`}>{plan}</span>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border ${plan === 'business' ? 'bg-violet/10 text-violet border-violet/25' : plan === 'pro' ? 'bg-warning/10 text-warning border-warning/25' : 'bg-tile-soft text-ink-faint border-line'}`}>{plan}</span>
             </div>
 
             {historyLoading ? (

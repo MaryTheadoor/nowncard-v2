@@ -14,6 +14,7 @@ const SECTIONS: { label: string; vars: string[] }[] = [
   { label: 'Page & Surfaces', vars: ['space', 'space-2', 'tile', 'tile-soft', 'card-bg', 'line', 'line-soft'] },
   { label: 'Text', vars: ['ink', 'ink-muted', 'ink-faint'] },
   { label: 'Accents', vars: ['accent', 'accent-hover', 'secondary', 'secondary-hover', 'danger'] },
+  { label: 'Semantic', vars: ['success', 'warning', 'violet'] },
   { label: 'Homepage Tiles', vars: ['tile-gold', 'tile-gold-text', 'tile-blue', 'tile-blue-text'] },
   { label: 'Buttons', vars: ['btn-primary', 'btn-primary-text', 'btn-secondary', 'btn-secondary-text', 'btn-danger', 'btn-danger-text'] },
 ];
@@ -134,7 +135,7 @@ export default function CssThemePanel() {
         </div>
         <div className="flex items-center gap-2">
           {saveState === 'saving' && <span className="text-xs text-ink-faint">Saving…</span>}
-          {saveState === 'saved' && <span className="text-xs text-emerald-400 font-semibold">Saved to site ✓</span>}
+          {saveState === 'saved' && <span className="text-xs text-success font-semibold">Saved to site ✓</span>}
           {saveState === 'error' && <span className="text-xs text-danger font-semibold">Save failed</span>}
           <button onClick={exportCss} className="btn btn-secondary btn-sm">
             <Copy className="w-3.5 h-3.5" /> Export CSS

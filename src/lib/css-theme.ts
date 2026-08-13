@@ -10,6 +10,7 @@ export const CSS_THEME_VARS = [
   'space', 'space-2', 'tile', 'tile-soft', 'card-bg', 'line', 'line-soft',
   'ink', 'ink-muted', 'ink-faint',
   'accent', 'accent-hover', 'secondary', 'secondary-hover', 'danger',
+  'success', 'warning', 'violet',
   'tile-gold', 'tile-gold-text', 'tile-blue', 'tile-blue-text',
   'btn-primary', 'btn-primary-text', 'btn-secondary', 'btn-secondary-text',
   'btn-danger', 'btn-danger-text',

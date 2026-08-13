@@ -445,9 +445,9 @@ export default function AdminPage() {
           <div className="space-y-6">
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
               {[
-                { label: 'Total Users', value: totalUsers.toLocaleString(), icon: Users, color: 'text-blue-400' },
-                { label: 'Total Cards', value: totalCards.toLocaleString(), icon: FileText, color: 'text-emerald-400' },
-                { label: 'Total Upgrades', value: totalUpgrades.toLocaleString(), icon: TrendingUp, color: 'text-amber-400' },
+                { label: 'Total Users', value: totalUsers.toLocaleString(), icon: Users, color: 'text-secondary' },
+                { label: 'Total Cards', value: totalCards.toLocaleString(), icon: FileText, color: 'text-success' },
+                { label: 'Total Upgrades', value: totalUpgrades.toLocaleString(), icon: TrendingUp, color: 'text-warning' },
               ].map(({ label, value, icon: Icon, color }) => (
                 <div key={label} className="bg-tile border border-line rounded-2xl p-5">
                   <div className="flex items-center gap-2 text-xs text-ink-muted uppercase tracking-wider mb-2">
@@ -584,7 +584,7 @@ export default function AdminPage() {
                         <td className="py-2 pr-4">{fmtCents(u.amountPaid)}</td>
                         <td className="py-2 pr-4 text-xs">{u.cardBrand ? `${u.cardBrand} ••••${u.lastFour || ''}` : u.paymentId?.slice(0, 10) + '…' || '-'}</td>
                         <td className="py-2 pr-4 text-xs">
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${u.source === 'square_webhook' ? 'bg-emerald-500/10 text-emerald-400' : u.source === 'admin_manual' ? 'bg-amber-500/10 text-amber-400' : 'bg-tile-soft text-ink-muted'}`}>
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${u.source === 'square_webhook' ? 'bg-success/10 text-success' : u.source === 'admin_manual' ? 'bg-amber-500/10 text-warning' : 'bg-tile-soft text-ink-muted'}`}>
                             {u.source || 'unknown'}
                           </span>
                         </td>
@@ -704,7 +704,7 @@ export default function AdminPage() {
                         <td className="py-2 pr-4 font-mono text-[11px] text-ink-faint">{c.ownerUid?.slice(0, 10)}…</td>
                         <td className="py-2 pr-4">
                           <button onClick={() => togglePublicCard(c.id, c.isPublic ?? true)}
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${c.isPublic ? 'bg-emerald-500/10 text-emerald-400' : 'bg-tile-soft text-ink-muted'}`}>
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${c.isPublic ? 'bg-success/10 text-success' : 'bg-tile-soft text-ink-muted'}`}>
                             {c.isPublic ? 'Public' : 'Private'}
                           </button>
                         </td>
@@ -748,7 +748,7 @@ export default function AdminPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         {[1, 2, 3, 4, 5].map((n) => (
-                          <Star key={n} className={`w-3.5 h-3.5 ${n <= r.rating ? 'text-amber-400 fill-amber-400' : 'text-ink-faint'}`} />
+                          <Star key={n} className={`w-3.5 h-3.5 ${n <= r.rating ? 'text-warning fill-warning' : 'text-ink-faint'}`} />
                         ))}
                       </div>
                     </div>

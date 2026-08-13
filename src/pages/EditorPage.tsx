@@ -583,14 +583,14 @@ export default function EditorPage() {
                     placeholder="Slug (e.g. jane-doe)"
                     className={`w-full px-3.5 py-2.5 bg-space border rounded-lg text-ink text-sm focus:outline-none focus:border-accent ${
                       slugStatus === 'taken' || slugStatus === 'invalid' ? 'border-danger' :
-                      slugStatus === 'available' ? 'border-emerald-500' :
+                      slugStatus === 'available' ? 'border-success' :
                       'border-line'
                     }`}
                   />
                   {slugStatus !== 'idle' && slugStatus !== 'checking' && (
                     <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold uppercase tracking-wider ${
                       slugStatus === 'taken' || slugStatus === 'invalid' ? 'text-danger' :
-                      slugStatus === 'available' ? 'text-emerald-400' : 'text-ink-faint'
+                      slugStatus === 'available' ? 'text-success' : 'text-ink-faint'
                     }`}>
                       {slugStatus === 'taken' ? 'Taken' : slugStatus === 'invalid' ? 'Too short' : 'Available'}
                     </span>
@@ -822,7 +822,7 @@ export default function EditorPage() {
                   )}
                   {card.customFontUrl && (
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-emerald-400 font-semibold">Custom font active</span>
+                      <span className="text-xs text-success font-semibold">Custom font active</span>
                       <button type="button" onClick={() => setCard((prev) => ({ ...prev, customFontUrl: undefined, fontFamily: 'Manrope' }))} className="text-xs text-danger font-bold border border-line rounded-lg px-2 py-1 hover:border-danger transition">Remove</button>
                     </div>
                   )}

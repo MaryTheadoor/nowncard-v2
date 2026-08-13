@@ -204,7 +204,7 @@ export default function AppointmentModal({ open, onClose, card }: AppointmentMod
       {submitted ? (
         <>
           <div className="flex flex-col items-center text-center py-4">
-            <div className="w-14 h-14 rounded-full bg-emerald-500/15 text-emerald-500 flex items-center justify-center mb-3"><CheckCircle2 className="w-8 h-8" /></div>
+            <div className="w-14 h-14 rounded-full bg-success/15 text-success flex items-center justify-center mb-3"><CheckCircle2 className="w-8 h-8" /></div>
             <h2 id="appointment-modal-title" className="text-xl font-extrabold mb-1">Request sent!</h2>
               <p className="text-sm text-ink-muted mb-6">
                 {ownerFirstName} has been notified. Add the appointment to your calendar:

@@ -138,7 +138,7 @@ export default function LandingPage() {
       {/* Features */}
       <section id="features" className="bg-space-2 py-16 px-6">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-center text-sky-500 dark:text-sky-400 mb-10">Everything You Need</h2>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-center text-secondary mb-10">Everything You Need</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
               { icon: <Link2 className="w-5 h-5" />, title: 'Shareable Link', desc: 'Every card gets a clean URL. Share it anywhere — text, email, social, or embed it in your signature.' },
@@ -164,8 +164,8 @@ export default function LandingPage() {
       {/* Sustainability */}
       <section className="py-16 px-6 max-w-3xl mx-auto text-center">
         <div className="bg-tile border border-line rounded-2xl p-8 md:p-10">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-5">
-            <Leaf className="w-7 h-7 text-emerald-400" />
+          <div className="w-14 h-14 rounded-2xl bg-success/10 border border-success/20 flex items-center justify-center mx-auto mb-5">
+            <Leaf className="w-7 h-7 text-success" />
           </div>
           <h2 className="text-2xl md:text-3xl font-extrabold mb-3">Better for the Planet</h2>
           <p className="text-ink-muted max-w-lg mx-auto leading-relaxed">
@@ -178,14 +178,14 @@ export default function LandingPage() {
       {featuredReviews.length > 0 && (
         <section id="reviews" className="bg-space-2 py-16 px-6">
           <div className="max-w-5xl mx-auto">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-center text-violet-500 dark:text-violet-400 mb-3">Loved by Professionals</h2>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-center text-violet mb-3">Loved by Professionals</h2>
             <p className="text-ink-muted text-center mb-10">Real feedback from the people using NownCard every day.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {featuredReviews.map((r) => (
                 <div key={r.id} className="bg-tile border border-line rounded-2xl p-6 flex flex-col">
                   <div className="flex items-center gap-1 mb-3">
                     {[1, 2, 3, 4, 5].map((n) => (
-                      <Star key={n} className={`w-4 h-4 ${n <= r.rating ? 'text-amber-400 fill-amber-400' : 'text-ink-faint'}`} />
+                      <Star key={n} className={`w-4 h-4 ${n <= r.rating ? 'text-warning fill-warning' : 'text-ink-faint'}`} />
                     ))}
                   </div>
                   <p className="text-sm text-ink leading-relaxed flex-1">"{r.content}"</p>

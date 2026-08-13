@@ -17,6 +17,9 @@
   --line-soft: #f1f5f9;
   --card-bg: #ffffff;
   --danger: #ef4444;
+  --success: #059669;
+  --warning: #b45309;
+  --violet: #7c3aed;
   --tile-gold: #d4a34a;
   --tile-gold-text: #1a1408;
   --tile-blue: #3578b8;
@@ -71,6 +74,9 @@
   --line-soft: #3a2a78;
   --card-bg: #f4f1ec;
   --danger: #ef4444;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --violet: #a78bfa;
   --tile-gold: #f5b940;
   --tile-gold-text: #1a1408;
   --tile-blue: #2f6ba5;
@@ -93,6 +99,9 @@
   --color-line-soft: var(--line-soft);
   --color-card-bg: var(--card-bg);
   --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-violet: var(--violet);
   --color-tile-gold: var(--tile-gold);
   --color-tile-gold-text: var(--tile-gold-text);
   --color-tile-blue: var(--tile-blue);

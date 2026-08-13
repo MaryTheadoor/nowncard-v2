@@ -420,7 +420,7 @@ export default function CardViewerPage() {
                         href={s.url?.startsWith('http') ? s.url : `https://${s.url}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-3 py-1.5 rounded-full font-bold lowercase tracking-wide border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 transition-colors no-underline"
+                        className="px-3 py-1.5 rounded-full font-bold lowercase tracking-wide border border-success/30 text-success hover:bg-success/10 hover:text-success transition-colors no-underline"
                         style={{ ...textColorStyle, fontSize: sfs(11) }}
                         onClick={(e) => { e.stopPropagation(); track(`payment:${s.platform}`); }}
                       >
@@ -498,8 +498,8 @@ export default function CardViewerPage() {
         <div className="w-full">
           {card.leadFormEnabled ? (
             leadSent ? (
-              <div className="bg-tile border border-emerald-500/30 rounded-2xl p-5 text-center">
-                <p className="text-sm font-semibold text-emerald-400 mb-1">Thanks — message sent!</p>
+              <div className="bg-tile border border-success/30 rounded-2xl p-5 text-center">
+                <p className="text-sm font-semibold text-success mb-1">Thanks — message sent!</p>
                 <p className="text-xs text-ink-muted">The card owner will get back to you.</p>
               </div>
             ) : (
@@ -536,8 +536,8 @@ export default function CardViewerPage() {
               </div>
             )
           ) : messageSent ? (
-            <div className="bg-tile border border-emerald-500/30 rounded-2xl p-5 text-center">
-              <p className="text-sm font-semibold text-emerald-400 mb-1">Message sent</p>
+            <div className="bg-tile border border-success/30 rounded-2xl p-5 text-center">
+              <p className="text-sm font-semibold text-success mb-1">Message sent</p>
               <p className="text-xs text-ink-muted">The card owner will see your inquiry and reply directly.</p>
             </div>
           ) : (
