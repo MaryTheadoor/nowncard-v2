@@ -558,8 +558,11 @@ export default function EditorPage() {
           </div>
 
           {/* Basic Info */}
-          <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
-            <h2 className="text-lg font-bold mb-4">Basic Info</h2>
+          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
+            <summary className="text-lg font-bold mb-4 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+              <span>Basic Info</span>
+              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
+            </summary>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
               <input value={card.prefix || ''} onChange={(e) => updateField('prefix', e.target.value)} placeholder="Prefix" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
               <input value={card.firstName || ''} onChange={(e) => updateField('firstName', e.target.value)} placeholder="First Name *" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
@@ -619,11 +622,14 @@ export default function EditorPage() {
                 <input type="date" value={card.anniversary || ''} onChange={(e) => updateField('anniversary', e.target.value)} placeholder="Anniversary" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent" />
               </div>
             )}
-          </div>
+          </details>
 
           {/* Settings */}
-          <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
-            <h2 className="text-lg font-bold mb-4">Settings</h2>
+          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
+            <summary className="text-lg font-bold mb-4 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+              <span>Settings</span>
+              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
+            </summary>
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-3">
               <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
                 <input type="checkbox" checked={card.isPublic ?? true} onChange={(e) => updateField('isPublic', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
@@ -761,11 +767,14 @@ export default function EditorPage() {
                 <span className="text-xs text-ink-faint">{card.qrMode === 'vcard' ? 'Scan adds contact directly' : 'Scan opens your card page'}</span>
               </div>
             </div>
-          </div>
+          </details>
 
           {/* Typography */}
-          <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
-            <h2 className="text-lg font-bold mb-4">Typography</h2>
+          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
+            <summary className="text-lg font-bold mb-4 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+              <span>Typography</span>
+              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
+            </summary>
             {(() => {
               const plan = userData?.plan || 'free';
               const isPro = plan === 'pro' || plan === 'business';
@@ -893,11 +902,14 @@ export default function EditorPage() {
                 </div>
               );
             })()}
-          </div>
+          </details>
 
           {/* Contact */}
-          <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
-            <h2 className="text-lg font-bold mb-4">Contact</h2>
+          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
+            <summary className="text-lg font-bold mb-4 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+              <span>Contact</span>
+              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
+            </summary>
             <div className="space-y-3">
               {card.phones?.length ? card.phones.map((p, i) => (
                 <div key={i} className="flex flex-wrap gap-2">
@@ -932,11 +944,14 @@ export default function EditorPage() {
               )) : null}
               <button onClick={() => updateField('websites', [...(card.websites || []), { type: 'Work', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Website</button>
             </div>
-          </div>
+          </details>
 
           {/* Addresses */}
-          <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
-            <h2 className="text-lg font-bold mb-4">Addresses</h2>
+          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
+            <summary className="text-lg font-bold mb-4 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+              <span>Addresses</span>
+              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
+            </summary>
             <div className="space-y-3">
               {card.addresses?.length ? card.addresses.map((a, i) => (
                 <div key={i} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -953,11 +968,14 @@ export default function EditorPage() {
               )) : null}
               <button onClick={() => updateField('addresses', [...(card.addresses || []), { type: 'Work', street: '', city: '', state: '', zip: '', country: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Address</button>
             </div>
-          </div>
+          </details>
 
           {/* Social Links */}
-          <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
-            <h2 className="text-lg font-bold mb-4">Social Links</h2>
+          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
+            <summary className="text-lg font-bold mb-4 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+              <span>Social Links</span>
+              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
+            </summary>
             <div className="space-y-3">
               {Array.isArray(card.socialLinks) && card.socialLinks.map((s: SocialLink, i: number) => (
                 <div key={i} className="flex flex-wrap gap-2">
@@ -984,11 +1002,14 @@ export default function EditorPage() {
               ))}
               <button onClick={() => updateField('socialLinks', [...(Array.isArray(card.socialLinks) ? card.socialLinks : []), { platform: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Social</button>
             </div>
-          </div>
+          </details>
 
           {/* Payment Links */}
-          <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
-            <h2 className="text-lg font-bold mb-4">Payment Links</h2>
+          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
+            <summary className="text-lg font-bold mb-4 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+              <span>Payment Links</span>
+              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
+            </summary>
             <div className="space-y-3">
               {Array.isArray(card.paymentLinks) && card.paymentLinks.map((s: SocialLink, i: number) => (
                 <div key={i} className="flex flex-wrap gap-2">
@@ -1015,11 +1036,14 @@ export default function EditorPage() {
               ))}
               <button onClick={() => updateField('paymentLinks', [...(Array.isArray(card.paymentLinks) ? card.paymentLinks : []), { platform: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Payment Link</button>
             </div>
-          </div>
+          </details>
 
           {/* Appointments */}
-          <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
-            <h2 className="text-lg font-bold mb-1">Appointments</h2>
+          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
+            <summary className="text-lg font-bold mb-1 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+              <span>Appointments</span>
+              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
+            </summary>
             <p className="text-xs text-ink-faint mb-4">Visitors pick a date and time from the days you're available. Requests appear in Dashboard → Appointments, where you can confirm or cancel them.</p>
             <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer mb-4">
               <input type="checkbox" checked={card.appointmentsEnabled ?? false} onChange={(e) => updateField('appointmentsEnabled', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
@@ -1076,21 +1100,27 @@ export default function EditorPage() {
                 </div>
               </>
             )}
-          </div>
+          </details>
 
           {/* Lead Capture */}
-          <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
-            <h2 className="text-lg font-bold mb-1">Lead Capture</h2>
+          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
+            <summary className="text-lg font-bold mb-1 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+              <span>Lead Capture</span>
+              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
+            </summary>
             <p className="text-xs text-ink-faint mb-4">Show a contact form on your card so visitors can reach out even without signing in. Leads (name, email, phone, company, message) land in your Dashboard → Inquiries and notify you instantly.</p>
             <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
               <input type="checkbox" checked={card.leadFormEnabled ?? false} onChange={(e) => updateField('leadFormEnabled', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
               Enable lead capture form on this card
             </label>
-          </div>
+          </details>
 
           {/* Link List — Pro, full-width links below the card */}
-          <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
-            <h2 className="text-lg font-bold mb-1">Link List</h2>
+          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
+            <summary className="text-lg font-bold mb-1 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+              <span>Link List</span>
+              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
+            </summary>
             <p className="text-xs text-ink-faint mb-4">A list of featured links shown below your card — handy for migrating from other link-in-bio services.</p>
             {(userData?.plan === 'pro' || userData?.plan === 'business') ? (
               <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer mb-4">
@@ -1116,11 +1146,14 @@ export default function EditorPage() {
                 <button onClick={() => updateField('featuredLinks', [...(Array.isArray(card.featuredLinks) ? card.featuredLinks : []), { label: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent hover:text-accent transition">+ Add Link</button>
               </div>
             )}
-          </div>
+          </details>
 
           {/* Menu — Business */}
-          <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
-            <h2 className="text-lg font-bold mb-1">Menu</h2>
+          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
+            <summary className="text-lg font-bold mb-1 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+              <span>Menu</span>
+              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
+            </summary>
             <p className="text-xs text-ink-faint mb-4">Add a simple menu for your food truck or venue. Items appear on your card page with a toggle to expand the full list.</p>
             {userData?.plan === 'business' ? (
               <>
@@ -1157,11 +1190,14 @@ export default function EditorPage() {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-accent">— Business</span>
               </div>
             )}
-          </div>
+          </details>
 
           {/* Images */}
-          <div className="bg-tile border border-line rounded-2xl p-6 mb-6">
-            <h2 className="text-lg font-bold mb-4">Images</h2>
+          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
+            <summary className="text-lg font-bold mb-4 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+              <span>Images</span>
+              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
+            </summary>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex flex-col gap-2">
                 <label className="text-sm text-ink-muted">Profile Photo</label>
@@ -1265,12 +1301,15 @@ export default function EditorPage() {
                 </div>
               </div>
             </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="text-sm text-ink-muted">Back Background Photo</label>
+          </details>
+          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
+            <summary className="text-lg font-bold mb-4 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+              <span>Back Background Photo</span>
+              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
+            </summary>
             <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && handleUpload('backBackgroundImage', e.target.files[0])} className="text-sm text-ink-muted file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border file:border-line file:bg-tile file:text-ink file:text-sm file:font-semibold" />
             {card.backBackgroundImage && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mt-2">
                 <img src={card.backBackgroundImage} alt="" className="w-24 h-16 rounded-lg object-cover border border-line" />
                 <button type="button" onClick={() => updateField('backBackgroundImage', undefined)} className="text-xs text-danger font-bold border border-line rounded-lg px-2 py-1 hover:border-danger transition">Remove</button>
               </div>
@@ -1301,7 +1340,7 @@ export default function EditorPage() {
                 />
               )}
             </div>
-          </div>
+          </details>
         </main>
 
         {/* Desktop sticky preview */}
