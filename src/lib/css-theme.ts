@@ -21,7 +21,7 @@ function sanitizeMap(raw: unknown): Record<string, string> {
   const out: Record<string, string> = {};
   if (raw && typeof raw === 'object') {
     for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
-      if (/^--[a-z0-9-]+$/.test(key) && typeof value === 'string' && HEX_COLOR.test(value)) {
+      if (/^[a-z0-9-]+$/.test(key) && typeof value === 'string' && HEX_COLOR.test(value)) {
         out[key] = value;
       }
     }

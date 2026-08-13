@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Palette, RefreshCw, Copy, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -49,6 +49,8 @@ export default function CssThemePanel() {
   const [defaults] = useState<VarValues>(getThemeDefaults);
   const [values, setValues] = useState<VarValues>(defaults);
   const [loaded, setLoaded] = useState(false);
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const skipNextSave = useRef(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -72,6 +74,7 @@ export default function CssThemePanel() {
 
   useEffect(() => {
     if (!loaded) return;
+    if (skipNextSave.current) { skipNextSave.current = false; return; }
     const overrides: CssThemeOverrides = { light: {}, dark: {} };
     for (const name of CSS_THEME_VARS) {
       if (values[name].light !== defaults[name].light) overrides.light[name] = values[name].light;
@@ -80,18 +83,27 @@ export default function CssThemePanel() {
     applyThemeOverrides(overrides);
     saveThemeOverrides(overrides);
     const t = setTimeout(() => {
-      saveThemeOverridesServer(overrides).catch(() => toast.error('Could not save theme to the site'));
+      saveThemeOverridesServer(overrides)
+        .then(() => setSaveState('saved'))
+        .catch(() => setSaveState('error'));
     }, 600);
     return () => clearTimeout(t);
   }, [values, loaded, defaults]);
 
+  useEffect(() => {
+    if (saveState !== 'saved') return;
+    const t = setTimeout(() => setSaveState('idle'), 2000);
+    return () => clearTimeout(t);
+  }, [saveState]);
+
   const update = (name: string, mode: Mode, value: string) => {
+    setSaveState('saving');
     setValues((prev) => ({ ...prev, [name]: { ...prev[name], [mode]: value } }));
   };
 
   const reset = () => {
+    setSaveState('saving');
     clearThemeOverrides();
-    saveThemeOverridesServer({ light: {}, dark: {} }).catch(() => {});
     setValues(defaults);
     toast.success('Theme reset to defaults (site-wide)');
   };
@@ -121,6 +133,9 @@ export default function CssThemePanel() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {saveState === 'saving' && <span className="text-xs text-ink-faint">Saving…</span>}
+          {saveState === 'saved' && <span className="text-xs text-emerald-400 font-semibold">Saved to site ✓</span>}
+          {saveState === 'error' && <span className="text-xs text-danger font-semibold">Save failed</span>}
           <button onClick={exportCss} className="btn btn-secondary btn-sm">
             <Copy className="w-3.5 h-3.5" /> Export CSS
           </button>
