@@ -39,7 +39,7 @@ function deriveIndustry(jobTitle?: string): string | undefined {
   return undefined;
 }
 
-type SortMode = 'az' | 'views' | 'recent';
+type SortMode = 'az' | 'views';
 
 export default function RolodexPage() {
   const { user, signInEmail, signUpEmail, signInGoogle, linkGoogle, error } = useAuth();
@@ -125,7 +125,6 @@ export default function RolodexPage() {
     } else if (sortMode === 'views') {
       list = [...list].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
     }
-    // 'recent' falls back to default load order (could be enhanced with createdAt later)
 
     return list;
   }, [cards, search, activeIndustry, sortMode]);
@@ -218,7 +217,6 @@ export default function RolodexPage() {
                 {[
                   { key: 'az', label: 'A – Z' },
                   { key: 'views', label: 'Most Viewed' },
-                  { key: 'recent', label: 'Recently Updated' },
                 ].map((opt) => (
                   <button
                     key={opt.key}

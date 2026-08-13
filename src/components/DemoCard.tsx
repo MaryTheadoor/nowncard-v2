@@ -19,7 +19,7 @@ const DEMO_CARD: Partial<Card> = {
   websites: [{ type: 'Portfolio', url: 'https://jane.design' }],
   addresses: [{ type: 'work', street: '123 Design Ave', city: 'San Francisco', state: 'CA', zip: '94102', country: 'USA' }],
   bio: 'Building beautiful digital experiences. Always happy to connect.',
-  cardTheme: 'dark',
+  cardTheme: 'light',
   accentColor: '#d4a34a',
   isPublic: true,
   socialLinks: [

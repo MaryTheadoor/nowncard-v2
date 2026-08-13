@@ -6,7 +6,6 @@ import Navbar from '@/components/Navbar';
 import AuthModal from '@/components/AuthModal';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/hooks/auth-context';
-import { useTheme } from '@/hooks/useThemeContext';
 import { createSquareCheckout, getPricing, type PricingConfig } from '@/lib/payments';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -15,7 +14,6 @@ import { toast } from 'sonner';
 
 export default function LandingPage() {
   const { user, userData, signInEmail, signUpEmail, signInGoogle, linkGoogle, error } = useAuth();
-  const { resolved: themeResolved } = useTheme();
   const [authOpen, setAuthOpen] = useState(false);
   const [pricing, setPricing] = useState<PricingConfig>({ proPrice: 19, businessPrice: 39 });
   const [featuredReviews, setFeaturedReviews] = useState<Review[]>([]);
@@ -100,7 +98,7 @@ export default function LandingPage() {
 
         {/* Interactive demo card */}
         <div className="mt-14 mx-auto max-w-[380px]">
-          <DemoCard forceLight={themeResolved === 'dark'} />
+          <DemoCard />
         </div>
       </section>
 
