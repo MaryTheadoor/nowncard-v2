@@ -118,6 +118,7 @@ export interface Card {
   featuredLinksEnabled?: boolean;
   leadFormEnabled?: boolean;
   messagingEnabled?: boolean;
+  editorSectionOrder?: string[];
 }
 
 export interface AppointmentWeeklyHour {

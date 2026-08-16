@@ -66,23 +66,23 @@ export default function LivePagePreview({ card, className = '', layout = 'stack'
 
           {/* Menu preview (mock) */}
           {menu.length > 0 && (
-            <div className={`bg-space border border-line rounded-xl p-3 ${isRow ? '' : 'mt-4'}`}>
+            <div className={`bg-space border border-line rounded-xl p-3 ${isRow ? 'max-h-[200px] overflow-y-auto' : 'mt-4'}`}>
               <div className="text-[10px] font-bold text-ink-muted uppercase tracking-wider text-center mb-1.5">{card.menuTitle?.trim() || 'Menu'}</div>
-              {menu.map((cat, ci) => (
+              {menu.slice(0, isRow ? 2 : menu.length).map((cat, ci) => (
                 <div key={ci} className={ci > 0 ? 'mt-2 pt-2 border-t border-line' : ''}>
                   <div className="flex items-center gap-1.5 mb-1">
-                    {cat.image ? <img src={cat.image} alt="" className="w-5 h-5 rounded object-cover border border-line" /> : null}
-                    <div className="text-xs font-bold text-ink">{cat.name}</div>
+                    {cat.image ? <img src={cat.image} alt="" className="w-4 h-4 rounded object-cover border border-line flex-shrink-0" /> : null}
+                    <div className="text-xs font-bold text-ink truncate">{cat.name}</div>
                   </div>
-                  {cat.items.slice(0, 4).map((item, ii) => (
+                  {cat.items.slice(0, isRow ? 3 : 4).map((item, ii) => (
                     <div key={ii} className="flex items-baseline justify-between gap-2 py-0.5 text-xs">
-                      <span className="text-ink">{item.name}</span>
-                      {item.price ? <span className="font-bold text-accent-text">{item.price}</span> : null}
+                      <span className="text-ink truncate">{item.name}</span>
+                      {item.price ? <span className="font-bold text-accent-text whitespace-nowrap">{item.price}</span> : null}
                     </div>
                   ))}
                 </div>
               ))}
-              {menuItemCount > 4 && (
+              {(isRow ? menuItemCount > 6 : menuItemCount > 4) && (
                 <div className="mt-1.5 text-center text-[10px] font-semibold text-accent-text">View full menu</div>
               )}
             </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import type { ReactNode } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ExternalLink, Eye, EyeOff, Smartphone, Upload, User, Calendar, ChevronDown, ChevronUp, Copy, UtensilsCrossed } from 'lucide-react';
 import LivePagePreview from '@/components/LivePagePreview';
@@ -35,6 +36,31 @@ function scaleFromPt(pt: number): number {
 }
 
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// Editor section order — keys map to SECTION_TITLES and to sectionBodies entries.
+// Persisted per-card via card.editorSectionOrder (fall back to this default).
+const DEFAULT_SECTION_ORDER: string[] = [
+  'basicInfo', 'settings', 'typography', 'contact', 'addresses',
+  'socialLinks', 'paymentLinks', 'appointments', 'leadCapture',
+  'messaging', 'linkList', 'menu', 'images', 'backBackground',
+];
+
+const SECTION_TITLES: Record<string, string> = {
+  basicInfo: 'Basic Info',
+  settings: 'Settings',
+  typography: 'Typography',
+  contact: 'Contact',
+  addresses: 'Addresses',
+  socialLinks: 'Social Links',
+  paymentLinks: 'Payment Links',
+  appointments: 'Appointments',
+  leadCapture: 'Lead Capture',
+  messaging: 'Messaging',
+  linkList: 'Link List',
+  menu: 'Menu',
+  images: 'Images',
+  backBackground: 'Back Background Photo',
+};
 
 export default function EditorPage() {
   const { id } = useParams<{ id?: string }>();
@@ -392,6 +418,10 @@ export default function EditorPage() {
     updateAppointmentSettings({ ...(card.appointmentSettings || {}), weeklyHours: hours });
   };
 
+  const DURATION_PRESETS = [15, 30, 45, 60];
+  const durationMinutes = card.appointmentSettings?.durationMinutes ?? 30;
+  const durationIsCustom = !DURATION_PRESETS.includes(durationMinutes);
+
   // Auto-populate handlers
   const populateFromGoogle = () => {
     if (!user) return;
@@ -547,50 +577,22 @@ export default function EditorPage() {
     reader.readAsText(file);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-space flex flex-col items-center justify-center text-ink-muted">
-        <div className="w-6 h-6 border-2 border-line border-t-accent rounded-full animate-spin mb-4" />
-        <p>Loading editor…</p>
-      </div>
-    );
-  }
+  const sectionOrder = Array.isArray(card.editorSectionOrder) && card.editorSectionOrder.length
+    ? card.editorSectionOrder.filter((k) => SECTION_TITLES[k])
+    : DEFAULT_SECTION_ORDER;
 
-  return (
-    <div className="min-h-screen bg-space">
-      <Navbar />
-      <ConfirmDialog />
-      <div className="max-w-7xl mx-auto px-4 sm:px-5 pt-5">
-        <BackLink to="/dashboard">Back to Dashboard</BackLink>
-      </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-5 lg:grid lg:grid-cols-[1fr_420px] gap-6 pt-4 pb-24">
-        <main className="flex-1 min-w-0 max-w-2xl">
+  const moveSection = (key: string, dir: -1 | 1) => {
+    const ci = sectionOrder.indexOf(key);
+    const ni = ci + dir;
+    if (ni < 0 || ni >= sectionOrder.length) return;
+    const next = [...sectionOrder];
+    [next[ci], next[ni]] = [next[ni], next[ci]];
+    updateField('editorSectionOrder', next);
+  };
 
-          {/* Auto-populate */}
-          <div className="bg-tile border border-line rounded-2xl p-5 mb-6">
-            <h2 className="text-sm font-bold text-ink-muted uppercase tracking-wider mb-3">Auto-Fill</h2>
-            <div className="flex flex-wrap gap-2">
-              <button onClick={populateFromGoogle} className="btn btn-secondary btn-sm">
-                <User className="w-3.5 h-3.5" /> Use My Profile
-              </button>
-              {hasContactPicker && (
-                <button onClick={populateFromContacts} className="btn btn-secondary btn-sm">
-                  <Smartphone className="w-3.5 h-3.5" /> Pick from Phone
-                </button>
-              )}
-              <label className="btn btn-secondary btn-sm cursor-pointer">
-                <Upload className="w-3.5 h-3.5" /> Upload .vcf
-                <input type="file" accept=".vcf,.vcard,text/vcard,text/x-vcard" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleVCardUpload(f); e.target.value = ''; }} />
-              </label>
-            </div>
-          </div>
-
-          {/* Basic Info */}
-          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
-            <summary className="text-lg font-bold mb-4 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
-              <span>Basic Info</span>
-              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
-            </summary>
+  const sectionBodies: Record<string, ReactNode> = {
+    basicInfo: (
+      <>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
               <label className="block text-sm font-semibold text-ink mb-1.5">Prefix</label><input value={card.prefix || ''} onChange={(e) => updateField('prefix', e.target.value)} placeholder="Prefix" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
               <label className="block text-sm font-semibold text-ink mb-1.5">First Name *</label><input value={card.firstName || ''} onChange={(e) => updateField('firstName', e.target.value)} placeholder="First Name *" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
@@ -651,14 +653,10 @@ export default function EditorPage() {
                 <label className="block text-sm font-semibold text-ink mb-1.5">Anniversary</label><input type="date" value={card.anniversary || ''} onChange={(e) => updateField('anniversary', e.target.value)} placeholder="Anniversary" className="w-full px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text" />
               </div>
             )}
-          </details>
-
-          {/* Settings */}
-          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
-            <summary className="text-lg font-bold mb-4 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
-              <span>Settings</span>
-              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
-            </summary>
+      </>
+    ),
+    settings: (
+      <>
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-3">
               <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
                 <input type="checkbox" checked={card.isPublic ?? true} onChange={(e) => updateField('isPublic', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
@@ -796,14 +794,10 @@ export default function EditorPage() {
                 <span className="text-xs text-ink-faint">{card.qrMode === 'vcard' ? 'Scan adds contact directly' : 'Scan opens your card page'}</span>
               </div>
             </div>
-          </details>
-
-          {/* Typography */}
-          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
-            <summary className="text-lg font-bold mb-4 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
-              <span>Typography</span>
-              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
-            </summary>
+      </>
+    ),
+    typography: (
+      <>
             {(() => {
               const plan = userData?.plan || 'free';
               const isPro = plan === 'pro' || plan === 'business';
@@ -931,14 +925,10 @@ export default function EditorPage() {
                 </div>
               );
             })()}
-          </details>
-
-          {/* Contact */}
-          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
-            <summary className="text-lg font-bold mb-4 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
-              <span>Contact</span>
-              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
-            </summary>
+      </>
+    ),
+    contact: (
+      <>
             <div className="space-y-3">
               {card.phones?.length ? card.phones.map((p, i) => (
                 <div key={i} className="flex flex-wrap gap-2">
@@ -973,14 +963,10 @@ export default function EditorPage() {
               )) : null}
               <button onClick={() => updateField('websites', [...(card.websites || []), { type: 'Work', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent-text hover:text-accent-text transition">+ Add Website</button>
             </div>
-          </details>
-
-          {/* Addresses */}
-          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
-            <summary className="text-lg font-bold mb-4 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
-              <span>Addresses</span>
-              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
-            </summary>
+      </>
+    ),
+    addresses: (
+      <>
             <div className="space-y-3">
               {card.addresses?.length ? card.addresses.map((a, i) => (
                 <div key={i} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -997,14 +983,10 @@ export default function EditorPage() {
               )) : null}
               <button onClick={() => updateField('addresses', [...(card.addresses || []), { type: 'Work', street: '', city: '', state: '', zip: '', country: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent-text hover:text-accent-text transition">+ Add Address</button>
             </div>
-          </details>
-
-          {/* Social Links */}
-          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
-            <summary className="text-lg font-bold mb-4 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
-              <span>Social Links</span>
-              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
-            </summary>
+      </>
+    ),
+    socialLinks: (
+      <>
             <div className="space-y-3">
               {Array.isArray(card.socialLinks) && card.socialLinks.map((s: SocialLink, i: number) => (
                 <div key={i} className="flex flex-wrap gap-2">
@@ -1032,14 +1014,10 @@ export default function EditorPage() {
               ))}
               <button onClick={() => updateField('socialLinks', [...(Array.isArray(card.socialLinks) ? card.socialLinks : []), { platform: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent-text hover:text-accent-text transition">+ Add Social</button>
             </div>
-          </details>
-
-          {/* Payment Links */}
-          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
-            <summary className="text-lg font-bold mb-4 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
-              <span>Payment Links</span>
-              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
-            </summary>
+      </>
+    ),
+    paymentLinks: (
+      <>
             <div className="space-y-3">
               {Array.isArray(card.paymentLinks) && card.paymentLinks.map((s: SocialLink, i: number) => (
                 <div key={i} className="flex flex-wrap gap-2">
@@ -1067,14 +1045,10 @@ export default function EditorPage() {
               ))}
               <button onClick={() => updateField('paymentLinks', [...(Array.isArray(card.paymentLinks) ? card.paymentLinks : []), { platform: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent-text hover:text-accent-text transition">+ Add Payment Link</button>
             </div>
-          </details>
-
-          {/* Appointments */}
-          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
-            <summary className="text-lg font-bold mb-1 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
-              <span>Appointments</span>
-              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
-            </summary>
+      </>
+    ),
+    appointments: (
+      <>
             <p className="text-xs text-ink-faint mb-4">Visitors pick a date and time from the days you're available. Requests appear in Dashboard → Appointments, where you can confirm or cancel them.</p>
             <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer mb-4">
               <input type="checkbox" checked={card.appointmentsEnabled ?? false} onChange={(e) => updateField('appointmentsEnabled', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
@@ -1085,15 +1059,36 @@ export default function EditorPage() {
                 <div className="mb-4">
                   <label className="block text-sm font-semibold text-ink mb-1.5">Meeting length</label>
                   <select
-                    value={card.appointmentSettings?.durationMinutes ?? 30}
-                    onChange={(e) => updateAppointmentSettings({ ...(card.appointmentSettings || {}), durationMinutes: Number(e.target.value) })}
+                    value={durationIsCustom ? 'custom' : durationMinutes}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      updateAppointmentSettings({
+                        ...(card.appointmentSettings || {}),
+                        durationMinutes: v === 'custom' ? (durationIsCustom ? durationMinutes : 90) : Number(v),
+                      });
+                    }}
                     className="px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text"
                   >
                     <option value={15}>15 minutes</option>
                     <option value={30}>30 minutes</option>
                     <option value={45}>45 minutes</option>
                     <option value={60}>60 minutes</option>
+                    <option value="custom">Custom…</option>
                   </select>
+                  {durationIsCustom && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <input
+                        type="number"
+                        min={5}
+                        max={480}
+                        step={5}
+                        value={durationMinutes}
+                        onChange={(e) => updateAppointmentSettings({ ...(card.appointmentSettings || {}), durationMinutes: Math.min(480, Math.max(5, Number(e.target.value) || 90)) })}
+                        className="px-3.5 py-2.5 bg-space border border-line rounded-lg text-ink text-sm focus:outline-none focus:border-accent-text w-28"
+                      />
+                      <span className="text-sm text-ink-faint">minutes</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mb-1 flex items-center justify-between">
@@ -1131,40 +1126,28 @@ export default function EditorPage() {
                 </div>
               </>
             )}
-          </details>
-
-          {/* Lead Capture */}
-          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
-            <summary className="text-lg font-bold mb-1 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
-              <span>Lead Capture</span>
-              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
-            </summary>
+      </>
+    ),
+    leadCapture: (
+      <>
             <p className="text-xs text-ink-faint mb-4">Show a contact form on your card so visitors can reach out even without signing in. Leads (name, email, phone, company, message) land in your Dashboard → Inquiries and notify you instantly.</p>
             <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
               <input type="checkbox" checked={card.leadFormEnabled ?? false} onChange={(e) => updateField('leadFormEnabled', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
               Enable lead capture form on this card
             </label>
-          </details>
-
-          {/* Messaging */}
-          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
-            <summary className="text-lg font-bold mb-1 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
-              <span>Messaging</span>
-              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
-            </summary>
+      </>
+    ),
+    messaging: (
+      <>
             <p className="text-xs text-ink-faint mb-4">Let visitors send you an inquiry directly from your card. Messages land in your Dashboard → Inquiries and notify you instantly. Turn this off to remove the inquiry box from your card page.</p>
             <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
               <input type="checkbox" checked={card.messagingEnabled ?? true} onChange={(e) => updateField('messagingEnabled', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
               Enable messaging on this card
             </label>
-          </details>
-
-          {/* Link List — Pro, full-width links below the card */}
-          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
-            <summary className="text-lg font-bold mb-1 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
-              <span>Link List</span>
-              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
-            </summary>
+      </>
+    ),
+    linkList: (
+      <>
             <p className="text-xs text-ink-faint mb-4">A list of featured links shown below your card — handy for migrating from other link-in-bio services.</p>
             {(userData?.plan === 'pro' || userData?.plan === 'business') ? (
               <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer mb-4">
@@ -1190,14 +1173,10 @@ export default function EditorPage() {
                 <button onClick={() => updateField('featuredLinks', [...(Array.isArray(card.featuredLinks) ? card.featuredLinks : []), { label: '', url: '' }])} className="px-4 py-2 border border-line rounded-lg text-sm font-semibold text-ink-muted hover:border-accent-text hover:text-accent-text transition">+ Add Link</button>
               </div>
             )}
-          </details>
-
-          {/* Menu — Business */}
-          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
-            <summary className="text-lg font-bold mb-1 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
-              <span>Menu</span>
-              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
-            </summary>
+      </>
+    ),
+    menu: (
+      <>
             <p className="text-xs text-ink-faint mb-4">Add a simple menu for your food truck or venue. Items appear on your card page with a toggle to expand the full list.</p>
             {userData?.plan === 'business' ? (
               <>
@@ -1234,14 +1213,10 @@ export default function EditorPage() {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-accent-text">— Business</span>
               </div>
             )}
-          </details>
-
-          {/* Images */}
-          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
-            <summary className="text-lg font-bold mb-4 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
-              <span>Images</span>
-              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
-            </summary>
+      </>
+    ),
+    images: (
+      <>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex flex-col gap-2">
                 <label className="text-sm text-ink-muted">Profile Photo</label>
@@ -1345,12 +1320,10 @@ export default function EditorPage() {
                 </div>
               </div>
             </div>
-          </details>
-          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
-            <summary className="text-lg font-bold mb-4 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
-              <span>Back Background Photo</span>
-              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
-            </summary>
+      </>
+    ),
+    backBackground: (
+      <>
             <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && handleUpload('backBackgroundImage', e.target.files[0])} className="text-sm text-ink-muted file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border file:border-line file:bg-tile file:text-ink file:text-sm file:font-semibold" />
             {card.backBackgroundImage && (
               <div className="flex items-center gap-2 mt-2">
@@ -1384,7 +1357,65 @@ export default function EditorPage() {
                 />
               )}
             </div>
-          </details>
+      </>
+    ),
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-space flex flex-col items-center justify-center text-ink-muted">
+        <div className="w-6 h-6 border-2 border-line border-t-accent rounded-full animate-spin mb-4" />
+        <p>Loading editor…</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-space">
+      <Navbar />
+      <ConfirmDialog />
+      <div className="max-w-7xl mx-auto px-4 sm:px-5 pt-5">
+        <BackLink to="/dashboard">Back to Dashboard</BackLink>
+      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-5 lg:grid lg:grid-cols-[1fr_420px] gap-6 pt-4 pb-24">
+        <main className="flex-1 min-w-0 max-w-2xl">
+
+          {/* Auto-populate */}
+          <div className="bg-tile border border-line rounded-2xl p-5 mb-6">
+            <h2 className="text-sm font-bold text-ink-muted uppercase tracking-wider mb-3">Auto-Fill</h2>
+            <div className="flex flex-wrap gap-2">
+              <button onClick={populateFromGoogle} className="btn btn-secondary btn-sm">
+                <User className="w-3.5 h-3.5" /> Use My Profile
+              </button>
+              {hasContactPicker && (
+                <button onClick={populateFromContacts} className="btn btn-secondary btn-sm">
+                  <Smartphone className="w-3.5 h-3.5" /> Pick from Phone
+                </button>
+              )}
+              <label className="btn btn-secondary btn-sm cursor-pointer">
+                <Upload className="w-3.5 h-3.5" /> Upload .vcf
+                <input type="file" accept=".vcf,.vcard,text/vcard,text/x-vcard" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleVCardUpload(f); e.target.value = ''; }} />
+              </label>
+            </div>
+          </div>
+
+          {sectionOrder.map((key, index) => (
+            <details key={key} className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
+              <summary className="text-lg font-bold mb-1 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+                <span className="flex items-center gap-1.5">
+                  <button onClick={() => moveSection(key, -1)} disabled={index === 0} aria-label="Move section up" className="p-0.5 text-ink-faint hover:text-accent-text transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={() => moveSection(key, 1)} disabled={index === sectionOrder.length - 1} aria-label="Move section down" className="p-0.5 text-ink-faint hover:text-accent-text transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </button>
+                  {SECTION_TITLES[key]}
+                </span>
+                <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
+              </summary>
+              {sectionBodies[key]}
+            </details>
+          ))}
         </main>
 
         {/* Desktop sticky preview */}

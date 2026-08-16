@@ -368,6 +368,18 @@
     clip-path: polygon(16px 0, calc(100% - 16px) 0, 100% 16px, 100% calc(100% - 16px), calc(100% - 16px) 100%, 16px 100%, 0 calc(100% - 16px), 0 16px);
   }
 }
+
+/* ── Print color fidelity ──
+   Browsers strip background colors in print by default, washing out the
+   white poster/menu containers and desaturating everything. This forces
+   exact color reproduction for all elements in print output. */
+@media print {
+  * {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .preserve-3d,
   .preserve-3d * {

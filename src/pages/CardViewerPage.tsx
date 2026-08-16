@@ -87,6 +87,24 @@ export default function CardViewerPage() {
           const d = c.docs[0];
           data = { id: d.id, ...d.data() } as Card;
           cardsDocId = d.id;
+        } else if (user) {
+          // Owners can view their own private cards too.
+          const oc = await getDocs(query(collection(db, 'cards'), where('slug', '==', slug), where('ownerUid', '==', user.uid), limit(1)));
+          if (!oc.empty) {
+            const d = oc.docs[0];
+            data = { id: d.id, ...d.data() } as Card;
+            cardsDocId = d.id;
+          } else {
+            // Legacy cards may only carry ownerId.
+            try {
+              const lc = await getDocs(query(collection(db, 'cards'), where('slug', '==', slug), where('ownerId', '==', user.uid), limit(1)));
+              if (!lc.empty) {
+                const d = lc.docs[0];
+                data = { id: d.id, ...d.data() } as Card;
+                cardsDocId = d.id;
+              }
+            } catch { /* missing composite index — fall through to not-found */ }
+          }
         }
         if (cancelled) return;
         if (!data) { setError(`The card "${escHtml(slug)}" does not exist or is not public.`); }
@@ -132,7 +150,7 @@ export default function CardViewerPage() {
       resetMeta('meta[name="twitter:description"]', 'Create beautiful digital business cards. Share via NFC, QR code, link, or vCard. No app required for recipients.');
       resetMeta('meta[name="twitter:image"]', 'https://nowncard.com/nowncard-logo.png');
     };
-  }, [slug]);
+  }, [slug, user]);
 
   // Time-on-page tracking
   useEffect(() => {
@@ -594,6 +612,9 @@ export default function CardViewerPage() {
             <div className="text-xs font-bold text-ink-muted uppercase tracking-wider text-center flex items-center justify-center gap-1.5">
               <MenuHeaderIcon value={card.menuIcon} className="w-3.5 h-3.5" /> {menuTitle}
             </div>
+            <Link to={`/menu/${card.slug}`} onClick={() => track('menuPrint')} className="text-[11px] font-semibold text-accent-text hover:underline text-center no-underline cursor-pointer">
+              Print / Save menu
+            </Link>
             <div className="bg-tile border border-line rounded-2xl p-5">
               {visibleMenu.map((cat, ci) => (
                 <div key={`mc-${ci}`} className={ci > 0 ? 'mt-4 pt-4 border-t border-line' : ''}>

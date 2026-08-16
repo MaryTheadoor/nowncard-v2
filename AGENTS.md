@@ -307,6 +307,17 @@ firebase deploy                          # Everything
 cd functions && npm install && npm run build && cd ..
 ```
 
+### Deploy Workflow (staging → production)
+
+Both hosting sites serve the same `dist`, so the only difference is deploy order:
+
+- **Staging:** `firebase deploy --only hosting:nowncard-v2` → verify at https://nowncard-v2.web.app
+- **Production:** `firebase deploy --only hosting:vcard-studio-314` → https://nowncard.com
+
+**Convention:** for anything beyond a trivial change, deploy to **staging first**, manually
+verify there, then promote to production. This keeps untested builds off the live site —
+especially important as the user base grows.
+
 ---
 
 ## 8. Known Issues & Active Decisions

@@ -23,6 +23,7 @@ const TermsPage = lazy(() => import('@/pages/TermsPage'));
 const PrivacyPage = lazy(() => import('@/pages/PrivacyPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 const QrPosterPage = lazy(() => import('@/pages/QrPosterPage'));
+const MenuPrintPage = lazy(() => import('@/pages/MenuPrintPage'));
 const ContactPage = lazy(() => import('@/pages/ContactPage'));
 
 function PageLoader() {
@@ -52,6 +53,7 @@ function App() {
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/card/:slug" element={<CardViewerPage />} />
             <Route path="/poster/:slug" element={<QrPosterPage />} />
+            <Route path="/menu/:slug" element={<MenuPrintPage />} />
             <Route path="/nfc/:slug" element={<NfcPage />} />
             <Route path="/analytics/:id" element={<AnalyticsPage />} />
             <Route path="/rolodex" element={<RolodexPage />} />

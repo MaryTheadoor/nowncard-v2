@@ -34,6 +34,35 @@
 
 ---
 
+## 2026-08-16 — Custom appointment duration, editor section reorder, printable menu
+
+### Custom appointment duration (`EditorPage.tsx`)
+- Meeting-length dropdown now has the 15/30/45/60 presets plus **Custom…**, which reveals a
+  minutes input (5–480, clamped, step 5). Stores `durationMinutes` as before, so booking
+  slots, overlap checks, and the .ics all pick it up with no other changes.
+
+### Editor section reorder (`EditorPage.tsx`, `Card.editorSectionOrder`)
+- All 14 collapsible editor sections (Basic Info → Back Background Photo) render from a
+  keyed map (`sectionBodies` + `DEFAULT_SECTION_ORDER` + `SECTION_TITLES`) in the order
+  given by the new `card.editorSectionOrder` field (falls back to default order).
+- Each section header has ↑/↓ handles (pattern mirrors MenuEditor category reorder) that
+  swap adjacent sections and persist the order via `updateField('editorSectionOrder', …)`
+  — saved with the card, survives reload. Auto-populate stays a fixed block above sections.
+- Heads-up: section summary margins were unified to `mb-1` (9 sections previously `mb-4`)
+  since the map-driven header can only carry one value — a minor visual tightening.
+- Refactored by a delegated coder agent; section bodies verified byte-identical to HEAD
+  (13/13 exact; Appointments differs only by the custom-duration change above).
+
+### Printable menu page (`/menu/:slug`)
+- New `MenuPrintPage`: screen preview + Print Menu + Save as Image (busy state + toasts) +
+  8.5"×11" print block, all in explicit sRGB hex (avoids the oklch print-saturation issue
+  fixed on the QR poster). Loads public card with owner private-card fallback; shows a
+  "No Menu" state when the card has none.
+- Card page menu header gains a "Print / Save menu" link → `/menu/:slug` (records a
+  `menuPrint` tap).
+
+---
+
 ## 2026-08-16 — Messaging toggle, menu reorder handles, poster mobile fit
 
 ### Messaging toggle (`Card.messagingEnabled`)
