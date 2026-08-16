@@ -89,12 +89,14 @@ export default function LivePagePreview({ card, className = '', layout = 'stack'
           )}
 
           {/* Inquiry box */}
-          <div className={`bg-space border border-line rounded-xl p-3 ${isRow ? '' : 'mt-4'}`}>
-            <div className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1.5">Send an Inquiry</div>
-            <div className="px-3 py-2 bg-tile border border-line rounded-lg text-ink-faint text-xs">
-              Hi! I'd love to connect…
+          {card.messagingEnabled !== false && (
+            <div className={`bg-space border border-line rounded-xl p-3 ${isRow ? '' : 'mt-4'}`}>
+              <div className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1.5">Send an Inquiry</div>
+              <div className="px-3 py-2 bg-tile border border-line rounded-lg text-ink-faint text-xs">
+                Hi! I'd love to connect…
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

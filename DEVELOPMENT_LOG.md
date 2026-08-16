@@ -4,6 +4,59 @@
 
 ---
 
+## 2026-08-16 — QR poster debug: print saturation fix, profile photo, private cards
+
+### Print saturation bug (`QrPosterPage.tsx`)
+- **Symptom:** printing the poster showed weird color saturation in the browser's print
+  preview, while Save-as-Image looked fine.
+- **Root cause:** the poster markup used Tailwind v4's default gray palette
+  (`text-gray-900`/`-500`/`-400`, `border-gray-100`/`-200`), which is defined in the
+  `oklch()` color space. Chrome's print pipeline converts colors to the printer device
+  profile and mishandles oklch (known Tailwind v4 printing issue). html-to-image rasterizes
+  through canvas with a correct oklch→sRGB conversion, which is why the image export was fine.
+- **Fix:** all poster text/border colors are now explicit sRGB hex (`#111827`, `#6b7280`,
+  `#9ca3af`, `#e5e7eb`) in both the screen preview and the print-only block, so print,
+  screen, and saved image all match.
+
+### Profile photo on the poster
+- New `PosterAvatar` component: circular profile photo above the name, with an
+  accent-colored initials-circle fallback (prints via `print-color-adjust: exact`). Added
+  to both the 400px preview and the 8.5"×11" print layout; screen preview reordered to
+  logo → photo → name → org → QR for a natural poster hierarchy.
+
+### Other fixes
+- **Private cards:** the card query forced `isPublic == true`, so owners couldn't print
+  posters for their own private cards (same gap NfcPage had — fixed 2026-08-07). Now falls
+  back to an `ownerUid` query when authenticated, then best-effort `ownerId` for legacy
+  cards (mirrors NfcPage + AGENTS.md dual-field convention).
+- **Save-as-Image hardening:** try/catch + `saving` busy state (button disabled,
+  "Saving…"), `toast.success`/`toast.error` feedback, and an unmount guard on the load effect.
+
+---
+
+## 2026-08-16 — Messaging toggle, menu reorder handles, poster mobile fit
+
+### Messaging toggle (`Card.messagingEnabled`)
+- New `messagingEnabled?: boolean` on the Card type (undefined = enabled, backward compatible).
+- Editor gains a **Messaging** section (next to Lead Capture): "Enable messaging on this card"
+  checkbox. When off, the "Send an Inquiry" box disappears from the card page.
+- `CardViewerPage` hides the messaging/lead block when `messagingEnabled === false && !leadFormEnabled`
+  (lead capture stays independent — it has its own toggle).
+- `LivePagePreview` mock inquiry box is gated the same way so the editor preview matches.
+
+### Menu category reorder (`MenuEditor.tsx`)
+- Each category tile now has a stacked ↑/↓ arrow control (left of the name) to move the
+  category up/down; arrows disable at the ends. Reordering the array reorders the card page
+  menu. Hint text updated.
+
+### Poster mobile fit (`QrPosterPage.tsx`)
+- Poster preview was fixed at 400px and ran off narrow screens. Now `w-full max-w-[400px]`
+  with `p-8 sm:p-10`; the QR SVG scales responsively (`w-full h-auto` inside a
+  `max-w-[220px]` card — verified `QRCodeSVG` forwards `className` + `viewBox`), and the
+  action-button row wraps (`flex-wrap`).
+
+---
+
 ## 2026-08-12 — Theming protocol, semantic tokens, live surface preview
 
 ### Semantic tokens + color standardization (`0387340`)

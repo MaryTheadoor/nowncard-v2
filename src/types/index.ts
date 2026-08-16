@@ -117,6 +117,7 @@ export interface Card {
   };
   featuredLinksEnabled?: boolean;
   leadFormEnabled?: boolean;
+  messagingEnabled?: boolean;
 }
 
 export interface AppointmentWeeklyHour {

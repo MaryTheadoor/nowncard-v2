@@ -71,7 +71,7 @@ The health check surfaced **four live bugs** (three Critical/one High) plus ~10 
 - **`BackgroundPositioner` gesture rotation isn't persisted** (only the slider is).
 - **`LandingPage` `querySelector(window.location.hash)` can throw** on a malformed hash → white screen. Wrap in try/catch.
 - **Rolodex "Recently Updated" sort is actually alphabetical** (`updatedAt` isn't selected).
-- **`NfcPage` / `QrPosterPage` can't load the owner's private card** (query forces `isPublic == true`). — **NfcPage fixed 2026-08-07** (owner fallback added); QrPosterPage remains.
+- **`NfcPage` / `QrPosterPage` can't load the owner's private card** (query forces `isPublic == true`). — **Both fixed** (NfcPage 2026-08-07, QrPosterPage 2026-08-16; owner fallback added).
 - **`messages` push body reads `undefined: "…"`** when `senderName` is absent.
 
 ### Data model & rules 🟡
@@ -173,7 +173,7 @@ The health check surfaced **four live bugs** (three Critical/one High) plus ~10 
 - Admin "Load More" duplicates rows while a slug search is active.
 - Dashboard swallows `applyPendingUpgrades` errors; `createDemoCard` bypasses plan limits.
 - Legacy `address` string field missing from vCard / card image / JSON-LD.
-- `cardCount` phantom field; editing a featured review un-features it; QrPosterPage can't open owner's private card (NfcPage fixed 2026-08-07).
+- `cardCount` phantom field; editing a featured review un-features it (QrPosterPage private-card loading fixed 2026-08-16).
 - Deeper perf: firebase/auth still in the entry (dynamic-import); editor re-render on keystroke; Rolodex loads 300 photos w/o lazy/pagination.
 - PWA: sw.js caches card navigations forever; manifest `start_url` is `/dashboard`; messaging SW pins Firebase v11.
 - A11y: full form-label pass across Editor/Dashboard; appointment calendar day `aria-label`s; route-loader `role=status`.

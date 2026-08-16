@@ -1,4 +1,4 @@
-import { Plus, Trash2, ImagePlus, X } from 'lucide-react';
+import { Plus, Trash2, ImagePlus, X, ChevronUp, ChevronDown } from 'lucide-react';
 import type { MenuCategory, MenuItem } from '@/types';
 
 interface MenuEditorProps {
@@ -40,6 +40,13 @@ export default function MenuEditor({ value, onChange, onUploadImage }: MenuEdito
   const removeCategory = (ci: number) => {
     onChange(menu.filter((_, i) => i !== ci));
   };
+  const moveCategory = (ci: number, dir: -1 | 1) => {
+    const ni = ci + dir;
+    if (ni < 0 || ni >= menu.length) return;
+    const next = [...menu];
+    [next[ci], next[ni]] = [next[ni], next[ci]];
+    onChange(next);
+  };
   const pickImage = async (ci: number, file: File) => {
     if (!onUploadImage) return;
     const url = await onUploadImage(file, ci);
@@ -54,6 +61,14 @@ export default function MenuEditor({ value, onChange, onUploadImage }: MenuEdito
       {menu.map((cat, ci) => (
         <div key={ci} className="bg-space border border-line rounded-xl p-4">
           <div className="flex items-center gap-2 mb-3">
+            <div className="flex flex-col flex-shrink-0">
+              <button onClick={() => moveCategory(ci, -1)} disabled={ci === 0} aria-label="Move category up" className="p-0.5 text-ink-faint hover:text-accent-text transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
+                <ChevronUp className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={() => moveCategory(ci, 1)} disabled={ci === menu.length - 1} aria-label="Move category down" className="p-0.5 text-ink-faint hover:text-accent-text transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+            </div>
             {cat.image && (
               <div className="relative flex-shrink-0">
                 <img src={cat.image} alt="" className="w-11 h-11 rounded-lg object-cover border border-line" />
@@ -119,7 +134,7 @@ export default function MenuEditor({ value, onChange, onUploadImage }: MenuEdito
       </button>
 
       <p className="text-[11px] text-ink-faint">
-        Items with a name show on your card page. Add a photo per category for a more appetizing menu.
+        Items with a name show on your card page. Add a photo per category for a more appetizing menu. Use the arrows to reorder categories.
       </p>
     </div>
   );

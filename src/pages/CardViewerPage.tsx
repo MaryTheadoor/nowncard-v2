@@ -495,6 +495,7 @@ export default function CardViewerPage() {
         </div>
 
         {/* Messaging / Lead capture */}
+        {card.messagingEnabled === false && !card.leadFormEnabled ? null : (
         <div className="w-full">
           {card.leadFormEnabled ? (
             leadSent ? (
@@ -565,6 +566,7 @@ export default function CardViewerPage() {
             </div>
           )}
         </div>
+        )}
 
         {/* Featured links (link tree) */}
         {featuredLinks.length > 0 && (

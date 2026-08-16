@@ -1146,6 +1146,19 @@ export default function EditorPage() {
             </label>
           </details>
 
+          {/* Messaging */}
+          <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
+            <summary className="text-lg font-bold mb-1 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
+              <span>Messaging</span>
+              <ChevronDown className="w-4 h-4 text-ink-faint transition-transform group-open:rotate-180" />
+            </summary>
+            <p className="text-xs text-ink-faint mb-4">Let visitors send you an inquiry directly from your card. Messages land in your Dashboard → Inquiries and notify you instantly. Turn this off to remove the inquiry box from your card page.</p>
+            <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
+              <input type="checkbox" checked={card.messagingEnabled ?? true} onChange={(e) => updateField('messagingEnabled', e.target.checked)} className="w-4 h-4 accent-accent rounded" />
+              Enable messaging on this card
+            </label>
+          </details>
+
           {/* Link List — Pro, full-width links below the card */}
           <details className="group bg-tile border border-line rounded-2xl p-6 mb-6" open>
             <summary className="text-lg font-bold mb-1 list-none cursor-pointer select-none flex items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
